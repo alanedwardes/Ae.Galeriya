@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Ae.Galeriya.Core.Entities;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
@@ -22,9 +23,16 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
         {
+            var categoryId = parameters["cat_id"].ToUInt32(null);
+            var recursive = parameters["recursive"].ToBoolean(null);
+
+            var nullableCategoryId = categoryId == 0 ? (uint?)null : categoryId;
+
             var response = new PiwigoCategories { Categories = new List<PiwigoCategory>() };
 
-            foreach (var category in await _context.Categories.Include(x => x.Photos).ToArrayAsync())
+            var allCategories = await _context.Categories.Include(x => x.Photos).Include(x => x.Categories).ToArrayAsync(token);
+
+            foreach (var category in allCategories.Where(x => recursive || x.ParentCategoryId == nullableCategoryId))
             {
                 uint firstPhoto = category.Photos.Select(x => x.PhotoId).FirstOrDefault();
 
@@ -37,6 +45,15 @@ namespace Ae.Galeriya.Piwigo.Methods
                     thumbnailId = firstPhoto;
                 }
 
+                IList<Category> upperCategories = new List<Category>();
+
+                Category parent = category;
+                while (parent != null)
+                {
+                    upperCategories.Add(parent);
+                    parent = parent.ParentCategory;
+                }
+
                 response.Categories.Add(new PiwigoCategory
                 {
                     Id = category.CategoryId,
@@ -44,15 +61,15 @@ namespace Ae.Galeriya.Piwigo.Methods
                     Comment = category.Comment,
                     Permalink = null,
                     Status = category.Status,
-                    UpperCategories = "1",
+                    UpperCategories = string.Join(',', upperCategories.Reverse().Select(x => x.CategoryId)),
                     GlobalRank = "1",
-                    UpperCategoryId = null,
-                    ImageCount = 1,
-                    TotalImageCount = 1,
+                    UpperCategoryId = category.ParentCategoryId,
+                    ImageCount = category.Photos.Count,
+                    TotalImageCount = category.Photos.Count,
                     RepresentativePictureId = firstPhoto,
                     LastImageDate = DateTimeOffset.UtcNow,
                     PageLastImageDate = DateTimeOffset.UtcNow,
-                    CategoryCount = 0,
+                    CategoryCount = category.Categories.Count,
                     Url = new Uri("https://www.example.com/"),
                     ThumbnailUrl = thumbnailUri
                 });

@@ -20,7 +20,7 @@ namespace Ae.Galeriya.Piwigo.Entities
         [JsonPropertyName("global_rank")]
         public string GlobalRank { get; set; }
         [JsonPropertyName("id_uppercat")]
-        public string UpperCategoryId { get; set; }
+        public uint? UpperCategoryId { get; set; }
         [JsonPropertyName("nb_images")]
         public int ImageCount { get; set; }
         [JsonPropertyName("total_nb_images")]
