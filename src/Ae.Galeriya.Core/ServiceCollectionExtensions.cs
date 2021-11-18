@@ -11,6 +11,7 @@ namespace Ae.Galeriya.Core
         public static IServiceCollection AddGalleriaStore(this IServiceCollection services, Action<DbContextOptionsBuilder> optionsAction)
         {
             return services.AddDbContext<GalleriaDbContext>(optionsAction)
+                .AddTransient<IMediaInfoExtractor, MediaInfoExtractor>()
                 .AddTransient<IPhotoBlobRepository, PhotoBlobRepository>()
                 .AddSingleton<ITransferUtility>(new TransferUtility(RegionEndpoint.EUWest2));
         }

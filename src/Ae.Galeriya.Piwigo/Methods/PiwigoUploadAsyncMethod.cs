@@ -1,5 +1,5 @@
 ﻿using Ae.Galeriya.Core;
-using Ae.Galeriya.Core.Entities;
+using Ae.Galeriya.Core.Tables;
 using Ae.Galeriya.Piwigo.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +17,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IUploadRepository _sessionRepository;
         private readonly IPiwigoWebServiceMethodRepository _webServiceRepository;
         private readonly IPhotoBlobRepository _photoCreator;
+        private readonly IMediaInfoExtractor _infoExtractor;
         private readonly GalleriaDbContext _dbContext;
 
         public string MethodName => "pwg.images.uploadAsync";
@@ -25,13 +26,15 @@ namespace Ae.Galeriya.Piwigo.Methods
             IUploadRepository sessionRepository,
             IPiwigoWebServiceMethodRepository webServiceRepository,
             IPhotoBlobRepository photoCreator,
+            IMediaInfoExtractor infoExtractor,
             GalleriaDbContext dbContext)
         {
             _contextAccessor = contextAccessor;
             _sessionRepository = sessionRepository;
             _webServiceRepository = webServiceRepository;
             _photoCreator = photoCreator;
-            this._dbContext = dbContext;
+            _infoExtractor = infoExtractor;
+            _dbContext = dbContext;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
@@ -49,17 +52,26 @@ namespace Ae.Galeriya.Piwigo.Methods
             var uploadedFile = await _sessionRepository.AcceptChunk(originalChecksum, chunk, chunks, file, token);
             if (uploadedFile != null)
             {
-                var result = await _photoCreator.CreatePhotoBlob(uploadedFile, token);
+                var blobId = await _photoCreator.CreatePhotoBlob(uploadedFile, token);
+
+                var mediaInfo = await _infoExtractor.ExtractInformation(uploadedFile, token);
 
                 var photo = new Photo
                 {
-                    Blob = result.BlobId,
+                    Blob = blobId,
                     FileSize = (ulong)uploadedFile.Length,
                     FileName = fileName,
                     Name = name,
                     CreatedOn = creationDate,
-                    Width = result.Width,
-                    Height = result.Height,
+                    Make = mediaInfo.Camera.Make,
+                    Model = mediaInfo.Camera.Model,
+                    Software = mediaInfo.Camera.Software,
+                    Orientation = mediaInfo.Orientation,
+                    Duration = mediaInfo.Duration,
+                    Width = (uint)mediaInfo.Size.Width,
+                    Height = (uint)mediaInfo.Size.Height,
+                    Latitude = mediaInfo.Location?.Latitude,
+                    Longitude = mediaInfo.Location?.Longitude,
                     Categories = await _dbContext.Categories.Where(x => x.CategoryId == categoryId).ToListAsync(token)
                 };
 

@@ -1,4 +1,4 @@
-﻿using Ae.Galeriya.Core.Entities;
+﻿using Ae.Galeriya.Core.Tables;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ae.Galeriya.Core

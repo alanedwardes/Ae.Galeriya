@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Ae.Galeriya.Core.Entities
+namespace Ae.Galeriya.Core.Tables
 {
-    public class User
+    public sealed class User
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

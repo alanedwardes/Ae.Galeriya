@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Ae.Galeriya.Core.Entities;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,22 +10,13 @@ using Xabe.FFmpeg;
 
 namespace Ae.Galeriya.Core
 {
-    public sealed class MediaInfo
+    public sealed class MediaInfoExtractor : IMediaInfoExtractor
     {
-        public (int Width, int Height) Size { get; set; }
-        public float Duration { get; set; }
-        public DateTimeOffset? CreationTime { get; set; }
-        public (string Make, string Model, string Software) Camera { get; set; }
-        public (float Latitude, float Longitude)? Location { get; set; }
-    }
-
-    public sealed class MediaInfoExtractor
-    {
-        private IReadOnlyList<(string, string)> GetPacketTags(JsonDocument probeResultDocument)
+        private IReadOnlyList<(string, string)> GetTags(JsonDocument probeResultDocument, string element)
         {
             var tags = new List<(string, string)>();
 
-            var packetsElement = probeResultDocument.RootElement.GetProperty("packets_and_frames");
+            var packetsElement = probeResultDocument.RootElement.GetProperty(element);
             foreach (var packet in packetsElement.EnumerateArray())
             {
                 if (packet.TryGetProperty("tags", out JsonElement packetTagsElement))
@@ -121,29 +113,43 @@ namespace Ae.Galeriya.Core
             return (coordinate.Latitude, coordinate.Longitude);
         }
 
-        public async Task<MediaInfo> Extract(FileInfo fileInfo, CancellationToken token)
+        public async Task<Entities.MediaInfo> ExtractInformation(FileInfo fileInfo, CancellationToken token)
         {
             string probeResult = await Probe.New().Start($"-print_format json -show_frames -show_streams -show_format -show_packets \"{fileInfo}\"", token);
 
             var probeResultDocument = JsonDocument.Parse(probeResult);
 
-            var packetTags = GetPacketTags(probeResultDocument);
+            var packetTags = GetTags(probeResultDocument, "packets_and_frames");
+            var streamTags = GetTags(probeResultDocument, "streams");
             var videoStreamInfo = GetVideoStreamInfo(probeResultDocument);
             var formatTags = GetFormatTags(probeResultDocument);
 
-            var tags = packetTags.Concat(formatTags).ToArray();
+            var tags = packetTags.Concat(formatTags.Concat(streamTags)).ToArray();
+
+            var orientation = MediaOrientation.Unknown;
+            if (int.TryParse(tags.Where(x => x.Item1 == "Orientation").Select(x => x.Item2).FirstOrDefault() ?? "0", out int orientationNumber))
+            {
+                orientation = (MediaOrientation)orientationNumber;
+            }
 
             var make = GetCamera(tags);
             var location = GetLocation(tags);
 
-            return new MediaInfo
+            return new Entities.MediaInfo
             {
                 Duration = videoStreamInfo.Duration.Value,
                 CreationTime = DateTimeOffset.UtcNow,
                 Size = videoStreamInfo.Size,
+                Orientation = orientation,
                 Camera = make,
                 Location = location
             };
+        }
+
+        public async Task ExtractSnapshot(FileInfo input, FileInfo output, CancellationToken token)
+        {
+            var conversion = await FFmpeg.Conversions.FromSnippet.Snapshot(input.FullName, output.FullName, TimeSpan.Zero);
+            await conversion.Start(token);
         }
     }
 }

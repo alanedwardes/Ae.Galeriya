@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Ae.Galeriya.Core.Entities
+namespace Ae.Galeriya.Core.Tables
 {
     public sealed class Category
     {

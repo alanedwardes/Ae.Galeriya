@@ -1,4 +1,4 @@
-﻿using Ae.Galeriya.Core.Entities;
+﻿using Ae.Galeriya.Core.Tables;
 using System;
 using System.IO;
 using System.Threading;
@@ -8,7 +8,7 @@ namespace Ae.Galeriya.Core
 {
     public interface IPhotoBlobRepository
     {
-        Task<(Guid BlobId, uint Width, uint Height)> CreatePhotoBlob(FileInfo photoPath, CancellationToken token);
+        Task<Guid> CreatePhotoBlob(FileInfo photoPath, CancellationToken token);
         Task<Stream> GetPhotoBlob(Photo photo, CancellationToken token);
     }
 }

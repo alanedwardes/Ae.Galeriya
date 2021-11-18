@@ -1,4 +1,4 @@
-﻿using Ae.Galeriya.Core.Entities;
+﻿using Ae.Galeriya.Core.Tables;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using System;
@@ -32,7 +32,7 @@ namespace Ae.Galeriya.Core
             return response.ResponseStream;
         }
 
-        public async Task<(Guid BlobId, uint Width, uint Height)> CreatePhotoBlob(FileInfo photoPath, CancellationToken token)
+        public async Task<Guid> CreatePhotoBlob(FileInfo photoPath, CancellationToken token)
         {
             var blobId = Guid.NewGuid();
 
@@ -43,13 +43,7 @@ namespace Ae.Galeriya.Core
                 Key = blobId.ToString()
             }, token);
 
-            FFmpeg.SetExecutablesPath(@"C:\Users\alan\Downloads\ffmpeg-4.3.1-2020-11-19-full_build\bin");
-
-            var mediaInfo = await FFmpeg.GetMediaInfo(photoPath.FullName);
-
-            var videoStream = mediaInfo.VideoStreams.First();
-
-            return (blobId, (uint)videoStream.Width, (uint)videoStream.Height);
+            return blobId;
         }
     }
 }

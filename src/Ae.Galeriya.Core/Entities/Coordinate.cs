@@ -9,7 +9,7 @@ using System.Xml.Serialization;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace Ae.Galeriya.Core
+namespace Ae.Galeriya.Core.Entities
 {
     [Serializable()]
     internal class Coordinate : ICloneable, IXmlSerializable, IFormattable
