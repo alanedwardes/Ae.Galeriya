@@ -3,28 +3,26 @@ using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Xabe.FFmpeg;
 
 namespace Ae.Galeriya.Core
 {
-    public sealed class PhotoBlobRepository : IPhotoBlobRepository
+    public sealed class BlobRepository : IBlobRepository
     {
         private readonly ITransferUtility _transferUtility;
 
-        public PhotoBlobRepository(ITransferUtility transferUtility)
+        public BlobRepository(ITransferUtility transferUtility)
         {
             _transferUtility = transferUtility;
         }
 
-        public async Task<Stream> GetPhotoBlob(Photo photo, CancellationToken token)
+        public async Task<Stream> GetBlob(Photo photo, bool snapshot, CancellationToken token)
         {
             var request = new GetObjectRequest
             {
                 BucketName = "ae-piwigo-test",
-                Key = photo.Blob.ToString()
+                Key = (snapshot ? (photo.SnapshotBlob ?? photo.Blob) : photo.Blob).ToString()
             };
 
             var response = await _transferUtility.S3Client.GetObjectAsync(request, token);
@@ -32,7 +30,7 @@ namespace Ae.Galeriya.Core
             return response.ResponseStream;
         }
 
-        public async Task<Guid> CreatePhotoBlob(FileInfo photoPath, CancellationToken token)
+        public async Task<Guid> PutBlob(FileInfo photoPath, CancellationToken token)
         {
             var blobId = Guid.NewGuid();
 

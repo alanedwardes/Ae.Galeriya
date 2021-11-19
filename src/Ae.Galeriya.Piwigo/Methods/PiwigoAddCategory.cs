@@ -30,7 +30,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                 parentCategory = await _context.Categories.SingleAsync(x => x.CategoryId == parentId, token);
             }
 
-            _context.Categories.Add(new Category
+            var category = new Category
             {
                 Name = parameters["name"].ToString(null),
                 ParentCategory = parentCategory,
@@ -38,9 +38,15 @@ namespace Ae.Galeriya.Piwigo.Methods
                 //Visible = parameters["visible"].ToBoolean(null),
                 Status = parameters["status"].ToString(null),
                 //Commentable = parameters["commentable"].ToBoolean(null)
-            });
+            };
+
+            _context.Categories.Add(category);
             await _context.SaveChangesAsync(token);
-            return Task.FromResult<object>(true);
+            return new PiwigoAddedCategoryResponse
+            {
+                Info = "Album added",
+                Id = category.CategoryId
+            };
         }
     }
 }

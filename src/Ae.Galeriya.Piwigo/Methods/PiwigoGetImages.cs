@@ -1,6 +1,5 @@
 ﻿using Ae.Galeriya.Piwigo.Entities;
 using Ae.Galeriya.Core;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -13,12 +12,14 @@ namespace Ae.Galeriya.Piwigo.Methods
     internal sealed class PiwigoGetImages : IPiwigoWebServiceMethod
     {
         private readonly GalleriaDbContext _context;
+        private readonly IPiwigoWebServiceMethodRepository _methodRepository;
 
         public string MethodName => "pwg.categories.getImages";
 
-        public PiwigoGetImages(GalleriaDbContext context)
+        public PiwigoGetImages(GalleriaDbContext context, IPiwigoWebServiceMethodRepository methodRepository)
         {
             _context = context;
+            _methodRepository = methodRepository;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
@@ -58,7 +59,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                     CreatedOn = photo.CreatedOn,
                     AvailableOn = photo.CreatedOn,
                     PageUrl = new Uri("http://www.example.com/"),
-                    ElementUrl = new Uri("http://www.example.com/"),
+                    ElementUrl = new Uri($"http://192.168.178.21:5000/blobs/{photo.PhotoId}{photo.Extension}", UriKind.Absolute),
                     Derivatives = new PiwigoImageDerivatives(photo.PhotoId),
                     Categories = photo.Categories.Select(x => new PiwigoCategorySummary
                     {

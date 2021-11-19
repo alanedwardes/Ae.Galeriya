@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
@@ -24,6 +25,7 @@ namespace Ae.Galeriya.Piwigo
                 })
                 .ConfigureServices(x =>
                 {
+                    x.AddMvc();
                     x.AddPiwigo();
                 });
 

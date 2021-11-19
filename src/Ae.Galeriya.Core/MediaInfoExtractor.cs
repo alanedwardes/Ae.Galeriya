@@ -43,7 +43,11 @@ namespace Ae.Galeriya.Core
                 if (codecType == "video")
                 {
                     size = (stream.GetProperty("width").GetInt32(), stream.GetProperty("height").GetInt32());
-                    duration = float.Parse(stream.GetProperty("duration").GetString());
+
+                    if (stream.TryGetProperty("duration", out var durationElement))
+                    {
+                        duration = float.Parse(durationElement.GetString());
+                    }
                 }
             }
 
@@ -80,7 +84,7 @@ namespace Ae.Galeriya.Core
             return (make, model, software);
         }
 
-        private (float Latitude, float Longitude) GetLocation(IEnumerable<(string, string)> tags)
+        private (float Latitude, float Longitude)? GetLocation(IEnumerable<(string, string)> tags)
         {
             var latitude = tags.Where(x => x.Item1 == "GPSLatitude").Select(x => x.Item2).FirstOrDefault();
             var latitudeRef = tags.Where(x => x.Item1 == "GPSLatitudeRef").Select(x => x.Item2).FirstOrDefault();
@@ -94,6 +98,11 @@ namespace Ae.Galeriya.Core
             {
                 coordinate.ParseIsoString(iso6709);
                 return (coordinate.Latitude, coordinate.Longitude);
+            }
+
+            if (string.IsNullOrWhiteSpace(latitude) || string.IsNullOrWhiteSpace(longitude))
+            {
+                return null;
             }
 
             static float[] ParseLatLongValue(string value)
@@ -137,7 +146,7 @@ namespace Ae.Galeriya.Core
 
             return new Entities.MediaInfo
             {
-                Duration = videoStreamInfo.Duration.Value,
+                Duration = videoStreamInfo.Duration,
                 CreationTime = DateTimeOffset.UtcNow,
                 Size = videoStreamInfo.Size,
                 Orientation = orientation,

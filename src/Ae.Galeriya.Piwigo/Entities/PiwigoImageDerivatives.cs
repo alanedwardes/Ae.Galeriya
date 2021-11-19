@@ -69,7 +69,7 @@ namespace Ae.Galeriya.Piwigo.Entities
 
         public Uri CreateThumbnailUri(uint imageId, int width, int height, string type)
         {
-            return new Uri($"/ws.php?method=pwg.images.getThumbnail&image_id={imageId}&width={width}&height={height}&type={type}", UriKind.Relative);
+            return new Uri($"http://192.168.178.21:5000/ws.php?method=pwg.images.getThumbnail&image_id={imageId}&width={width}&height={height}&type={type}", UriKind.Absolute);
         }
 
         [JsonPropertyName("square")]

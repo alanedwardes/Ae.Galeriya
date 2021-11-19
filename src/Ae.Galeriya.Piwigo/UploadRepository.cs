@@ -11,13 +11,15 @@ namespace Ae.Galeriya.Piwigo
     {
         private readonly DirectoryInfo _tempDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "piwigo"));
 
+        public FileInfo CreateTempFile(string name) => new FileInfo(Path.Combine(_tempDirectory.FullName, name));
+
         public async Task<FileInfo> AcceptChunk(string checksum, int chunk, int totalChunks, IFormFile file, CancellationToken token)
         {
             _tempDirectory.Create();
 
             FileInfo ChunkFileInfo(int chunk)
             {
-                return new FileInfo(Path.Combine(_tempDirectory.FullName, checksum + "-" + chunk));
+                return CreateTempFile(checksum + "-" + chunk);
             }
 
             var chunkFile = ChunkFileInfo(chunk);
@@ -41,11 +43,6 @@ namespace Ae.Galeriya.Piwigo
                         using var stream = part.OpenRead();
                         await stream.CopyToAsync(fileWriteStream, token);
                     }
-                }
-
-                foreach (var part in parts)
-                {
-                    part.Delete();
                 }
 
                 return uploadFile;

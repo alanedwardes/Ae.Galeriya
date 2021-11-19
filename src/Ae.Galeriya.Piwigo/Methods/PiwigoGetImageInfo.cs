@@ -1,6 +1,5 @@
 ﻿using Ae.Galeriya.Piwigo.Entities;
 using Ae.Galeriya.Core;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -52,7 +51,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                     Url = new Uri("/wibble1", UriKind.Relative)
                 }).ToArray(),
                 PageUrl = new Uri("/wibble1", UriKind.Relative),
-                ElementUrl = new Uri("/wibble2", UriKind.Relative)
+                ElementUrl = new Uri($"http://192.168.178.21:5000/blobs/{photo.PhotoId}{photo.Extension}", UriKind.Absolute),
             };
         }
     }

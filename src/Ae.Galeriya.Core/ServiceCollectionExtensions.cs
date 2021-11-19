@@ -12,7 +12,7 @@ namespace Ae.Galeriya.Core
         {
             return services.AddDbContext<GalleriaDbContext>(optionsAction)
                 .AddTransient<IMediaInfoExtractor, MediaInfoExtractor>()
-                .AddTransient<IPhotoBlobRepository, PhotoBlobRepository>()
+                .AddTransient<IBlobRepository, BlobRepository>()
                 .AddSingleton<ITransferUtility>(new TransferUtility(RegionEndpoint.EUWest2));
         }
     }
