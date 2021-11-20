@@ -26,7 +26,11 @@ namespace Ae.Galeriya.Piwigo
                 .ConfigureServices(x =>
                 {
                     x.AddMvc();
-                    x.AddPiwigo();
+                    x.AddPiwigo(new PiwigoConfiguration
+                    {
+                        BucketName = "ae-piwigo-test",
+                        BaseAddress = new Uri("http://192.168.178.21:5000")
+                    });
                 });
 
             await builder.Build().RunAsync(token);

@@ -14,18 +14,20 @@ namespace Ae.Galeriya.Core
     {
         private readonly ILogger<BlobRepository> _logger;
         private readonly ITransferUtility _transferUtility;
+        private readonly IGaleriyaConfiguration _configuration;
 
-        public BlobRepository(ILogger<BlobRepository> logger, ITransferUtility transferUtility)
+        public BlobRepository(ILogger<BlobRepository> logger, ITransferUtility transferUtility, IGaleriyaConfiguration configuration)
         {
             _logger = logger;
             _transferUtility = transferUtility;
+            _configuration = configuration;
         }
 
         public async Task<Stream> GetBlob(Photo photo, bool snapshot, CancellationToken token)
         {
             var request = new GetObjectRequest
             {
-                BucketName = "ae-piwigo-test",
+                BucketName = _configuration.BucketName,
                 Key = (snapshot ? (photo.SnapshotBlob ?? photo.Blob) : photo.Blob).ToString()
             };
 
@@ -43,7 +45,7 @@ namespace Ae.Galeriya.Core
             await _transferUtility.UploadAsync(new TransferUtilityUploadRequest
             {
                 FilePath = photoPath.FullName,
-                BucketName = "ae-piwigo-test",
+                BucketName = _configuration.BucketName,
                 Key = blobId.ToString()
             }, token);
 

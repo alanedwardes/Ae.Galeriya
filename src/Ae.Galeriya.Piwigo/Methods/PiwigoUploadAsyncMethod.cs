@@ -12,7 +12,6 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using Xabe.FFmpeg.Exceptions;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {

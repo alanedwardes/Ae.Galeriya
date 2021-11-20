@@ -9,67 +9,67 @@ namespace Ae.Galeriya.Piwigo.Entities
         {
         }
 
-        public PiwigoImageDerivatives(uint imageId)
+        public PiwigoImageDerivatives(uint imageId, Uri baseAddress)
         {
             Square = new PiwigoThumbnail
             {
                 Width = 120,
                 Height = 120,
-                Url = CreateThumbnailUri(imageId, 120, 120, "square")
+                Url = CreateThumbnailUri(imageId, baseAddress, 120, 120, "square")
             };
             Thumb = new PiwigoThumbnail
             {
                 Width = 144,
                 Height = 144,
-                Url = CreateThumbnailUri(imageId, 144, 144, "square")
+                Url = CreateThumbnailUri(imageId, baseAddress, 144, 144, "square")
             };
             Smallest = new PiwigoThumbnail
             {
                 Width = 240,
                 Height = 240,
-                Url = CreateThumbnailUri(imageId, 240, 240, "square")
+                Url = CreateThumbnailUri(imageId, baseAddress, 240, 240, "square")
             };
             ExtraSmall = new PiwigoThumbnail
             {
                 Width = 432,
                 Height = 324,
-                Url = CreateThumbnailUri(imageId, 432, 324, "square")
+                Url = CreateThumbnailUri(imageId, baseAddress, 432, 324, "square")
             };
             Small = new PiwigoThumbnail
             {
                 Width = 576,
                 Height = 432,
-                Url = CreateThumbnailUri(imageId, 576, 432, "square")
+                Url = CreateThumbnailUri(imageId, baseAddress, 576, 432, "square")
             };
             Medium = new PiwigoThumbnail
             {
                 Width = 792,
                 Height = 594,
-                Url = CreateThumbnailUri(imageId, 792, 594, "square")
+                Url = CreateThumbnailUri(imageId, baseAddress, 792, 594, "square")
             };
             Large = new PiwigoThumbnail
             {
                 Width = 1008,
                 Height = 756,
-                Url = CreateThumbnailUri(imageId, 1008, 756, "square")
+                Url = CreateThumbnailUri(imageId, baseAddress, 1008, 756, "square")
             };
             ExtraLarge = new PiwigoThumbnail
             {
                 Width = 1224,
                 Height = 918,
-                Url = CreateThumbnailUri(imageId, 1224, 918, "square")
+                Url = CreateThumbnailUri(imageId, baseAddress, 1224, 918, "square")
             };
             Largest = new PiwigoThumbnail
             {
                 Width = 1656,
                 Height = 1242,
-                Url = CreateThumbnailUri(imageId, 1656, 1242, "square")
+                Url = CreateThumbnailUri(imageId, baseAddress, 1656, 1242, "square")
             };
         }
 
-        public Uri CreateThumbnailUri(uint imageId, int width, int height, string type)
+        public Uri CreateThumbnailUri(uint imageId, Uri baseAddress, int width, int height, string type)
         {
-            return new Uri($"http://192.168.178.21:5000/ws.php?method=pwg.images.getThumbnail&image_id={imageId}&width={width}&height={height}&type={type}", UriKind.Absolute);
+            return new Uri(baseAddress, $"/ws.php?method=pwg.images.getThumbnail&image_id={imageId}&width={width}&height={height}&type={type}");
         }
 
         [JsonPropertyName("square")]

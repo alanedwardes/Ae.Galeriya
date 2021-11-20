@@ -12,12 +12,14 @@ namespace Ae.Galeriya.Piwigo.Methods
     internal sealed class PiwigoGetImageInfo : IPiwigoWebServiceMethod
     {
         private readonly GalleriaDbContext _dbContext;
+        private readonly IPiwigoConfiguration _configuration;
 
         public string MethodName => "pwg.images.getInfo";
 
-        public PiwigoGetImageInfo(GalleriaDbContext dbContext)
+        public PiwigoGetImageInfo(GalleriaDbContext dbContext, IPiwigoConfiguration configuration)
         {
             _dbContext = dbContext;
+            _configuration = configuration;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
@@ -30,7 +32,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             return new PiwigoImage
             {
                 Id = photo.PhotoId,
-                Derivatives = new PiwigoImageDerivatives(photo.PhotoId),
+                Derivatives = new PiwigoImageDerivatives(photo.PhotoId, _configuration.BaseAddress),
                 FileSize = photo.FileSize,
                 AvailableOn = photo.CreatedOn,
                 LastModified = photo.UpdatedOn,
@@ -51,7 +53,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                     Url = new Uri("/wibble1", UriKind.Relative)
                 }).ToArray(),
                 PageUrl = new Uri("/wibble1", UriKind.Relative),
-                ElementUrl = new Uri($"http://192.168.178.21:5000/blobs/{photo.PhotoId}{photo.Extension}", UriKind.Absolute),
+                ElementUrl = new Uri(_configuration.BaseAddress, $"/blobs/{photo.PhotoId}{photo.Extension}"),
             };
         }
     }

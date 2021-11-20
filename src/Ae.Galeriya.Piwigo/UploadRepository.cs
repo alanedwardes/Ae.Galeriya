@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -12,18 +11,22 @@ namespace Ae.Galeriya.Piwigo
 {
     internal sealed class UploadRepository : IUploadRepository
     {
+        public UploadRepository(IPiwigoConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
         private readonly IDictionary<(string, int), FileInfo> _uploadedChunks = new ConcurrentDictionary<(string, int), FileInfo>();
 
+        private readonly IPiwigoConfiguration _configuration;
 
-        private readonly DirectoryInfo _tempDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "piwigo"));
-
-        public FileInfo CreateTempFile(string name) => new FileInfo(Path.Combine(_tempDirectory.FullName, name));
+        public FileInfo CreateTempFile(string name) => new FileInfo(Path.Combine(_configuration.TempFolder.FullName, name));
 
         private (string, int) ChunkKey(string checksum, int chunk) => (checksum, chunk);
 
         public async Task<FileInfo> AcceptChunk(string checksum, int chunk, int totalChunks, IFormFile file, CancellationToken token)
         {
-            _tempDirectory.Create();
+            _configuration.TempFolder.Create();
 
             FileInfo ChunkFileInfo(int chunk)
             {

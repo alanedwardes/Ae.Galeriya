@@ -13,12 +13,14 @@ namespace Ae.Galeriya.Piwigo.Methods
     internal sealed class PiwigoGetCategoryList : IPiwigoWebServiceMethod
     {
         private readonly GalleriaDbContext _context;
+        private readonly IPiwigoConfiguration _configuration;
 
         public string MethodName => "pwg.categories.getList";
 
-        public PiwigoGetCategoryList(GalleriaDbContext context)
+        public PiwigoGetCategoryList(GalleriaDbContext context, IPiwigoConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
@@ -40,7 +42,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                 Uri thumbnailUri = null;
                 if (firstPhoto > 0)
                 {
-                    var thumb = new PiwigoImageDerivatives(firstPhoto);
+                    var thumb = new PiwigoImageDerivatives(firstPhoto, _configuration.BaseAddress);
                     thumbnailUri = thumb.Thumb.Url;
                     thumbnailId = firstPhoto;
                 }

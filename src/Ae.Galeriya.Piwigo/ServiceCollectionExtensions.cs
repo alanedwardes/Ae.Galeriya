@@ -8,7 +8,7 @@ namespace Ae.Galeriya.Piwigo
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddPiwigo(this IServiceCollection services)
+        public static IServiceCollection AddPiwigo(this IServiceCollection services, IPiwigoConfiguration configuration)
         {
             foreach (var type in typeof(ServiceCollectionExtensions).Assembly.GetTypes().Where(x => x.IsClass && x.GetInterfaces().Contains(typeof(IPiwigoWebServiceMethod))))
             {
@@ -16,6 +16,8 @@ namespace Ae.Galeriya.Piwigo
             }
 
             return services.AddScoped<IHttpContextAccessor, HttpContextAccessor>()
+                .AddSingleton(configuration)
+                .AddSingleton((IGaleriyaConfiguration)configuration)
                 .AddGalleriaStore(x => x.UseSqlite("Data Source=test.sqlite"))
                 .AddScoped<IPiwigoWebServiceMethodRepository, PiwigoWebServiceMethodRepository>()
                 .AddSingleton<IUploadRepository, UploadRepository>();
