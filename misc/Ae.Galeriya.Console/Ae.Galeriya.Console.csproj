@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Xabe.FFmpeg.Downloader" Version="5.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Ae.Galeriya.Piwigo\Ae.Galeriya.Piwigo.csproj" />
   </ItemGroup>
 

@@ -101,12 +101,18 @@ namespace Ae.Galeriya.Piwigo.Methods
                 var snapshotId = await snapshotIdTask;
                 var hash = await hashTask;
 
+                var fileExtension = Path.GetExtension(fileName)?.ToLower().TrimStart('.');
+                if (string.IsNullOrWhiteSpace(fileExtension))
+                {
+                    throw new InvalidOperationException("No file extension found");
+                }
+
                 var photo = new Photo
                 {
                     Blob = blobId,
                     SnapshotBlob = snapshotId,
                     FileSize = (ulong)uploadedFile.Length,
-                    Extension = Path.GetExtension(fileName),
+                    Extension = fileExtension,
                     FileName = fileName,
                     Hash = hash,
                     Name = name,

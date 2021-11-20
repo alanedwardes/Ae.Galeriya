@@ -63,7 +63,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                     CreatedOn = photo.CreatedOn,
                     AvailableOn = photo.CreatedOn,
                     PageUrl = new Uri("http://www.example.com/"),
-                    ElementUrl = new Uri(_configuration.BaseAddress, $"/blobs/{photo.PhotoId}{photo.Extension}"),
+                    ElementUrl = new Uri(_configuration.BaseAddress, $"/blobs/{photo.PhotoId}.{photo.Extension}"),
                     Derivatives = new PiwigoImageDerivatives(photo.PhotoId, _configuration.BaseAddress),
                     Categories = photo.Categories.Select(x => new PiwigoCategorySummary
                     {

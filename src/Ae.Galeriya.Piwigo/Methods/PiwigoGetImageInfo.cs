@@ -53,7 +53,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                     Url = new Uri("/wibble1", UriKind.Relative)
                 }).ToArray(),
                 PageUrl = new Uri("/wibble1", UriKind.Relative),
-                ElementUrl = new Uri(_configuration.BaseAddress, $"/blobs/{photo.PhotoId}{photo.Extension}"),
+                ElementUrl = new Uri(_configuration.BaseAddress, $"/blobs/{photo.PhotoId}.{photo.Extension}"),
             };
         }
     }
