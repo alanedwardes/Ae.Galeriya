@@ -13,14 +13,17 @@ namespace Ae.Galeriya.Piwigo.Methods
     {
         private readonly GalleriaDbContext _context;
         private readonly IPiwigoConfiguration _configuration;
+        private readonly IPiwigoImageDerivativesGenerator _derivativesGenerator;
 
         public string MethodName => "pwg.categories.getImages";
 
         public PiwigoGetImages(GalleriaDbContext context,
-            IPiwigoConfiguration configuration)
+            IPiwigoConfiguration configuration,
+            IPiwigoImageDerivativesGenerator derivativesGenerator)
         {
             _context = context;
             _configuration = configuration;
+            _derivativesGenerator = derivativesGenerator;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
@@ -61,7 +64,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                     AvailableOn = photo.CreatedOn,
                     PageUrl = new Uri("http://www.example.com/"),
                     ElementUrl = new Uri(_configuration.BaseAddress, $"/blobs/{photo.PhotoId}.{photo.Extension}"),
-                    Derivatives = new PiwigoImageDerivatives(photo.PhotoId, _configuration.BaseAddress),
+                    Derivatives = _derivativesGenerator.GenerateDerivatives(photo.PhotoId),
                     Categories = photo.Categories.Select(x => new PiwigoCategorySummary
                     {
                         Id = x.CategoryId,

@@ -6,13 +6,13 @@ namespace Ae.Galeriya.Piwigo.Entities
     internal sealed class PiwigoCategory
     {
         [JsonPropertyName("id")]
-        public uint Id { get; set; }
+        public uint CategoryId { get; set; }
         [JsonPropertyName("name")]
         public string Name { get; set; }
         [JsonPropertyName("comment")]
         public string Comment { get; set; }
         [JsonPropertyName("permalink")]
-        public string Permalink { get; set; }
+        public Uri Permalink { get; set; }
         [JsonPropertyName("status")]
         public string Status { get; set; }
         [JsonPropertyName("uppercats")]

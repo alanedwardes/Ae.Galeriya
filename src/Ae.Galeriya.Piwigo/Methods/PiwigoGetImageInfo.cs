@@ -13,13 +13,15 @@ namespace Ae.Galeriya.Piwigo.Methods
     {
         private readonly GalleriaDbContext _dbContext;
         private readonly IPiwigoConfiguration _configuration;
+        private readonly IPiwigoImageDerivativesGenerator _derivativesGenerator;
 
         public string MethodName => "pwg.images.getInfo";
 
-        public PiwigoGetImageInfo(GalleriaDbContext dbContext, IPiwigoConfiguration configuration)
+        public PiwigoGetImageInfo(GalleriaDbContext dbContext, IPiwigoConfiguration configuration, IPiwigoImageDerivativesGenerator derivativesGenerator)
         {
             _dbContext = dbContext;
             _configuration = configuration;
+            _derivativesGenerator = derivativesGenerator;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
@@ -32,7 +34,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             return new PiwigoImage
             {
                 Id = photo.PhotoId,
-                Derivatives = new PiwigoImageDerivatives(photo.PhotoId, _configuration.BaseAddress),
+                Derivatives = _derivativesGenerator.GenerateDerivatives(photo.PhotoId),
                 FileSize = photo.FileSize,
                 AvailableOn = photo.CreatedOn,
                 LastModified = photo.UpdatedOn,
@@ -42,13 +44,12 @@ namespace Ae.Galeriya.Piwigo.Methods
                 Name = photo.Name,
                 Width = photo.Width,
                 Height = photo.Height,
-                Categories = photo.Categories.Select(x => new PiwigoCategorySlim
+                Categories = photo.Categories.Select(x => new PiwigoCategory
                 {
                     CategoryId = x.CategoryId,
                     Name = x.Name,
                     GlobalRank = "1",
                     Permalink = new Uri("/wibble1", UriKind.Relative),
-                    PageUrl = new Uri("/wibble1", UriKind.Relative),
                     UpperCategories = x.CategoryId.ToString(),
                     Url = new Uri("/wibble1", UriKind.Relative)
                 }).ToArray(),

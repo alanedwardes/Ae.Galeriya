@@ -55,59 +55,8 @@ namespace Ae.Galeriya.Piwigo.Entities
         [JsonPropertyName("element_url")]
         public Uri ElementUrl { get; set; }
         [JsonPropertyName("derivatives")]
-        public PiwigoImageDerivatives Derivatives { get; set; }
-
-        //[JsonPropertyName("rates")]
-        //public IDictionary<string, object> Rates { get; set; } = new Dictionary<string, object>
-        //{
-        //    { "score", null },
-        //    { "count", 0 },
-        //    { "average", null }
-        //};
+        public IReadOnlyDictionary<string, PiwigoThumbnail> Derivatives { get; set; }
         [JsonPropertyName("categories")]
-        public ICollection<PiwigoCategorySlim> Categories { get; set; }
-        //public IDictionary<string, object>[] Categories { get; set; } = new[]
-        //{
-        //    new Dictionary<string, object>
-        //    {
-        //        { "id", 1 },
-        //        { "name", "Test" },
-        //        { "permalink", null },
-        //        { "uppercats", "1" },
-        //        { "global_rank", "1" },
-        //        { "url", new Uri("/wibble3", UriKind.Relative) },
-        //        { "page_url", new Uri("/wibble3", UriKind.Relative) }
-        //    }
-        //};
-        //[JsonPropertyName("tags")]
-        //public object[] Tags { get; set; } = Array.Empty<object>();
-        //[JsonPropertyName("comments_paging")]
-        //public IDictionary<string, object> CommentsPaging { get; set; } = new Dictionary<string, object>
-        //{
-        //    { "page", 0 },
-        //    { "per_page", "10" },
-        //    { "count", 0 },
-        //    { "total_count", 0 }
-        //};
-        //[JsonPropertyName("comments")]
-        //public object[] Comments { get; set; } = Array.Empty<object>();
-    }
-
-    internal sealed class PiwigoCategorySlim
-    {
-        [JsonPropertyName("id")]
-        public uint CategoryId { get; set; }
-        [JsonPropertyName("name")]
-        public string Name { get; set; }
-        [JsonPropertyName("permalink")]
-        public Uri Permalink { get; set; }
-        [JsonPropertyName("uppercats")]
-        public string UpperCategories { get; set; }
-        [JsonPropertyName("global_rank")]
-        public string GlobalRank { get; set; }
-        [JsonPropertyName("url")]
-        public Uri Url { get; set; }
-        [JsonPropertyName("page_url")]
-        public Uri PageUrl { get; set; }
+        public ICollection<PiwigoCategory> Categories { get; set; }
     }
 }

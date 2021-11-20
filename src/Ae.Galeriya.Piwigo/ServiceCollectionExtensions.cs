@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using Ae.Galeriya.Core;
 using Microsoft.EntityFrameworkCore;
+using Ae.Galeriya.Piwigo.Entities;
 
 namespace Ae.Galeriya.Piwigo
 {
@@ -20,6 +21,7 @@ namespace Ae.Galeriya.Piwigo
                 .AddSingleton((IGaleriyaConfiguration)configuration)
                 .AddGalleriaStore(x => x.UseSqlite("Data Source=test.sqlite"))
                 .AddScoped<IPiwigoWebServiceMethodRepository, PiwigoWebServiceMethodRepository>()
+                .AddSingleton<IPiwigoImageDerivativesGenerator, PiwigoImageDerivativesGenerator>()
                 .AddSingleton<IUploadRepository, UploadRepository>();
         }
     }

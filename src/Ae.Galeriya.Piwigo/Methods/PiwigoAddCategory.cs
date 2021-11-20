@@ -34,10 +34,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             {
                 Name = parameters["name"].ToString(null),
                 ParentCategory = parentCategory,
-                Comment = parameters["comment"].ToString(null),
-                //Visible = parameters["visible"].ToBoolean(null),
-                Status = parameters["status"].ToString(null),
-                //Commentable = parameters["commentable"].ToBoolean(null)
+                Comment = parameters["comment"].ToString(null)
             };
 
             _context.Categories.Add(category);

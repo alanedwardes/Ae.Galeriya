@@ -14,25 +14,28 @@ namespace Ae.Galeriya.Piwigo.Methods
     {
         private readonly GalleriaDbContext _context;
         private readonly IPiwigoConfiguration _configuration;
+        private readonly IPiwigoImageDerivativesGenerator _derivativesGenerator;
 
         public string MethodName => "pwg.categories.getList";
 
-        public PiwigoGetCategoryList(GalleriaDbContext context, IPiwigoConfiguration configuration)
+        public PiwigoGetCategoryList(GalleriaDbContext context, IPiwigoConfiguration configuration, IPiwigoImageDerivativesGenerator derivativesGenerator)
         {
             _context = context;
             _configuration = configuration;
+            _derivativesGenerator = derivativesGenerator;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
         {
             var categoryId = parameters["cat_id"].ToUInt32(null);
             var recursive = parameters["recursive"].ToBoolean(null);
+            var thumbnailSize = parameters["thumbnail_size"].ToString(null);
 
             var nullableCategoryId = categoryId == 0 ? (uint?)null : categoryId;
 
             var response = new PiwigoCategories { Categories = new List<PiwigoCategory>() };
 
-            var allCategories = await _context.Categories.Include(x => x.Photos).Include(x => x.Categories).ToArrayAsync(token);
+            var allCategories = await _context.Categories.Include(x => x.Photos).Include(x => x.Categories).AsSplitQuery().ToArrayAsync(token);
 
             foreach (var category in allCategories.Where(x => recursive || x.ParentCategoryId == nullableCategoryId))
             {
@@ -42,8 +45,8 @@ namespace Ae.Galeriya.Piwigo.Methods
                 Uri thumbnailUri = null;
                 if (firstPhoto > 0)
                 {
-                    var thumb = new PiwigoImageDerivatives(firstPhoto, _configuration.BaseAddress);
-                    thumbnailUri = thumb.Thumb.Url;
+                    var thumb = _derivativesGenerator.GenerateDerivatives(firstPhoto);
+                    thumbnailUri = thumb[thumbnailSize].Url;
                     thumbnailId = firstPhoto;
                 }
 
@@ -58,11 +61,10 @@ namespace Ae.Galeriya.Piwigo.Methods
 
                 response.Categories.Add(new PiwigoCategory
                 {
-                    Id = category.CategoryId,
+                    CategoryId = category.CategoryId,
                     Name = category.Name,
                     Comment = category.Comment,
                     Permalink = null,
-                    Status = category.Status,
                     UpperCategories = string.Join(',', upperCategories.Reverse().Select(x => x.CategoryId)),
                     GlobalRank = "1",
                     UpperCategoryId = category.ParentCategoryId,

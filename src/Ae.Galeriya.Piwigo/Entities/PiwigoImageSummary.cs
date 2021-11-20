@@ -29,7 +29,7 @@ namespace Ae.Galeriya.Piwigo.Entities
         [JsonPropertyName("element_url")]
         public Uri ElementUrl { get; set; }
         [JsonPropertyName("derivatives")]
-        public PiwigoImageDerivatives Derivatives { get; set; }
+        public IReadOnlyDictionary<string, PiwigoThumbnail> Derivatives { get; set; }
         [JsonPropertyName("category")]
         public IEnumerable<PiwigoCategorySummary> Categories { get; set; }
     }
