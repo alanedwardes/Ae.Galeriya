@@ -1,5 +1,4 @@
-﻿using Ae.Galeriya.Core.Tables;
-using Amazon.S3.Model;
+﻿using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Microsoft.Extensions.Logging;
 using System;
@@ -16,22 +15,54 @@ namespace Ae.Galeriya.Core
         private readonly ITransferUtility _transferUtility;
         private readonly IGaleriyaConfiguration _configuration;
 
-        public BlobRepository(ILogger<BlobRepository> logger, ITransferUtility transferUtility, IGaleriyaConfiguration configuration)
+        public BlobRepository(ILogger<BlobRepository> logger,
+            ITransferUtility transferUtility,
+            IGaleriyaConfiguration configuration)
         {
             _logger = logger;
             _transferUtility = transferUtility;
             _configuration = configuration;
         }
 
-        public async Task<Stream> GetBlob(Photo photo, bool snapshot, CancellationToken token)
+        private FileInfo GetCacheFileBlob(string key)
         {
+            if (_configuration.BucketCache == null)
+            {
+                return null;
+            }
+
+            return new FileInfo(Path.Combine(_configuration.BucketCache.FullName, key));
+        }
+
+        public async Task<Stream> GetBlob(Guid blobId, CancellationToken token)
+        {
+            var sw = Stopwatch.StartNew();
+
             var request = new GetObjectRequest
             {
                 BucketName = _configuration.BucketName,
-                Key = (snapshot ? (photo.SnapshotBlob ?? photo.Blob) : photo.Blob).ToString()
+                Key = blobId.ToString()
             };
 
+            var cacheFile = GetCacheFileBlob(request.Key);
+            if (cacheFile != null && cacheFile.Exists)
+            {
+                return cacheFile.OpenRead();
+            }
+
             var response = await _transferUtility.S3Client.GetObjectAsync(request, token);
+
+            _logger.LogInformation("Got response stream for {Key} in {TotalSeconds}s", request.Key, sw.Elapsed.TotalSeconds);
+
+            if (cacheFile != null && !cacheFile.Exists)
+            {
+                using (var cacheStream = cacheFile.Open(FileMode.CreateNew, FileAccess.Write))
+                {
+                    await response.ResponseStream.CopyToAsync(cacheStream, token);
+                    await response.ResponseStream.DisposeAsync();
+                }
+                return cacheFile.OpenRead();
+            }
 
             return response.ResponseStream;
         }
@@ -42,14 +73,22 @@ namespace Ae.Galeriya.Core
 
             var blobId = Guid.NewGuid();
 
-            await _transferUtility.UploadAsync(new TransferUtilityUploadRequest
+            var request = new TransferUtilityUploadRequest
             {
                 FilePath = photoPath.FullName,
                 BucketName = _configuration.BucketName,
                 Key = blobId.ToString()
-            }, token);
+            };
 
-            _logger.LogInformation("Uploaded blob {BlobId} in {TotalSeconds}s", blobId, sw.Elapsed.TotalSeconds);
+            await _transferUtility.UploadAsync(request, token);
+
+            var cacheFile = GetCacheFileBlob(request.Key);
+            if (cacheFile != null)
+            {
+                photoPath.CopyTo(cacheFile.FullName);
+            }
+
+            _logger.LogInformation("Uploaded blob {Key} in {TotalSeconds}s", request.Key, sw.Elapsed.TotalSeconds);
             return blobId;
         }
     }

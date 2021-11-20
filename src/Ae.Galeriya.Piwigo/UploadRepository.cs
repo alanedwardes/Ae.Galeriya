@@ -26,14 +26,7 @@ namespace Ae.Galeriya.Piwigo
 
         public async Task<FileInfo> AcceptChunk(string checksum, int chunk, int totalChunks, IFormFile file, CancellationToken token)
         {
-            _configuration.TempFolder.Create();
-
-            FileInfo ChunkFileInfo(int chunk)
-            {
-                return CreateTempFile(checksum + "-" + chunk);
-            }
-
-            var chunkFile = ChunkFileInfo(chunk);
+            var chunkFile = CreateTempFile(checksum + "-" + chunk);
 
             using (var chunkStream = chunkFile.Open(FileMode.Create))
             {

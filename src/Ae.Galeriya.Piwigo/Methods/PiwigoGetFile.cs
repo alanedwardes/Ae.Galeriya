@@ -22,19 +22,33 @@ namespace Ae.Galeriya.Piwigo.Methods
             _blobRepository = blobRepository;
         }
 
+        private async Task<Stream> BufferIfNotSeekable(Stream stream, CancellationToken token)
+        {
+            if (stream.CanSeek)
+            {
+                return stream;
+            }
+
+            Stream ms = new MemoryStream();
+
+            using (stream)
+            {
+                await stream.CopyToAsync(ms, token);
+            }
+
+            ms.Position = 0;
+            return ms;
+        }
+
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
         {
             var imageId = parameters["image_id"].ToUInt32(null);
 
             var photo = await _dbContext.Photos.SingleAsync(x => x.PhotoId == imageId, token);
 
-            var stream = await _blobRepository.GetBlob(photo, false, token);
+            var stream = await BufferIfNotSeekable(await _blobRepository.GetBlob(photo.Blob, token), token);
 
-            var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
-            ms.Position = 0;
-
-            return new FileStreamResult(ms, "application/octet-stream")
+            return new FileStreamResult(stream, "application/octet-stream")
             {
                 EnableRangeProcessing = true,
                 LastModified = photo.CreatedOn

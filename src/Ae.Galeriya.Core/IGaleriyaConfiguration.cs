@@ -1,7 +1,10 @@
-﻿namespace Ae.Galeriya.Core
+﻿using System.IO;
+
+namespace Ae.Galeriya.Core
 {
     public interface IGaleriyaConfiguration
     {
-        string BucketName { get; set; }
+        string BucketName { get; }
+        DirectoryInfo BucketCache { get; }
     }
 }
