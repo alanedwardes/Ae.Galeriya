@@ -1,6 +1,5 @@
 ﻿using Ae.Galeriya.Piwigo;
 using System.Threading;
-using Xabe.FFmpeg;
 using Xabe.FFmpeg.Downloader;
 
 namespace Ae.Piwigo.Console

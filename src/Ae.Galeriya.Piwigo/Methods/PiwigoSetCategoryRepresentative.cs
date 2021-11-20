@@ -1,5 +1,4 @@
-﻿using Ae.Galeriya.Piwigo.Entities;
-using Ae.Galeriya.Core;
+﻿using Ae.Galeriya.Core;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

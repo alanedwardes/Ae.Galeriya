@@ -11,14 +11,14 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoGetFile : IPiwigoWebServiceMethod
     {
-        private readonly GalleriaDbContext _dbContext;
+        private readonly GalleriaDbContext _context;
         private readonly IBlobRepository _blobRepository;
 
         public string MethodName => "pwg.images.getFile";
 
-        public PiwigoGetFile(GalleriaDbContext dbContext, IBlobRepository blobRepository)
+        public PiwigoGetFile(GalleriaDbContext context, IBlobRepository blobRepository)
         {
-            _dbContext = dbContext;
+            _context = context;
             _blobRepository = blobRepository;
         }
 
@@ -44,7 +44,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         {
             var imageId = parameters["image_id"].ToUInt32(null);
 
-            var photo = await _dbContext.Photos.SingleAsync(x => x.PhotoId == imageId, token);
+            var photo = await _context.Photos.SingleAsync(x => x.PhotoId == imageId, token);
 
             var stream = await BufferIfNotSeekable(await _blobRepository.GetBlob(photo.Blob, token), token);
 

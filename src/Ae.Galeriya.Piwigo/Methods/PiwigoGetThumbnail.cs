@@ -1,6 +1,5 @@
 ﻿using Ae.Galeriya.Core;
 using Ae.Galeriya.Core.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SixLabors.ImageSharp;
@@ -15,16 +14,14 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoGetThumbnail : IPiwigoWebServiceMethod
     {
-        private readonly IHttpContextAccessor _httpContext;
-        private readonly GalleriaDbContext _dbContext;
+        private readonly GalleriaDbContext _context;
         private readonly IBlobRepository _blobRepository;
 
         public string MethodName => "pwg.images.getThumbnail";
 
-        public PiwigoGetThumbnail(IHttpContextAccessor httpContext, GalleriaDbContext dbContext, IBlobRepository blobRepository)
+        public PiwigoGetThumbnail(GalleriaDbContext context, IBlobRepository blobRepository)
         {
-            _httpContext = httpContext;
-            _dbContext = dbContext;
+            _context = context;
             _blobRepository = blobRepository;
         }
 
@@ -48,7 +45,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             var type = parameters["type"].ToString(null);
             var imageId = parameters["image_id"].ToUInt32(null);
 
-            var photo = await _dbContext.Photos.SingleAsync(x => x.PhotoId == imageId, token);
+            var photo = await _context.Photos.SingleAsync(x => x.PhotoId == imageId, token);
 
             var stream = await _blobRepository.GetBlob(photo.SnapshotBlob ?? photo.Blob, token);
 
