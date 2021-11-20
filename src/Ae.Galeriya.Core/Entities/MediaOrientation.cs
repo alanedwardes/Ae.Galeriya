@@ -1,15 +1,53 @@
 ﻿namespace Ae.Galeriya.Core.Entities
 {
+    /// <summary>
+    /// Enumerates the available orientation values supplied by EXIF metadata.
+    /// </summary>
     public enum MediaOrientation : byte
     {
+        /// <summary>
+        /// Unknown rotation.
+        /// </summary>
         Unknown = 0,
-        None = 1,
-        Mirrored = 2,
-        Degrees180 = 3,
-        Degrees180Mirrored = 4,
-        Degrees90 = 5,
-        Degrees90Mirrored = 6,
-        Degrees270 = 7,
-        Degrees270Mirrored = 8
+
+        /// <summary>
+        /// The 0th row at the top, the 0th column on the left.
+        /// </summary>
+        TopLeft = 1,
+
+        /// <summary>
+        /// The 0th row at the top, the 0th column on the right.
+        /// </summary>
+        TopRight = 2,
+
+        /// <summary>
+        /// The 0th row at the bottom, the 0th column on the right.
+        /// </summary>
+        BottomRight = 3,
+
+        /// <summary>
+        /// The 0th row at the bottom, the 0th column on the left.
+        /// </summary>
+        BottomLeft = 4,
+
+        /// <summary>
+        /// The 0th row on the left, the 0th column at the top.
+        /// </summary>
+        LeftTop = 5,
+
+        /// <summary>
+        /// The 0th row at the right, the 0th column at the top.
+        /// </summary>
+        RightTop = 6,
+
+        /// <summary>
+        /// The 0th row on the right, the 0th column at the bottom.
+        /// </summary>
+        RightBottom = 7,
+
+        /// <summary>
+        /// The 0th row on the left, the 0th column at the bottom.
+        /// </summary>
+        LeftBottom = 8
     }
 }

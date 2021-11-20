@@ -1,4 +1,5 @@
 ﻿using Ae.Galeriya.Core;
+using Ae.Galeriya.Core.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,19 @@ namespace Ae.Galeriya.Piwigo.Methods
             _blobRepository = blobRepository;
         }
 
+        private readonly IReadOnlyDictionary<MediaOrientation, Action<IImageProcessingContext>> _orientationActions = new Dictionary<MediaOrientation, Action<IImageProcessingContext>>
+        {
+            { MediaOrientation.Unknown, null },
+            { MediaOrientation.TopLeft, null },
+            { MediaOrientation.TopRight, context => context.Flip(FlipMode.Horizontal) },
+            { MediaOrientation.BottomRight, context => context.Rotate(RotateMode.Rotate180) },
+            { MediaOrientation.BottomLeft, context => context.Flip(FlipMode.Vertical) },
+            { MediaOrientation.LeftTop, context => context.RotateFlip(RotateMode.Rotate90, FlipMode.Horizontal) },
+            { MediaOrientation.RightTop, context => context.Rotate(RotateMode.Rotate90) },
+            { MediaOrientation.RightBottom, context => context.RotateFlip(RotateMode.Rotate270, FlipMode.Vertical) },
+            { MediaOrientation.LeftBottom, context => context.Rotate(RotateMode.Rotate270) },
+        };
+
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
         {
             var width = parameters["width"].ToInt32(null);
@@ -40,11 +54,15 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             var image = await Image.LoadAsync(Configuration.Default, stream, token);
 
-            image.Mutate(x => x.Resize(new ResizeOptions
+            image.Mutate(processor =>
             {
-                Mode = type == "classic" ? ResizeMode.Max : ResizeMode.Crop,
-                Size = new Size(width, height)
-            }));
+                processor.Resize(new ResizeOptions
+                {
+                    Mode = type == "classic" ? ResizeMode.Max : ResizeMode.Crop,
+                    Size = new Size(width, height)
+                });
+                _orientationActions[photo.Orientation]?.Invoke(processor);
+            });
 
             var ms = new MemoryStream();
             await image.SaveAsJpegAsync(ms, token);
