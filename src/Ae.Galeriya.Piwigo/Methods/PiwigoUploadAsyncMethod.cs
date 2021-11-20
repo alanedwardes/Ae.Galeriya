@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -17,6 +18,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoUploadAsyncMethod : IPiwigoWebServiceMethod
     {
+        private readonly ILogger<PiwigoUploadAsyncMethod> _logger;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IUploadRepository _sessionRepository;
         private readonly IPiwigoWebServiceMethodRepository _webServiceRepository;
@@ -26,19 +28,51 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public string MethodName => "pwg.images.uploadAsync";
 
-        public PiwigoUploadAsyncMethod(IHttpContextAccessor contextAccessor,
+        public PiwigoUploadAsyncMethod(ILogger<PiwigoUploadAsyncMethod> logger,
+            IHttpContextAccessor contextAccessor,
             IUploadRepository sessionRepository,
             IPiwigoWebServiceMethodRepository webServiceRepository,
             IBlobRepository photoCreator,
             IMediaInfoExtractor infoExtractor,
             GalleriaDbContext dbContext)
         {
+            _logger = logger;
             _contextAccessor = contextAccessor;
             _sessionRepository = sessionRepository;
             _webServiceRepository = webServiceRepository;
             _photoCreator = photoCreator;
             _infoExtractor = infoExtractor;
             _dbContext = dbContext;
+        }
+
+        private async Task<Guid?> ExtractSnapshot(FileInfo uploadedFile, CancellationToken token)
+        {
+            var sw = Stopwatch.StartNew();
+
+            var snapshotFile = _sessionRepository.CreateTempFile(Guid.NewGuid() + ".jpg");
+            
+            await _infoExtractor.ExtractSnapshot(uploadedFile, snapshotFile, token);
+
+            Guid? snapshotId = null;
+            if (snapshotFile.Exists)
+            {
+                snapshotId = await _photoCreator.PutBlob(snapshotFile, token);
+            }
+
+            _logger.LogInformation("Processed snapshot {Snapshot} for {File} in {TotalSeconds}s", snapshotFile, uploadedFile, sw.Elapsed.TotalSeconds, snapshotId.HasValue);
+            return snapshotId;
+        }
+
+        private async Task<string> CalculateFileHash(FileInfo uploadedFile, CancellationToken token)
+        {
+            var sw = Stopwatch.StartNew();
+            using (var sha256 = SHA256.Create())
+            using (var fs = uploadedFile.OpenRead())
+            {
+                var hash = await sha256.ComputeHashAsync(fs, token);
+                _logger.LogInformation("Calculated hash for file {File} in {TotalSeconds}s", uploadedFile, sw.Elapsed.TotalSeconds); ;
+                return string.Concat(hash.Select(x => x.ToString("X2")));
+            }
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
@@ -58,31 +92,15 @@ namespace Ae.Galeriya.Piwigo.Methods
             {
                 token = CancellationToken.None;
 
-                var blobId = await _photoCreator.PutBlob(uploadedFile, token);
+                var blobIdTask = _photoCreator.PutBlob(uploadedFile, token);
+                var mediaInfoTask = _infoExtractor.ExtractInformation(uploadedFile, token);
+                var snapshotIdTask = ExtractSnapshot(uploadedFile, token);
+                var hashTask = CalculateFileHash(uploadedFile, token);
 
-                var mediaInfo = await _infoExtractor.ExtractInformation(uploadedFile, token);
-
-                var snapshotFile = _sessionRepository.CreateTempFile(Guid.NewGuid() + ".jpg");
-                try
-                {
-                    await _infoExtractor.ExtractSnapshot(uploadedFile, snapshotFile, token);
-                }
-                catch (ConversionException)
-                {
-                }
-
-                Guid? snapshotId = null;
-                if (snapshotFile.Exists)
-                {
-                    snapshotId = await _photoCreator.PutBlob(snapshotFile, token);
-                }
-
-                string hash;
-                using (var sha256 = SHA256.Create())
-                using (var fs = uploadedFile.OpenRead())
-                {
-                    hash = string.Concat((await sha256.ComputeHashAsync(fs, token)).Select(x => x.ToString("X2")));
-                }
+                var blobId = await blobIdTask;
+                var mediaInfo = await mediaInfoTask;
+                var snapshotId = await snapshotIdTask;
+                var hash = await hashTask;
 
                 var photo = new Photo
                 {

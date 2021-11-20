@@ -44,7 +44,7 @@ namespace Ae.Galeriya.Piwigo
 
             if (parts.All(_uploadedChunks.ContainsKey))
             {
-                var uploadFile = new FileInfo(Path.Combine(_tempDirectory.FullName, Guid.NewGuid().ToString()));
+                var uploadFile = CreateTempFile(Guid.NewGuid().ToString());
 
                 using (var fileWriteStream = uploadFile.Open(FileMode.Create))
                 {

@@ -1,6 +1,8 @@
 ﻿using Ae.Galeriya.Core.Entities;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -12,6 +14,13 @@ namespace Ae.Galeriya.Core
 {
     public sealed class MediaInfoExtractor : IMediaInfoExtractor
     {
+        private readonly ILogger<MediaInfoExtractor> _logger;
+
+        public MediaInfoExtractor(ILogger<MediaInfoExtractor> logger)
+        {
+            _logger = logger;
+        }
+
         private IReadOnlyList<(string, string)> GetTags(JsonDocument probeResultDocument, string element)
         {
             var tags = new List<(string, string)>();
@@ -124,7 +133,10 @@ namespace Ae.Galeriya.Core
 
         public async Task<Entities.MediaInfo> ExtractInformation(FileInfo fileInfo, CancellationToken token)
         {
+            var sw = Stopwatch.StartNew();
             string probeResult = await Probe.New().Start($"-print_format json -show_frames -show_streams -show_format -show_packets \"{fileInfo}\"", token);
+            
+            _logger.LogInformation("Finished probing information for {File} in {TimeSeconds}s", fileInfo, sw.Elapsed.TotalSeconds);
 
             var probeResultDocument = JsonDocument.Parse(probeResult);
 
