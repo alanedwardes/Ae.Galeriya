@@ -3,6 +3,7 @@ using Ae.Galeriya.Core.Tables;
 using Ae.Galeriya.Piwigo.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,6 +23,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IBlobRepository _photoCreator;
         private readonly IMediaInfoExtractor _infoExtractor;
         private readonly GalleriaDbContext _dbContext;
+        private readonly ILogger<PiwigoUploadAsyncMethod> _logger;
 
         public string MethodName => "pwg.images.uploadAsync";
 
@@ -30,7 +32,8 @@ namespace Ae.Galeriya.Piwigo.Methods
             IPiwigoWebServiceMethodRepository webServiceRepository,
             IBlobRepository photoCreator,
             IMediaInfoExtractor infoExtractor,
-            GalleriaDbContext dbContext)
+            GalleriaDbContext dbContext,
+            ILogger<PiwigoUploadAsyncMethod> logger)
         {
             _contextAccessor = contextAccessor;
             _sessionRepository = sessionRepository;
@@ -38,6 +41,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _photoCreator = photoCreator;
             _infoExtractor = infoExtractor;
             _dbContext = dbContext;
+            _logger = logger;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
@@ -49,6 +53,8 @@ namespace Ae.Galeriya.Piwigo.Methods
             var fileName = parameters["filename"].ToString(null);
             var name = parameters["name"].ToString(null);
             var creationDate = DateTimeOffset.ParseExact(parameters["date_creation"].ToString(null), "yyyy-MM-dd HH:mm:ss", null);
+
+            _logger.LogWarning("\n*********\nChunk {chunk}/{chunks}\n*********\n", chunk, chunks);
 
             var file = _contextAccessor.HttpContext.Request.Form.Files.Single();
 
@@ -113,13 +119,15 @@ namespace Ae.Galeriya.Piwigo.Methods
                 }
                 catch (DbUpdateException)
                 {
-                    photo = await _dbContext.Photos.SingleAsync(x => x.Hash == hash, token);
+                    return new PiwigiUploadedChunkResponse { Message = $"chunks uploaded" };
                 }
 
-                await _webServiceRepository.ExecuteMethod("pwg.images.getInfo", new Dictionary<string, IConvertible>
-                {
-                    { "image_id", photo.PhotoId }
-                }, token);
+                return await _webServiceRepository
+                    .GetMethod("pwg.images.getInfo")
+                    .Execute(new Dictionary<string, IConvertible>
+                    {
+                        { "image_id", photo.PhotoId }
+                    }, token);
             }
 
             return new PiwigiUploadedChunkResponse { Message = $"chunks uploaded" };

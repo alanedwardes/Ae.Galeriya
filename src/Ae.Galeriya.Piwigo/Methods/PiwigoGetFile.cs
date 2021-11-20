@@ -1,5 +1,4 @@
 ﻿using Ae.Galeriya.Core;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -12,15 +11,13 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoGetFile : IPiwigoWebServiceMethod
     {
-        private readonly IHttpContextAccessor _httpContext;
         private readonly GalleriaDbContext _dbContext;
         private readonly IBlobRepository _blobRepository;
 
         public string MethodName => "pwg.images.getFile";
 
-        public PiwigoGetFile(IHttpContextAccessor httpContext, GalleriaDbContext dbContext, IBlobRepository blobRepository)
+        public PiwigoGetFile(GalleriaDbContext dbContext, IBlobRepository blobRepository)
         {
-            _httpContext = httpContext;
             _dbContext = dbContext;
             _blobRepository = blobRepository;
         }

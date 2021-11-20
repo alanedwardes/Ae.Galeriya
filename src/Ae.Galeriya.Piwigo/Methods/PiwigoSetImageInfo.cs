@@ -25,8 +25,6 @@ namespace Ae.Galeriya.Piwigo.Methods
         {
             var imageId = parameters["image_id"].ToUInt32(null);
             var multipleValueMode = parameters["multiple_value_mode"].ToString(null);
-            var author = parameters["author"].ToString(null);
-            var name = parameters["name"].ToString(null);
 
             var photo = await _context.Photos.Include(x => x.Categories).SingleAsync(x => x.PhotoId == imageId, token);
 

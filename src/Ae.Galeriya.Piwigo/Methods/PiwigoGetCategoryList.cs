@@ -34,7 +34,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             foreach (var category in allCategories.Where(x => recursive || x.ParentCategoryId == nullableCategoryId))
             {
-                uint firstPhoto = category.Photos.Select(x => x.PhotoId).FirstOrDefault();
+                uint firstPhoto = category.CoverPhotoId ?? category.Photos.Select(x => x.PhotoId).FirstOrDefault();
 
                 uint? thumbnailId = null;
                 Uri thumbnailUri = null;
@@ -67,8 +67,8 @@ namespace Ae.Galeriya.Piwigo.Methods
                     ImageCount = category.Photos.Count,
                     TotalImageCount = category.Photos.Count,
                     RepresentativePictureId = firstPhoto,
-                    LastImageDate = DateTimeOffset.UtcNow,
-                    PageLastImageDate = DateTimeOffset.UtcNow,
+                    LastImageDate = category.Photos.LastOrDefault()?.CreatedOn,
+                    PageLastImageDate = category.Photos.LastOrDefault()?.CreatedOn,
                     CategoryCount = category.Categories.Count,
                     Url = new Uri("https://www.example.com/"),
                     ThumbnailUrl = thumbnailUri

@@ -33,7 +33,7 @@ namespace Ae.Galeriya.Piwigo.Entities
         [JsonPropertyName("representative_ext")]
         public string RepresentativeExt { get; set; }
         [JsonPropertyName("date_metadata_update")]
-        public DateTimeOffset MetadataUpdatedOn { get; set; }
+        public DateTimeOffset? MetadataUpdatedOn { get; set; }
         [JsonPropertyName("rating_score")]
         public string RatingScore { get; set; }
         [JsonPropertyName("level")]
@@ -49,7 +49,7 @@ namespace Ae.Galeriya.Piwigo.Entities
         [JsonPropertyName("longitude")]
         public string Longitude { get; set; }
         [JsonPropertyName("lastmodified")]
-        public DateTimeOffset LastModified { get; set; }
+        public DateTimeOffset? LastModified { get; set; }
         [JsonPropertyName("page_url")]
         public Uri PageUrl { get; set; }
         [JsonPropertyName("element_url")]

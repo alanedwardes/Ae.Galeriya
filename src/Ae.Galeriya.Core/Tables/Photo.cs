@@ -42,8 +42,7 @@ namespace Ae.Galeriya.Core.Tables
         public MediaOrientation Orientation { get; set; }
         [Required]
         public DateTimeOffset CreatedOn { get; set; }
-        [Required]
-        public DateTimeOffset UpdatedOn { get; set; }
+        public DateTimeOffset? UpdatedOn { get; set; }
 
         public ICollection<Category> Categories { get; set; }
     }

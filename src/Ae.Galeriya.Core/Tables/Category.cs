@@ -15,6 +15,10 @@ namespace Ae.Galeriya.Core.Tables
         public string Status { get; set; }
         public bool Commentable { get; set; }
 
+        public uint? CoverPhotoId { get; set; }
+        [ForeignKey(nameof(CoverPhotoId))]
+        public Photo CoverPhoto { get; set; }
+
         public uint? ParentCategoryId { get; set; }
         [ForeignKey(nameof(ParentCategoryId))]
         public Category ParentCategory { get; set; }

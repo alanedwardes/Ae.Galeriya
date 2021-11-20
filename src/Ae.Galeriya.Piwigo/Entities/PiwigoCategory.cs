@@ -28,9 +28,9 @@ namespace Ae.Galeriya.Piwigo.Entities
         [JsonPropertyName("representative_picture_id")]
         public uint? RepresentativePictureId { get; set; }
         [JsonPropertyName("date_last")]
-        public DateTimeOffset PageLastImageDate { get; set; }
+        public DateTimeOffset? PageLastImageDate { get; set; }
         [JsonPropertyName("max_date_last")]
-        public DateTimeOffset LastImageDate { get; set; }
+        public DateTimeOffset? LastImageDate { get; set; }
         [JsonPropertyName("nb_categories")]
         public int CategoryCount { get; set; }
         [JsonPropertyName("url")]

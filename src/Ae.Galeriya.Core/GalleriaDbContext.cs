@@ -10,6 +10,24 @@ namespace Ae.Galeriya.Core
         {
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Category>()
+                .HasOne(category => category.CoverPhoto)
+                .WithOne();
+
+            modelBuilder.Entity<Category>()
+                .HasOne(category => category.ParentCategory)
+                .WithOne();
+
+            modelBuilder.Entity<Category>()
+                .HasMany(category => category.Photos)
+                .WithMany(photo => photo.Categories);
+
+        }
+
         public DbSet<User> Users { get; set; }
         public DbSet<Photo> Photos { get; set; }
         public DbSet<Category> Categories { get; set; }
