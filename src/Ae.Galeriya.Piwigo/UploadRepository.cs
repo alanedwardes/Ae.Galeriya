@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -9,9 +12,14 @@ namespace Ae.Galeriya.Piwigo
 {
     internal sealed class UploadRepository : IUploadRepository
     {
+        private readonly IDictionary<(string, int), FileInfo> _uploadedChunks = new ConcurrentDictionary<(string, int), FileInfo>();
+
+
         private readonly DirectoryInfo _tempDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "piwigo"));
 
         public FileInfo CreateTempFile(string name) => new FileInfo(Path.Combine(_tempDirectory.FullName, name));
+
+        private (string, int) ChunkKey(string checksum, int chunk) => (checksum, chunk);
 
         public async Task<FileInfo> AcceptChunk(string checksum, int chunk, int totalChunks, IFormFile file, CancellationToken token)
         {
@@ -29,10 +37,12 @@ namespace Ae.Galeriya.Piwigo
                 await file.CopyToAsync(chunkStream, token);
             }
 
-            var parts = Enumerable.Range(0, totalChunks)
-                .Select(x => ChunkFileInfo(x));
+            _uploadedChunks[ChunkKey(checksum, chunk)] = chunkFile;
 
-            if (parts.All(x => x.Exists))
+            var parts = Enumerable.Range(0, totalChunks)
+                .Select(x => ChunkKey(checksum, x));
+
+            if (parts.All(_uploadedChunks.ContainsKey))
             {
                 var uploadFile = new FileInfo(Path.Combine(_tempDirectory.FullName, Guid.NewGuid().ToString()));
 
@@ -40,7 +50,9 @@ namespace Ae.Galeriya.Piwigo
                 {
                     foreach (var part in parts)
                     {
-                        using var stream = part.OpenRead();
+                        var partFile = _uploadedChunks[part];
+
+                        using var stream = partFile.OpenRead();
                         await stream.CopyToAsync(fileWriteStream, token);
                     }
                 }
