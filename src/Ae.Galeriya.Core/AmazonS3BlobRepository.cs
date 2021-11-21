@@ -1,7 +1,10 @@
-﻿using Amazon.S3.Model;
+﻿using Ae.Galeriya.Core.Exceptions;
+using Amazon.Runtime;
+using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using System;
 using System.IO;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +29,14 @@ namespace Ae.Galeriya.Core
                 Key = blobId.ToString()
             };
 
-            return (await _transferUtility.S3Client.GetObjectAsync(request, token)).ResponseStream;
+            try
+            {
+                return (await _transferUtility.S3Client.GetObjectAsync(request, token)).ResponseStream;
+            }
+            catch (AmazonServiceException e) when (e.StatusCode == HttpStatusCode.NotFound || e.StatusCode == HttpStatusCode.Forbidden)
+            {
+                throw new BlobNotFoundException(blobId);
+            }
         }
 
         public async Task PutBlob(Stream blobStream, Guid blobId, CancellationToken token)
