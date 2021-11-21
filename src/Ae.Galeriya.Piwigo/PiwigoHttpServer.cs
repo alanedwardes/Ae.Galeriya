@@ -1,8 +1,12 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Ae.Galeriya.Core;
+using Amazon;
+using Amazon.S3.Transfer;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,6 +30,12 @@ namespace Ae.Galeriya.Piwigo
                 .ConfigureServices(x =>
                 {
                     x.AddMvc();
+                    x.AddSingleton<IBlobRepository>(x =>
+                    {
+                        var localBlobCache = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "galeriya"));
+                        var remoteBlobRepository = new AmazonS3BlobRepository(new TransferUtility(RegionEndpoint.EUWest2), "ae-piwigo-test");
+                        return new CachingBlobRepository(localBlobCache, remoteBlobRepository);
+                    });
                     x.AddPiwigo(new PiwigoConfiguration
                     {
                         BucketName = "ae-piwigo-test",
