@@ -32,13 +32,12 @@ namespace Ae.Galeriya.Piwigo
                     x.AddMvc();
                     x.AddSingleton<IBlobRepository>(x =>
                     {
-                        var localBlobCache = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "galeriya"));
+                        var localBlobCache = new FileBlobRepository(new DirectoryInfo(Path.Combine(Path.GetTempPath(), "galeriya2")));
                         var remoteBlobRepository = new AmazonS3BlobRepository(new TransferUtility(RegionEndpoint.EUWest2), "ae-piwigo-test");
                         return new CachingBlobRepository(localBlobCache, remoteBlobRepository);
                     });
                     x.AddPiwigo(new PiwigoConfiguration
                     {
-                        BucketName = "ae-piwigo-test",
                         BaseAddress = new Uri("http://192.168.178.21:5000")
                     });
                 });

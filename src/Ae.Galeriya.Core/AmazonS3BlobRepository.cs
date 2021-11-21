@@ -29,11 +29,11 @@ namespace Ae.Galeriya.Core
             return (await _transferUtility.S3Client.GetObjectAsync(request, token)).ResponseStream;
         }
 
-        public async Task PutBlob(FileInfo photoPath, Guid blobId, CancellationToken token)
+        public async Task PutBlob(Stream blobStream, Guid blobId, CancellationToken token)
         {
             var request = new TransferUtilityUploadRequest
             {
-                FilePath = photoPath.FullName,
+                InputStream = blobStream,
                 BucketName = _bucketName,
                 Key = blobId.ToString()
             };
