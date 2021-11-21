@@ -34,7 +34,8 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             var photos = await _context.Photos.Where(photo => EF.Functions.Like(photo.Name, queryValue) ||
                                                               EF.Functions.Like(photo.FileName, queryValue) ||
-                                                              photo.Tags.Any(tag => EF.Functions.Like(tag.Name, queryValue)))
+                                                              photo.Tags.Any(tag => EF.Functions.Like(tag.Name, queryValue)) ||
+                                                              photo.Categories.Any(category => EF.Functions.Like(category.Name, queryValue)))
                                               .ToArrayAsync(token);
 
             return _pageGenerator.CreatePage(page, perPage, photos);
