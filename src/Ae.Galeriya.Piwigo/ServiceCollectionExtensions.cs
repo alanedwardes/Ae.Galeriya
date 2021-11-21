@@ -22,6 +22,7 @@ namespace Ae.Galeriya.Piwigo
                 .AddGalleriaStore(x => x.UseSqlite("Data Source=test.sqlite"))
                 .AddScoped<IPiwigoWebServiceMethodRepository, PiwigoWebServiceMethodRepository>()
                 .AddSingleton<IPiwigoImageDerivativesGenerator, PiwigoImageDerivativesGenerator>()
+                .AddSingleton<IPiwigoPhotosPageGenerator, PiwigoPhotosPageGenerator>()
                 .AddSingleton<IUploadRepository, UploadRepository>();
         }
     }
