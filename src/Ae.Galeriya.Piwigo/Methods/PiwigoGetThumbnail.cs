@@ -47,9 +47,9 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             var photo = await _context.Photos.SingleAsync(x => x.PhotoId == imageId, token);
 
-            var stream = await _blobRepository.GetBlob(photo.SnapshotBlob ?? photo.Blob, token);
+            using var stream = await _blobRepository.GetBlob(photo.SnapshotBlob ?? photo.Blob, token);
 
-            var image = await Image.LoadAsync(Configuration.Default, stream, token);
+            using var image = await Image.LoadAsync(Configuration.Default, stream, token);
 
             image.Mutate(processor =>
             {

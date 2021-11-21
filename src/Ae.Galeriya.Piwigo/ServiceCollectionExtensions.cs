@@ -18,7 +18,6 @@ namespace Ae.Galeriya.Piwigo
 
             return services.AddScoped<IHttpContextAccessor, HttpContextAccessor>()
                 .AddSingleton(configuration)
-                .AddSingleton((IGaleriyaConfiguration)configuration)
                 .AddGalleriaStore(x => x.UseSqlite("Data Source=test.sqlite"))
                 .AddScoped<IPiwigoWebServiceMethodRepository, PiwigoWebServiceMethodRepository>()
                 .AddSingleton<IPiwigoImageDerivativesGenerator, PiwigoImageDerivativesGenerator>()

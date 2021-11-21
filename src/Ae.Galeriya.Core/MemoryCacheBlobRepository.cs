@@ -18,9 +18,9 @@ namespace Ae.Galeriya.Core
 
         public Task<Stream> GetBlob(Guid blobId, CancellationToken token)
         {
-            if (_memoryCache.TryGetValue(blobId.ToString(), out byte[] value))
+            if (_memoryCache.TryGetValue(blobId.ToString(), out object value))
             {
-                return Task.FromResult<Stream>(new MemoryStream(value));
+                return Task.FromResult<Stream>(new MemoryStream((byte[])value));
             }
 
             throw new BlobNotFoundException(blobId);
@@ -29,8 +29,15 @@ namespace Ae.Galeriya.Core
         public async Task PutBlob(Stream blobStream, Guid blobId, CancellationToken token)
         {
             using var ms = new MemoryStream();
-            await blobStream.CopyToAsync(ms, token);
-            _memoryCache.Set(blobId, ms.ToArray());
+
+            using (blobStream)
+            {
+                await blobStream.CopyToAsync(ms, token);
+            }
+
+            using var memoryCacheItem = _memoryCache.CreateEntry(blobId.ToString());
+            memoryCacheItem.SetValue(ms.ToArray());
+            memoryCacheItem.SetSize(ms.Length);
         }
     }
 }

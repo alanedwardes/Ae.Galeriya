@@ -44,6 +44,7 @@ namespace Ae.Galeriya.Core
             var request = new TransferUtilityUploadRequest
             {
                 InputStream = blobStream,
+                AutoCloseStream = true,
                 BucketName = _bucketName,
                 Key = blobId.ToString()
             };

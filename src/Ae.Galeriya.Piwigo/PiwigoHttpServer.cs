@@ -2,6 +2,7 @@
 using Amazon;
 using Amazon.S3.Transfer;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -30,9 +31,11 @@ namespace Ae.Galeriya.Piwigo
                 .ConfigureServices(x =>
                 {
                     x.AddMvc();
+                    x.AddMemoryCache(x => x.SizeLimit = 512_000_000);
                     x.AddSingleton<IBlobRepository>(x =>
                     {
-                        var localBlobCache = new FileBlobRepository(new DirectoryInfo(Path.Combine(Path.GetTempPath(), "galeriya2")));
+                        //var localBlobCache = new FileBlobRepository(new DirectoryInfo(Path.Combine(Path.GetTempPath(), "galeriya2")));
+                        var localBlobCache = new MemoryCacheBlobRepository(x.GetRequiredService<IMemoryCache>());
                         var remoteBlobRepository = new AmazonS3BlobRepository(new TransferUtility(RegionEndpoint.EUWest2), "ae-piwigo-test");
                         return new CachingBlobRepository(localBlobCache, remoteBlobRepository);
                     });

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace Ae.Galeriya.Core
 {
-
     public sealed class CachingBlobRepository : IBlobRepository
     {
         private readonly IBlobRepository _cacheBlobRepository;
@@ -37,9 +36,15 @@ namespace Ae.Galeriya.Core
 
         public async Task PutBlob(Stream blobStream, Guid blobId, CancellationToken token)
         {
-            await _cacheBlobRepository.PutBlob(blobStream, blobId, token);
-            var cachedBlob = await _cacheBlobRepository.GetBlob(blobId, token);
-            await _liveBlobRepository.PutBlob(cachedBlob, blobId, token);
+            using (blobStream)
+            {
+                await _cacheBlobRepository.PutBlob(blobStream, blobId, token);
+            }
+
+            using (var cachedBlob = await _cacheBlobRepository.GetBlob(blobId, token))
+            {
+                await _liveBlobRepository.PutBlob(cachedBlob, blobId, token);
+            }
         }
     }
 }
