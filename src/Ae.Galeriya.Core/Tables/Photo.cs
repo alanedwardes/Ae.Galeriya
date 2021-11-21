@@ -45,5 +45,6 @@ namespace Ae.Galeriya.Core.Tables
         public DateTimeOffset? UpdatedOn { get; set; }
 
         public ICollection<Category> Categories { get; set; } = new List<Category>();
+        public ICollection<Tag> Tags { get; set; } = new List<Tag>();
     }
 }

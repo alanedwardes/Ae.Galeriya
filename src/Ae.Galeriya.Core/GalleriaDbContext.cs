@@ -28,6 +28,7 @@ namespace Ae.Galeriya.Core
 
         }
 
+        public DbSet<Tag> Tags => Set<Tag>();
         public DbSet<Photo> Photos => Set<Photo>();
         public DbSet<Category> Categories => Set<Category>();
     }

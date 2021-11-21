@@ -55,7 +55,22 @@ namespace Ae.Galeriya.Piwigo.Methods
                 {
                     throw new NotImplementedException($"Mode not implemented: {multipleValueMode}");
                 }
+            }
 
+            if (parameters.TryGetValue("tag_ids", out var tagsString))
+            {
+                var tagIds = tagsString.ToString(null).Split(";").Select(uint.Parse).ToArray();
+
+                var tags = await _context.Tags.Where(x => tagIds.Contains(x.TagId)).ToArrayAsync(token);
+
+                if (multipleValueMode == "replace")
+                {
+                    photo.Tags = tags;
+                }
+                else
+                {
+                    throw new NotImplementedException($"Mode not implemented: {multipleValueMode}");
+                }
             }
 
             await _context.SaveChangesAsync(token);
