@@ -73,7 +73,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                     RepresentativePictureId = firstPhoto,
                     LastImageDate = category.Photos.LastOrDefault()?.CreatedOn,
                     PageLastImageDate = category.Photos.LastOrDefault()?.CreatedOn,
-                    CategoryCount = category.Categories.Count,
+                    CategoryCount = allCategories.Count(x => x.ParentCategory == category),
                     Url = new Uri("https://www.example.com/"),
                     ThumbnailUrl = thumbnailUri
                 });
