@@ -9,13 +9,13 @@ using System.Linq;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
-    internal sealed class PiwigoGetTags : IPiwigoWebServiceMethod
+    internal sealed class PiwigoGetTagsAdmin : IPiwigoWebServiceMethod
     {
         private readonly GalleriaDbContext _context;
 
-        public string MethodName => "pwg.tags.getList";
+        public string MethodName => "pwg.tags.getAdminList";
 
-        public PiwigoGetTags(GalleriaDbContext context)
+        public PiwigoGetTagsAdmin(GalleriaDbContext context)
         {
             _context = context;
         }

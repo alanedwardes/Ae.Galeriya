@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using Ae.Galeriya.Core.Tables;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
@@ -24,7 +25,10 @@ namespace Ae.Galeriya.Piwigo.Methods
             var imageId = parameters["image_id"].ToUInt32(null);
             var multipleValueMode = parameters["multiple_value_mode"].ToString(null);
 
-            var photo = await _context.Photos.Include(x => x.Categories).SingleAsync(x => x.PhotoId == imageId, token);
+            var photo = await _context.Photos
+                .Include(x => x.Categories)
+                .Include(x => x.Tags)
+                .SingleAsync(x => x.PhotoId == imageId, token);
 
             if (parameters.TryGetValue("author", out var authorString))
             {
@@ -57,11 +61,17 @@ namespace Ae.Galeriya.Piwigo.Methods
                 }
             }
 
-            if (parameters.TryGetValue("tag_ids", out var tagsString))
+            if (parameters.TryGetValue("tag_ids", out var tagsRaw))
             {
-                var tagIds = tagsString.ToString(null).Split(";").Select(uint.Parse).ToArray();
+                var tagsString = tagsRaw.ToString(null);
 
-                var tags = await _context.Tags.Where(x => tagIds.Contains(x.TagId)).ToArrayAsync(token);
+                var tags = Array.Empty<Tag>();
+                if (!string.IsNullOrWhiteSpace(tagsString))
+                {
+                    var tagIds = tagsString.Split(";").Select(uint.Parse).ToArray();
+
+                    tags = await _context.Tags.Where(x => tagIds.Contains(x.TagId)).ToArrayAsync(token);
+                }
 
                 if (multipleValueMode == "replace")
                 {
