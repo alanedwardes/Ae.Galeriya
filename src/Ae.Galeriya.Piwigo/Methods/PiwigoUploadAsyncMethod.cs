@@ -55,7 +55,8 @@ namespace Ae.Galeriya.Piwigo.Methods
             Guid? snapshotId = null;
             if (snapshotFile.Exists)
             {
-                snapshotId = await _photoCreator.PutBlob(snapshotFile, token);
+                snapshotId = Guid.NewGuid();
+                await _photoCreator.PutBlob(snapshotFile, snapshotId.Value, token);
             }
 
             _logger.LogInformation("Processed snapshot {Snapshot} for {File} in {TotalSeconds}s", snapshotFile, uploadedFile, sw.Elapsed.TotalSeconds, snapshotId.HasValue);
@@ -91,12 +92,13 @@ namespace Ae.Galeriya.Piwigo.Methods
             {
                 token = CancellationToken.None;
 
-                var blobIdTask = _photoCreator.PutBlob(uploadedFile, token);
+                var blobId = Guid.NewGuid();
+                var blobIdTask = _photoCreator.PutBlob(uploadedFile, blobId, token);
                 var mediaInfoTask = _infoExtractor.ExtractInformation(uploadedFile, token);
                 var snapshotIdTask = ExtractSnapshot(uploadedFile, token);
                 var hashTask = CalculateFileHash(uploadedFile, token);
 
-                var blobId = await blobIdTask;
+                await blobIdTask;
                 var mediaInfo = await mediaInfoTask;
                 var snapshotId = await snapshotIdTask;
                 var hash = await hashTask;
@@ -116,7 +118,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                     FileName = fileName,
                     Hash = hash,
                     Name = name,
-                    CreatedOn = creationDate,
+                    CreatedOn = mediaInfo.CreationTime ?? creationDate,
                     Make = mediaInfo.Camera.Make,
                     Model = mediaInfo.Camera.Model,
                     Software = mediaInfo.Camera.Software,

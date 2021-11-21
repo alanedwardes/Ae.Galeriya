@@ -67,11 +67,9 @@ namespace Ae.Galeriya.Core
             return response.ResponseStream;
         }
 
-        public async Task<Guid> PutBlob(FileInfo photoPath, CancellationToken token)
+        public async Task PutBlob(FileInfo photoPath, Guid blobId, CancellationToken token)
         {
             var sw = Stopwatch.StartNew();
-
-            var blobId = Guid.NewGuid();
 
             var request = new TransferUtilityUploadRequest
             {
@@ -89,7 +87,6 @@ namespace Ae.Galeriya.Core
             }
 
             _logger.LogInformation("Uploaded blob {Key} in {TotalSeconds}s", request.Key, sw.Elapsed.TotalSeconds);
-            return blobId;
         }
     }
 }
