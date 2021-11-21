@@ -18,7 +18,7 @@ namespace Ae.Galeriya.Piwigo
             _derivativesGenerator = derivativesGenerator;
         }
 
-        public PiwigoImages CreatePage(int page, int perPage, IEnumerable<Photo> photos)
+        public PiwigoImages CreatePage(int page, int perPage, int total, ICollection<Photo> photos)
         {
             var response = new PiwigoImages
             {
@@ -26,8 +26,8 @@ namespace Ae.Galeriya.Piwigo
                 {
                     Page = page,
                     PerPage = perPage,
-                    Count = 1,
-                    TotalCount = 1
+                    Count = photos.Count,
+                    TotalCount = total
                 },
                 Images = new List<PiwigoImageSummary>()
             };

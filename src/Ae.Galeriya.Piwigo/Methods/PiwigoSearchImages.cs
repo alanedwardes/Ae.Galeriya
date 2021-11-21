@@ -1,10 +1,8 @@
-﻿using Ae.Galeriya.Piwigo.Entities;
-using Ae.Galeriya.Core;
+﻿using Ae.Galeriya.Core;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Ae.Galeriya.Core.Tables;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
@@ -38,7 +36,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                                                               photo.Categories.Any(category => EF.Functions.Like(category.Name, queryValue)))
                                               .ToArrayAsync(token);
 
-            return _pageGenerator.CreatePage(page, perPage, photos);
+            return _pageGenerator.CreatePage(page, perPage, photos.Length, photos);
         }
     }
 }

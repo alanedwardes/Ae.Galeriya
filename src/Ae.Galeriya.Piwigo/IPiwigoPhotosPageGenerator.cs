@@ -6,6 +6,6 @@ namespace Ae.Galeriya.Piwigo
 {
     internal interface IPiwigoPhotosPageGenerator
     {
-        PiwigoImages CreatePage(int page, int perPage, IEnumerable<Photo> photos);
+        PiwigoImages CreatePage(int page, int perPage, int total, ICollection<Photo> photos);
     }
 }

@@ -5,20 +5,17 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Linq;
-using Ae.Galeriya.Core.Tables;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
-
-    internal sealed class PiwigoGetImages : IPiwigoWebServiceMethod
+    internal sealed class PiwigoGetTagImages : IPiwigoWebServiceMethod
     {
         private readonly GalleriaDbContext _context;
         private readonly IPiwigoPhotosPageGenerator _pageGenerator;
 
-        public string MethodName => "pwg.categories.getImages";
+        public string MethodName => "pwg.tags.getImages";
 
-        public PiwigoGetImages(GalleriaDbContext context,
+        public PiwigoGetTagImages(GalleriaDbContext context,
             IPiwigoPhotosPageGenerator pageGenerator)
         {
             _context = context;
@@ -29,18 +26,11 @@ namespace Ae.Galeriya.Piwigo.Methods
         {
             var page = parameters["page"].ToInt32(null);
             var perPage = parameters["per_page"].ToInt32(null);
+            var tagId = parameters["tag_id"].ToUInt32(null);
 
-            IQueryable<Photo> photosQuery = _context.Photos.Include(x => x.Categories);
+            var tag = await _context.Tags.Include(x => x.Photos).SingleAsync(x => x.TagId == tagId, token);
 
-            if (parameters.TryGetValue("cat_id", out var categoryIdRaw))
-            {
-                var categoryId = categoryIdRaw.ToUInt32(null);
-                photosQuery = photosQuery.Where(photo => photo.Categories.Any(category => category.CategoryId == categoryId));
-            }
-
-            var photos = await photosQuery.ToArrayAsync(token);
-
-            return _pageGenerator.CreatePage(page, perPage, photos.Length, photos);
+            return _pageGenerator.CreatePage(page, perPage, tag.Photos.Count, tag.Photos);
         }
     }
 }
