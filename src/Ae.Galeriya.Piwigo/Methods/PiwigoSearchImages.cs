@@ -30,9 +30,11 @@ namespace Ae.Galeriya.Piwigo.Methods
             var perPage = parameters["per_page"].ToInt32(null);
             var query = parameters["query"].ToString(null);
 
-            var photos = await _context.Photos.Where(photo => photo.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                                                              photo.FileName.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                                                              photo.Tags.Any(tag => tag.Name.Contains(query, StringComparison.OrdinalIgnoreCase)))
+            var queryValue = $"%{query}%";
+
+            var photos = await _context.Photos.Where(photo => EF.Functions.Like(photo.Name, queryValue) ||
+                                                              EF.Functions.Like(photo.FileName, queryValue) ||
+                                                              photo.Tags.Any(tag => EF.Functions.Like(tag.Name, queryValue)))
                                               .ToArrayAsync(token);
 
             return _pageGenerator.CreatePage(page, perPage, photos);
