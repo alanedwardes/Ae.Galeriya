@@ -1,9 +1,10 @@
 ﻿using Ae.Galeriya.Core.Tables;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ae.Galeriya.Core
 {
-    public sealed class GaleriaDbContext : DbContext
+    public sealed class GaleriaDbContext : IdentityDbContext
     {
         public GaleriaDbContext(DbContextOptions<GaleriaDbContext> options)
             : base(options)
@@ -25,7 +26,6 @@ namespace Ae.Galeriya.Core
             modelBuilder.Entity<Category>()
                 .HasMany(category => category.Photos)
                 .WithMany(photo => photo.Categories);
-
         }
 
         public DbSet<Tag> Tags => Set<Tag>();

@@ -8,7 +8,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="AWSSDK.S3" Version="3.7.4" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.12" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.12" />
 		<PackageReference Include="Xabe.FFmpeg" Version="5.0.2" />
 	</ItemGroup>
 

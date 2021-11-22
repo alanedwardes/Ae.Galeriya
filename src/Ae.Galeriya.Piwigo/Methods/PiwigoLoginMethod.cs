@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -9,17 +10,24 @@ namespace Ae.Galeriya.Piwigo.Methods
     internal sealed class PiwigoLoginMethod : IPiwigoWebServiceMethod
     {
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly SignInManager<IdentityUser> _signInManager;
 
         public string MethodName => "pwg.session.login";
 
-        public PiwigoLoginMethod(IHttpContextAccessor contextAccessor) => _contextAccessor = contextAccessor;
+        public PiwigoLoginMethod(IHttpContextAccessor contextAccessor, SignInManager<IdentityUser> signInManager)
+        {
+            _contextAccessor = contextAccessor;
+            _signInManager = signInManager;
+        }
 
-        public Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
         {
             var form = _contextAccessor.HttpContext.Request.Form;
 
-            _contextAccessor.HttpContext.Response.Cookies.Append("session", "wibble");
-            return Task.FromResult<object>(true);
+            var result = await _signInManager.PasswordSignInAsync(form["username"], form["password"], true, false);
+
+            //_contextAccessor.HttpContext.Response.Cookies.Append("session", "wibble");
+            return true;
         }
     }
 }

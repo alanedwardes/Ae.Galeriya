@@ -3,6 +3,7 @@ using Amazon;
 using Amazon.S3.Transfer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -29,6 +30,8 @@ namespace Ae.Galeriya.Piwigo
 
             services.AddIdentity<IdentityUser, IdentityRole>()
                     .AddEntityFrameworkStores<GaleriaDbContext>();
+
+            services.AddGalleriaStore(x => x.UseSqlite("Data Source=test.sqlite"));
         }
 
         public void Configure(IApplicationBuilder app)
