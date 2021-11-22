@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using Ae.Galeriya.Core;
 using Microsoft.EntityFrameworkCore;
-using Ae.Galeriya.Piwigo.Entities;
 
 namespace Ae.Galeriya.Piwigo
 {

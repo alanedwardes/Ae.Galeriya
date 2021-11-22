@@ -1,6 +1,5 @@
 ﻿using Ae.Galeriya.Core;
 using System;
-using System.IO;
 
 namespace Ae.Galeriya.Piwigo
 {
