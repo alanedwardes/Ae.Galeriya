@@ -16,6 +16,12 @@ namespace Ae.Galeriya.Core
             _memoryCache = memoryCache;
         }
 
+        public Task DeleteBlob(Guid blobId, CancellationToken token)
+        {
+            _memoryCache.Remove(blobId.ToString());
+            return Task.CompletedTask;
+        }
+
         public Task<Stream> GetBlob(Guid blobId, CancellationToken token)
         {
             if (_memoryCache.TryGetValue(blobId.ToString(), out object value))

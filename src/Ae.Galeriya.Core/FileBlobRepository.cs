@@ -8,17 +8,17 @@ namespace Ae.Galeriya.Core
 {
     public sealed class FileBlobRepository : IFileBlobRepository
     {
-        private readonly DirectoryInfo _cacheDirectoy;
+        private readonly DirectoryInfo _directory;
 
-        public FileBlobRepository(DirectoryInfo cacheDirectoy)
+        public FileBlobRepository(DirectoryInfo directory)
         {
-            cacheDirectoy.Create();
-            _cacheDirectoy = cacheDirectoy;
+            directory.Create();
+            _directory = directory;
         }
 
         public FileInfo GetFileInfoForBlob(string fileName)
         {
-            return new FileInfo(Path.Combine(_cacheDirectoy.FullName, fileName));
+            return new FileInfo(Path.Combine(_directory.FullName, fileName));
         }
 
         public Task<Stream> GetBlob(Guid blobId, CancellationToken token)
@@ -40,6 +40,12 @@ namespace Ae.Galeriya.Core
             {
                 await blobStream.CopyToAsync(toStream);
             }
+        }
+
+        public Task DeleteBlob(Guid blobId, CancellationToken token)
+        {
+            GetFileInfoForBlob(blobId.ToString()).Delete();
+            return Task.CompletedTask;
         }
     }
 }

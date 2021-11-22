@@ -40,9 +40,10 @@ namespace Ae.Galeriya.Piwigo
                 {
                     foreach (var part in parts)
                     {
-                        var partStream = _uploadedChunks[part];
-                        using var stream = await _configuration.ChunkBlobRepository.GetBlob(partStream, token);
-                        await stream.CopyToAsync(fileWriteStream, token);
+                        using (var stream = await _configuration.ChunkBlobRepository.GetBlob(_uploadedChunks[part], token))
+                        {
+                            await stream.CopyToAsync(fileWriteStream, token);
+                        }
                     }
                 }
 

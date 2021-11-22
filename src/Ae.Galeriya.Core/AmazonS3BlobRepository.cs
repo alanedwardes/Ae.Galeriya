@@ -21,6 +21,11 @@ namespace Ae.Galeriya.Core
             _bucketName = bucketName;
         }
 
+        public async Task DeleteBlob(Guid blobId, CancellationToken token)
+        {
+            await _transferUtility.S3Client.DeleteAsync(_bucketName, blobId.ToString(), null, token);
+        }
+
         public async Task<Stream> GetBlob(Guid blobId, CancellationToken token)
         {
             var request = new GetObjectRequest

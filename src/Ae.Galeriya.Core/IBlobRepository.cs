@@ -9,5 +9,6 @@ namespace Ae.Galeriya.Core
     {
         Task PutBlob(Stream blobStream, Guid blobId, CancellationToken token);
         Task<Stream> GetBlob(Guid blobId, CancellationToken token);
+        Task DeleteBlob(Guid blobId, CancellationToken token);
     }
 }

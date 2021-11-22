@@ -154,7 +154,6 @@ namespace Ae.Galeriya.Piwigo.Methods
                 finally
                 {
                     uploadedFile.Delete();
-
                 }
 
                 return await _webServiceRepository
