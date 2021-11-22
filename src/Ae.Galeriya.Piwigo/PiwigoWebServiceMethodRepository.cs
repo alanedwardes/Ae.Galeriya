@@ -31,26 +31,44 @@ namespace Ae.Galeriya.Piwigo
         {
             var context = _serviceProvider.GetRequiredService<IHttpContextAccessor>().HttpContext;
 
-            JsonSerializerOptions options = new JsonSerializerOptions();
-            options.Converters.Add(new PiwigoDateTimeConverter());
-            options.WriteIndented = true;
-            options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-
             RouteData routeData = context.GetRouteData();
             ActionDescriptor actionDescriptor = new ActionDescriptor();
             ActionContext actionContext = new ActionContext(context, routeData, actionDescriptor);
 
-            var response = await method.Execute(parameters, token);
+            object response;
+            try
+            {
+                response = await method.Execute(parameters, token);
+            }
+            catch (Exception e)
+            {
+                context.Response.StatusCode = e.HResult;
+                await WriteJsonResult(new PiwigoResponse { Stat = "fail", Error = e.HResult, Message = e.Message });
+                return;
+            }
+
             if (response is IActionResult actionResult)
             {
                 await actionResult.ExecuteResultAsync(actionContext);
             }
             else if (!context.Response.HasStarted)
             {
-                context.Response.ContentType = "application/json";
-                await context.Response.WriteAsync(JsonSerializer.Serialize(new PiwigoResponse { Result = response }, options));
-                await context.Response.CompleteAsync();
+                await WriteJsonResult(new PiwigoResponse { Result = response });
             }
+        }
+
+        private async Task WriteJsonResult(PiwigoResponse response)
+        {
+            var context = _serviceProvider.GetRequiredService<IHttpContextAccessor>().HttpContext;
+
+            JsonSerializerOptions options = new JsonSerializerOptions();
+            options.Converters.Add(new PiwigoDateTimeConverter());
+            options.WriteIndented = true;
+            options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(JsonSerializer.Serialize(response, options));
+            await context.Response.CompleteAsync();
         }
 
         public Task ExecuteMethod(string methodName, IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token) => ExecuteMethod(GetMethod(methodName), parameters, token);
