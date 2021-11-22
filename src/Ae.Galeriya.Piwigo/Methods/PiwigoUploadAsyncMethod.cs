@@ -59,7 +59,14 @@ namespace Ae.Galeriya.Piwigo.Methods
             if (snapshotFile.Exists)
             {
                 snapshotId = Guid.NewGuid();
-                await _photoCreator.PutBlob(snapshotFile.OpenRead(), snapshotId.Value, token);
+                try
+                {
+                    await _photoCreator.PutBlob(snapshotFile.OpenRead(), snapshotId.Value, token);
+                }
+                finally
+                {
+                    snapshotFile.Delete();
+                }
             }
 
             _logger.LogInformation("Processed snapshot {Snapshot} for {File} in {TotalSeconds}s", snapshotFile, uploadedFile, sw.Elapsed.TotalSeconds, snapshotId.HasValue);
