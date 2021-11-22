@@ -11,12 +11,12 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoGetFile : IPiwigoWebServiceMethod
     {
-        private readonly GalleriaDbContext _context;
+        private readonly GaleriaDbContext _context;
         private readonly IBlobRepository _blobRepository;
 
         public string MethodName => "pwg.images.getFile";
 
-        public PiwigoGetFile(GalleriaDbContext context, IBlobRepository blobRepository)
+        public PiwigoGetFile(GaleriaDbContext context, IBlobRepository blobRepository)
         {
             _context = context;
             _blobRepository = blobRepository;

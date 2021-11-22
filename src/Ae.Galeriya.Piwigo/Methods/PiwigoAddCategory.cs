@@ -11,11 +11,11 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoAddCategory : IPiwigoWebServiceMethod
     {
-        private readonly GalleriaDbContext _context;
+        private readonly GaleriaDbContext _context;
 
         public string MethodName => "pwg.categories.add";
 
-        public PiwigoAddCategory(GalleriaDbContext context)
+        public PiwigoAddCategory(GaleriaDbContext context)
         {
             _context = context;
         }

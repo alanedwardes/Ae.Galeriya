@@ -11,11 +11,11 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoSetImageInfo : IPiwigoWebServiceMethod
     {
-        private readonly GalleriaDbContext _context;
+        private readonly GaleriaDbContext _context;
 
         public string MethodName => "pwg.images.setInfo";
 
-        public PiwigoSetImageInfo(GalleriaDbContext context)
+        public PiwigoSetImageInfo(GaleriaDbContext context)
         {
             _context = context;
         }

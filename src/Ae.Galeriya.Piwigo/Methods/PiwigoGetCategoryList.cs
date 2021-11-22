@@ -12,13 +12,13 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoGetCategoryList : IPiwigoWebServiceMethod
     {
-        private readonly GalleriaDbContext _context;
+        private readonly GaleriaDbContext _context;
         private readonly IPiwigoConfiguration _configuration;
         private readonly IPiwigoImageDerivativesGenerator _derivativesGenerator;
 
         public string MethodName => "pwg.categories.getList";
 
-        public PiwigoGetCategoryList(GalleriaDbContext context, IPiwigoConfiguration configuration, IPiwigoImageDerivativesGenerator derivativesGenerator)
+        public PiwigoGetCategoryList(GaleriaDbContext context, IPiwigoConfiguration configuration, IPiwigoImageDerivativesGenerator derivativesGenerator)
         {
             _context = context;
             _configuration = configuration;

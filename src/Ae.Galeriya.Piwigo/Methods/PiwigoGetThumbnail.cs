@@ -14,12 +14,12 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoGetThumbnail : IPiwigoWebServiceMethod
     {
-        private readonly GalleriaDbContext _context;
+        private readonly GaleriaDbContext _context;
         private readonly IBlobRepository _blobRepository;
 
         public string MethodName => "pwg.images.getThumbnail";
 
-        public PiwigoGetThumbnail(GalleriaDbContext context, IBlobRepository blobRepository)
+        public PiwigoGetThumbnail(GaleriaDbContext context, IBlobRepository blobRepository)
         {
             _context = context;
             _blobRepository = blobRepository;

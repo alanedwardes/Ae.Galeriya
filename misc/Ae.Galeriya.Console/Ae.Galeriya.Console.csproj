@@ -1,18 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <OutputType>Exe</OutputType>
-    <IsPackable>flase</IsPackable>
-    <WarningsAsErrors>true</WarningsAsErrors>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net5.0</TargetFramework>
+		<OutputType>Exe</OutputType>
+		<IsPackable>flase</IsPackable>
+		<WarningsAsErrors>true</WarningsAsErrors>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Xabe.FFmpeg.Downloader" Version="5.0.2" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.12" />
+		<PackageReference Include="Xabe.FFmpeg.Downloader" Version="5.0.2" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Ae.Galeriya.Piwigo\Ae.Galeriya.Piwigo.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\Ae.Galeriya.Piwigo\Ae.Galeriya.Piwigo.csproj" />
+	</ItemGroup>
 
 </Project>

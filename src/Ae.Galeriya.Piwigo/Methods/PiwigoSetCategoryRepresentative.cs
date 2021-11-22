@@ -9,11 +9,11 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoSetCategoryRepresentative : IPiwigoWebServiceMethod
     {
-        private readonly GalleriaDbContext _context;
+        private readonly GaleriaDbContext _context;
 
         public string MethodName => "pwg.categories.setRepresentative";
 
-        public PiwigoSetCategoryRepresentative(GalleriaDbContext context)
+        public PiwigoSetCategoryRepresentative(GaleriaDbContext context)
         {
             _context = context;
         }

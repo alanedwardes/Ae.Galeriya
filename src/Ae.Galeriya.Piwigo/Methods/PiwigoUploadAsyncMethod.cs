@@ -24,7 +24,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IPiwigoWebServiceMethodRepository _webServiceRepository;
         private readonly IBlobRepository _photoCreator;
         private readonly IMediaInfoExtractor _infoExtractor;
-        private readonly GalleriaDbContext _dbContext;
+        private readonly GaleriaDbContext _dbContext;
 
         public string MethodName => "pwg.images.uploadAsync";
 
@@ -35,7 +35,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             IPiwigoWebServiceMethodRepository webServiceRepository,
             IBlobRepository photoCreator,
             IMediaInfoExtractor infoExtractor,
-            GalleriaDbContext dbContext)
+            GaleriaDbContext dbContext)
         {
             _logger = logger;
             _configuration = configuration;

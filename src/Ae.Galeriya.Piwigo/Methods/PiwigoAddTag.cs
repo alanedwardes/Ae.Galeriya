@@ -11,11 +11,11 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoAddTag : IPiwigoWebServiceMethod
     {
-        private readonly GalleriaDbContext _context;
+        private readonly GaleriaDbContext _context;
 
         public string MethodName => "pwg.tags.add";
 
-        public PiwigoAddTag(GalleriaDbContext context)
+        public PiwigoAddTag(GaleriaDbContext context)
         {
             _context = context;
         }

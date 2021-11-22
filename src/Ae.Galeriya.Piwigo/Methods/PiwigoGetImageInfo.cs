@@ -11,13 +11,13 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoGetImageInfo : IPiwigoWebServiceMethod
     {
-        private readonly GalleriaDbContext _dbContext;
+        private readonly GaleriaDbContext _dbContext;
         private readonly IPiwigoConfiguration _configuration;
         private readonly IPiwigoImageDerivativesGenerator _derivativesGenerator;
 
         public string MethodName => "pwg.images.getInfo";
 
-        public PiwigoGetImageInfo(GalleriaDbContext dbContext, IPiwigoConfiguration configuration, IPiwigoImageDerivativesGenerator derivativesGenerator)
+        public PiwigoGetImageInfo(GaleriaDbContext dbContext, IPiwigoConfiguration configuration, IPiwigoImageDerivativesGenerator derivativesGenerator)
         {
             _dbContext = dbContext;
             _configuration = configuration;

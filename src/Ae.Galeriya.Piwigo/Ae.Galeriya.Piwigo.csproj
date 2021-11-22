@@ -1,24 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net5.0</TargetFramework>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AWSSDK.S3" Version="3.7.4" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.12">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="AWSSDK.S3" Version="3.7.4" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.12">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Ae.Galeriya.Core\Ae.Galeriya.Core.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Ae.Galeriya.Core\Ae.Galeriya.Core.csproj" />
+	</ItemGroup>
 
 </Project>

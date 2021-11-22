@@ -9,11 +9,11 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoMoveCategory : IPiwigoWebServiceMethod
     {
-        private readonly GalleriaDbContext _context;
+        private readonly GaleriaDbContext _context;
 
         public string MethodName => "pwg.categories.move";
 
-        public PiwigoMoveCategory(GalleriaDbContext context)
+        public PiwigoMoveCategory(GaleriaDbContext context)
         {
             _context = context;
         }

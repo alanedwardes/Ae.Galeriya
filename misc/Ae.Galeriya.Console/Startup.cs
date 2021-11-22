@@ -2,6 +2,7 @@
 using Amazon;
 using Amazon.S3.Transfer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -10,11 +11,6 @@ namespace Ae.Galeriya.Piwigo
 {
     public sealed class Startup
     {
-        public void Configure(IApplicationBuilder app)
-        {
-            app.UseMiddleware<PiwigoMiddleware>();
-        }
-
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
@@ -30,6 +26,15 @@ namespace Ae.Galeriya.Piwigo
             {
                 BaseAddress = new Uri("http://192.168.178.21:5000")
             });
+
+            services.AddIdentity<IdentityUser, IdentityRole>()
+                    .AddEntityFrameworkStores<GaleriaDbContext>();
+        }
+
+        public void Configure(IApplicationBuilder app)
+        {
+            app.UseMiddleware<PiwigoMiddleware>();
+            app.UseAuthentication();
         }
     }
 }

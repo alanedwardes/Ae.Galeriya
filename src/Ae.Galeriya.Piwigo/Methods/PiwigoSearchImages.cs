@@ -10,12 +10,12 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoSearchImages : IPiwigoWebServiceMethod
     {
-        private readonly GalleriaDbContext _context;
+        private readonly GaleriaDbContext _context;
         private readonly IPiwigoPhotosPageGenerator _pageGenerator;
 
         public string MethodName => "pwg.images.search";
 
-        public PiwigoSearchImages(GalleriaDbContext context, IPiwigoPhotosPageGenerator pageGenerator)
+        public PiwigoSearchImages(GaleriaDbContext context, IPiwigoPhotosPageGenerator pageGenerator)
         {
             _context = context;
             _pageGenerator = pageGenerator;

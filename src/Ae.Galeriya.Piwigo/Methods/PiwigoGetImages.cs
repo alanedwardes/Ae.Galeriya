@@ -12,12 +12,12 @@ namespace Ae.Galeriya.Piwigo.Methods
 
     internal sealed class PiwigoGetImages : IPiwigoWebServiceMethod
     {
-        private readonly GalleriaDbContext _context;
+        private readonly GaleriaDbContext _context;
         private readonly IPiwigoPhotosPageGenerator _pageGenerator;
 
         public string MethodName => "pwg.categories.getImages";
 
-        public PiwigoGetImages(GalleriaDbContext context,
+        public PiwigoGetImages(GaleriaDbContext context,
             IPiwigoPhotosPageGenerator pageGenerator)
         {
             _context = context;
