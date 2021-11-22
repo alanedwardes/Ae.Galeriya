@@ -100,71 +100,74 @@ namespace Ae.Galeriya.Piwigo.Methods
             var uploadedFile = await _sessionRepository.AcceptChunk(originalChecksum, chunk, chunks, file, token);
             if (uploadedFile != null)
             {
-                token = CancellationToken.None;
-
-                var blobId = Guid.NewGuid();
-                var blobIdTask = _photoCreator.PutBlob(uploadedFile.OpenRead(), blobId, token);
-                var mediaInfoTask = _infoExtractor.ExtractInformation(uploadedFile, token);
-                var snapshotIdTask = ExtractSnapshot(uploadedFile, token);
-                var hashTask = CalculateFileHash(uploadedFile, token);
-
-                await blobIdTask;
-                var mediaInfo = await mediaInfoTask;
-                var snapshotId = await snapshotIdTask;
-                var hash = await hashTask;
-
-                var fileExtension = Path.GetExtension(fileName)?.ToLower().TrimStart('.');
-                if (string.IsNullOrWhiteSpace(fileExtension))
-                {
-                    throw new InvalidOperationException("No file extension found");
-                }
-
-                var photo = new Photo
-                {
-                    Blob = blobId,
-                    SnapshotBlob = snapshotId,
-                    FileSize = (ulong)uploadedFile.Length,
-                    Extension = fileExtension,
-                    FileName = fileName,
-                    Hash = hash,
-                    Name = name,
-                    CreatedOn = mediaInfo.CreationTime ?? creationDate,
-                    Make = mediaInfo.Camera.Make,
-                    Model = mediaInfo.Camera.Model,
-                    Software = mediaInfo.Camera.Software,
-                    Orientation = mediaInfo.Orientation,
-                    Duration = mediaInfo.Duration,
-                    Width = (uint)mediaInfo.Size.Width,
-                    Height = (uint)mediaInfo.Size.Height,
-                    Latitude = mediaInfo.Location?.Latitude,
-                    Longitude = mediaInfo.Location?.Longitude,
-                    Categories = await _dbContext.Categories.Where(x => x.CategoryId == categoryId).ToListAsync(token)
-                };
-
-                _dbContext.Photos.Add(photo);
-
-                try
-                {
-                    await _dbContext.SaveChangesAsync(token);
-                }
-                catch (DbUpdateException)
-                {
-                    photo = await _dbContext.Photos.SingleAsync(x => x.Hash == hash, token);
-                }
-                finally
-                {
-                    uploadedFile.Delete();
-                }
-
-                return await _webServiceRepository
-                    .GetMethod("pwg.images.getInfo")
-                    .Execute(new Dictionary<string, IConvertible>
-                    {
-                        { "image_id", photo.PhotoId }
-                    }, token);
+                return await CompleteFile(categoryId, fileName, name, creationDate, uploadedFile, CancellationToken.None);
             }
 
-            return new PiwigiUploadedChunkResponse { Message = $"chunks uploaded" };
+            return new PiwigoUploadedChunkResponse { Message = $"chunks uploaded" };
+        }
+
+        private async Task<object> CompleteFile(uint categoryId, string fileName, string name, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
+        {
+            var blobId = Guid.NewGuid();
+            var blobIdTask = _photoCreator.PutBlob(uploadedFile.OpenRead(), blobId, token);
+            var mediaInfoTask = _infoExtractor.ExtractInformation(uploadedFile, token);
+            var snapshotIdTask = ExtractSnapshot(uploadedFile, token);
+            var hashTask = CalculateFileHash(uploadedFile, token);
+
+            await blobIdTask;
+            var mediaInfo = await mediaInfoTask;
+            var snapshotId = await snapshotIdTask;
+            var hash = await hashTask;
+
+            var fileExtension = Path.GetExtension(fileName)?.ToLower().TrimStart('.');
+            if (string.IsNullOrWhiteSpace(fileExtension))
+            {
+                throw new InvalidOperationException("No file extension found");
+            }
+
+            var photo = new Photo
+            {
+                Blob = blobId,
+                SnapshotBlob = snapshotId,
+                FileSize = (ulong)uploadedFile.Length,
+                Extension = fileExtension,
+                FileName = fileName,
+                Hash = hash,
+                Name = name,
+                CreatedOn = mediaInfo.CreationTime ?? creationDate,
+                Make = mediaInfo.Camera.Make,
+                Model = mediaInfo.Camera.Model,
+                Software = mediaInfo.Camera.Software,
+                Orientation = mediaInfo.Orientation,
+                Duration = mediaInfo.Duration,
+                Width = (uint)mediaInfo.Size.Width,
+                Height = (uint)mediaInfo.Size.Height,
+                Latitude = mediaInfo.Location?.Latitude,
+                Longitude = mediaInfo.Location?.Longitude,
+                Categories = await _dbContext.Categories.Where(x => x.CategoryId == categoryId).ToListAsync(token)
+            };
+
+            _dbContext.Photos.Add(photo);
+
+            try
+            {
+                await _dbContext.SaveChangesAsync(token);
+            }
+            catch (DbUpdateException)
+            {
+                photo = await _dbContext.Photos.SingleAsync(x => x.Hash == hash, token);
+            }
+            finally
+            {
+                uploadedFile.Delete();
+            }
+
+            return await _webServiceRepository
+                .GetMethod("pwg.images.getInfo")
+                .Execute(new Dictionary<string, IConvertible>
+                {
+                        { "image_id", photo.PhotoId }
+                }, token);
         }
     }
 }
