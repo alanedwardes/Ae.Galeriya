@@ -1,5 +1,7 @@
 ﻿using Ae.Galeriya.Piwigo;
-using System.Threading;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Xabe.FFmpeg.Downloader;
 
 namespace Ae.Piwigo.Console
@@ -10,12 +12,19 @@ namespace Ae.Piwigo.Console
         {
             FFmpegDownloader.GetLatestVersion(FFmpegVersion.Official).GetAwaiter().GetResult();
 
-            var server = new PiwigoHttpServer();
+            var builder = Host.CreateDefaultBuilder()
+                .ConfigureWebHostDefaults(webHostBuilder =>
+                {
+                    webHostBuilder.ConfigureLogging(configureLogging =>
+                    {
+                        configureLogging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
+                        configureLogging.AddConsole(x => x.IncludeScopes = true);
+                    });
+                    webHostBuilder.UseUrls("http://0.0.0.0:5000");
+                    webHostBuilder.UseStartup<Startup>();
+                });
 
-            server.Listen(CancellationToken.None).GetAwaiter().GetResult();
-
-            System.Console.WriteLine("wibble");
-            System.Console.ReadLine();
+            builder.Build().Run();
         }
     }
 }
