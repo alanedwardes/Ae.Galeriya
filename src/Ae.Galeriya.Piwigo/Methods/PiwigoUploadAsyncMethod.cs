@@ -18,6 +18,7 @@ namespace Ae.Galeriya.Piwigo.Methods
     internal sealed class PiwigoUploadAsyncMethod : IPiwigoWebServiceMethod
     {
         private readonly ILogger<PiwigoUploadAsyncMethod> _logger;
+        private readonly IPiwigoConfiguration _configuration;
         private readonly IHttpContextAccessor _contextAccessor;
         private readonly IUploadRepository _sessionRepository;
         private readonly IPiwigoWebServiceMethodRepository _webServiceRepository;
@@ -28,6 +29,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         public string MethodName => "pwg.images.uploadAsync";
 
         public PiwigoUploadAsyncMethod(ILogger<PiwigoUploadAsyncMethod> logger,
+            IPiwigoConfiguration configuration,
             IHttpContextAccessor contextAccessor,
             IUploadRepository sessionRepository,
             IPiwigoWebServiceMethodRepository webServiceRepository,
@@ -36,6 +38,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             GalleriaDbContext dbContext)
         {
             _logger = logger;
+            _configuration = configuration;
             _contextAccessor = contextAccessor;
             _sessionRepository = sessionRepository;
             _webServiceRepository = webServiceRepository;
@@ -48,7 +51,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         {
             var sw = Stopwatch.StartNew();
 
-            var snapshotFile = _sessionRepository.CreateTempFile(Guid.NewGuid() + ".jpg");
+            var snapshotFile = _configuration.FileBlobRepository.GetFileInfoForBlob(Guid.NewGuid() + ".jpg");
             
             await _infoExtractor.ExtractSnapshot(uploadedFile, snapshotFile, token);
 
@@ -140,6 +143,11 @@ namespace Ae.Galeriya.Piwigo.Methods
                 catch (DbUpdateException)
                 {
                     photo = await _dbContext.Photos.SingleAsync(x => x.Hash == hash, token);
+                }
+                finally
+                {
+                    uploadedFile.Delete();
+
                 }
 
                 return await _webServiceRepository

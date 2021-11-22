@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ae.Galeriya.Core
 {
-    public sealed class FileBlobRepository : IBlobRepository
+    public sealed class FileBlobRepository : IFileBlobRepository
     {
         private readonly DirectoryInfo _cacheDirectoy;
 
@@ -16,16 +16,16 @@ namespace Ae.Galeriya.Core
             _cacheDirectoy = cacheDirectoy;
         }
 
-        private FileInfo GetFileInfoForBlob(Guid blobId)
+        public FileInfo GetFileInfoForBlob(string fileName)
         {
-            return new FileInfo(Path.Combine(_cacheDirectoy.FullName, blobId.ToString()));
+            return new FileInfo(Path.Combine(_cacheDirectoy.FullName, fileName));
         }
 
         public Task<Stream> GetBlob(Guid blobId, CancellationToken token)
         {
             try
             {
-                return Task.FromResult<Stream>(GetFileInfoForBlob(blobId).OpenRead());
+                return Task.FromResult<Stream>(GetFileInfoForBlob(blobId.ToString()).OpenRead());
             }
             catch (IOException)
             {
@@ -35,7 +35,7 @@ namespace Ae.Galeriya.Core
 
         public async Task PutBlob(Stream blobStream, Guid blobId, CancellationToken token)
         {
-            using (var toStream = GetFileInfoForBlob(blobId).OpenWrite())
+            using (var toStream = GetFileInfoForBlob(blobId.ToString()).OpenWrite())
             using (blobStream)
             {
                 await blobStream.CopyToAsync(toStream);

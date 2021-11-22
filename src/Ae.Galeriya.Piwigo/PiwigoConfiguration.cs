@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Ae.Galeriya.Core;
+using System;
 using System.IO;
 
 namespace Ae.Galeriya.Piwigo
@@ -6,11 +7,12 @@ namespace Ae.Galeriya.Piwigo
     public sealed class PiwigoConfiguration : IPiwigoConfiguration
     {
         public Uri BaseAddress { get; set; }
-        public DirectoryInfo TempFolder { get; set; } = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "piwigo"));
+        public IBlobRepository ChunkBlobRepository { get; set; } = new FileBlobRepository(GetTempFolder());
+        public IFileBlobRepository FileBlobRepository { get; set; } = new FileBlobRepository(GetTempFolder());
 
-        public PiwigoConfiguration()
+        private static DirectoryInfo GetTempFolder()
         {
-            TempFolder?.Create();
+            return new DirectoryInfo(Path.Combine(Path.GetTempPath(), "piwigo"));
         }
     }
 }

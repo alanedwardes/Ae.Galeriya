@@ -16,39 +16,32 @@ namespace Ae.Galeriya.Piwigo
             _configuration = configuration;
         }
 
-        private readonly IDictionary<(string, int), FileInfo> _uploadedChunks = new ConcurrentDictionary<(string, int), FileInfo>();
+        private readonly IDictionary<(string, int), Guid> _uploadedChunks = new ConcurrentDictionary<(string, int), Guid>();
 
         private readonly IPiwigoConfiguration _configuration;
-
-        public FileInfo CreateTempFile(string name) => new FileInfo(Path.Combine(_configuration.TempFolder.FullName, name));
 
         private (string, int) ChunkKey(string checksum, int chunk) => (checksum, chunk);
 
         public async Task<FileInfo> AcceptChunk(string checksum, int chunk, int totalChunks, IFormFile file, CancellationToken token)
         {
-            var chunkFile = CreateTempFile(checksum + "-" + chunk);
+            var chunkId = Guid.NewGuid();
+            await _configuration.ChunkBlobRepository.PutBlob(file.OpenReadStream(), chunkId, token);
 
-            using (var chunkStream = chunkFile.Open(FileMode.Create))
-            {
-                await file.CopyToAsync(chunkStream, token);
-            }
-
-            _uploadedChunks[ChunkKey(checksum, chunk)] = chunkFile;
+            _uploadedChunks[ChunkKey(checksum, chunk)] = chunkId;
 
             var parts = Enumerable.Range(0, totalChunks)
                 .Select(x => ChunkKey(checksum, x));
 
             if (parts.All(_uploadedChunks.ContainsKey))
             {
-                var uploadFile = CreateTempFile(Guid.NewGuid().ToString());
+                var uploadFile = _configuration.FileBlobRepository.GetFileInfoForBlob(Guid.NewGuid().ToString());
 
                 using (var fileWriteStream = uploadFile.Open(FileMode.Create))
                 {
                     foreach (var part in parts)
                     {
-                        var partFile = _uploadedChunks[part];
-
-                        using var stream = partFile.OpenRead();
+                        var partStream = _uploadedChunks[part];
+                        using var stream = await _configuration.ChunkBlobRepository.GetBlob(partStream, token);
                         await stream.CopyToAsync(fileWriteStream, token);
                     }
                 }
