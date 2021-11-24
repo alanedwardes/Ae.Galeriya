@@ -1,35 +1,12 @@
-﻿using Ae.Galeriya.Core;
-using Ae.Galeriya.Piwigo;
-using CommandLine;
+﻿using CommandLine;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System;
 using Xabe.FFmpeg.Downloader;
 
-namespace Ae.Piwigo.Console
+namespace Ae.Galeriya.Console
 {
-    public static class ServiceCollectionExtensions
-    {
-        public static IServiceCollection AddCommonServices(this IServiceCollection services)
-        {
-            services.AddIdentity<IdentityUser, IdentityRole>()
-                    .AddEntityFrameworkStores<GaleriaDbContext>();
-
-            return services.AddGalleriaStore(x => x.UseSqlite("Data Source=test.sqlite"));
-        }
-
-        public static ILoggingBuilder AddCommonLogging(this ILoggingBuilder builder)
-        {
-            builder.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
-            return builder.AddConsole(x => x.IncludeScopes = true);
-        }
-    }
 
     public static class Program
     {
@@ -92,8 +69,14 @@ namespace Ae.Piwigo.Console
                         {
                             var manager = GetUserManager();
 
-                            var result = manager.DeleteAsync(new IdentityUser { UserName = options.Username }).GetAwaiter().GetResult();
+                            var user = manager.FindByNameAsync(options.Username).GetAwaiter().GetResult();
+                            if (user == null)
+                            {
+                                System.Console.WriteLine($"User {options.Username} not found.");
+                                return;
+                            }
 
+                            var result = manager.DeleteAsync(user).GetAwaiter().GetResult();
                             System.Console.WriteLine(result.ToString());
                         })
                         .WithNotParsed(errors => { });

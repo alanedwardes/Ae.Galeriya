@@ -18,6 +18,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IBlobRepository _blobRepository;
 
         public string MethodName => "pwg.images.getThumbnail";
+        public bool AllowAnonymous => false;
 
         public PiwigoGetThumbnail(GaleriaDbContext context, IBlobRepository blobRepository)
         {

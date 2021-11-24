@@ -13,6 +13,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         public PiwigoListMethod(IPiwigoWebServiceMethodRepository methodRepository) => _methodRepository = methodRepository;
 
         public string MethodName => "reflection.getMethodList";
+        public bool AllowAnonymous => false;
 
         public Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
         {

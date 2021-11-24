@@ -14,6 +14,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly GaleriaDbContext _context;
 
         public string MethodName => "pwg.images.setInfo";
+        public bool AllowAnonymous => false;
 
         public PiwigoSetImageInfo(GaleriaDbContext context)
         {

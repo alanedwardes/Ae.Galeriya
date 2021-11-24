@@ -12,6 +12,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly GaleriaDbContext _context;
 
         public string MethodName => "pwg.categories.setInfo";
+        public bool AllowAnonymous => false;
 
         public PiwigoUpdateCategory(GaleriaDbContext context)
         {

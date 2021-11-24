@@ -14,6 +14,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly GaleriaDbContext _context;
 
         public string MethodName => "pwg.tags.getAdminList";
+        public bool AllowAnonymous => false;
 
         public PiwigoGetTagsAdmin(GaleriaDbContext context)
         {

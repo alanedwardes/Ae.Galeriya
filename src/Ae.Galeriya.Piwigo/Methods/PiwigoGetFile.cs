@@ -15,6 +15,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IBlobRepository _blobRepository;
 
         public string MethodName => "pwg.images.getFile";
+        public bool AllowAnonymous => false;
 
         public PiwigoGetFile(GaleriaDbContext context, IBlobRepository blobRepository)
         {

@@ -9,6 +9,7 @@ namespace Ae.Galeriya.Piwigo.Methods
     internal sealed class PiwigoGetInfoMethod : IPiwigoWebServiceMethod
     {
         public string MethodName => "pwg.getInfos";
+        public bool AllowAnonymous => false;
 
         public Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
         {

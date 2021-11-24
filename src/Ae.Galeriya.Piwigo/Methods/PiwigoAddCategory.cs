@@ -14,6 +14,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly GaleriaDbContext _context;
 
         public string MethodName => "pwg.categories.add";
+        public bool AllowAnonymous => false;
 
         public PiwigoAddCategory(GaleriaDbContext context)
         {

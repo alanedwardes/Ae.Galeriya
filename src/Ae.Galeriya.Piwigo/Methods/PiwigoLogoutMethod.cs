@@ -11,6 +11,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IHttpContextAccessor _contextAccessor;
 
         public string MethodName => "pwg.session.logout";
+        public bool AllowAnonymous => false;
 
         public PiwigoLogoutMethod(IHttpContextAccessor contextAccessor) => _contextAccessor = contextAccessor;
 

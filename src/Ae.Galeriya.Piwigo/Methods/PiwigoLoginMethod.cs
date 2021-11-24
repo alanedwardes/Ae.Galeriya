@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Ae.Galeriya.Piwigo.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly SignInManager<IdentityUser> _signInManager;
 
         public string MethodName => "pwg.session.login";
+        public bool AllowAnonymous => false;
 
         public PiwigoLoginMethod(IHttpContextAccessor contextAccessor, SignInManager<IdentityUser> signInManager)
         {
@@ -22,15 +24,13 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
         {
-            var form = _contextAccessor.HttpContext.Request.Form;
-
-            var result = await _signInManager.PasswordSignInAsync(form["username"], form["password"], true, false);
+            var result = await _signInManager.PasswordSignInAsync(parameters["username"].ToString(), parameters["password"].ToString(), true, false);
             if (!result.Succeeded)
             {
-                throw new Exception("Invalid username/password") { HResult = 401 };
+                _contextAccessor.HttpContext.Response.StatusCode = 403;
+                return new PiwigoResponse { Stat = "fail", Error = 403, Message = "Invalid username/password" };
             }
 
-            //_contextAccessor.HttpContext.Response.Cookies.Append("session", "wibble");
             return true;
         }
     }

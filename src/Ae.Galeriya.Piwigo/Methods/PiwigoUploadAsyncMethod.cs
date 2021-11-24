@@ -2,6 +2,7 @@
 using Ae.Galeriya.Core.Tables;
 using Ae.Galeriya.Piwigo.Entities;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -25,8 +26,10 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IBlobRepository _photoCreator;
         private readonly IMediaInfoExtractor _infoExtractor;
         private readonly GaleriaDbContext _dbContext;
+        private readonly SignInManager<IdentityUser> _signInManager;
 
         public string MethodName => "pwg.images.uploadAsync";
+        public bool AllowAnonymous => true;
 
         public PiwigoUploadAsyncMethod(ILogger<PiwigoUploadAsyncMethod> logger,
             IPiwigoConfiguration configuration,
@@ -35,7 +38,8 @@ namespace Ae.Galeriya.Piwigo.Methods
             IPiwigoWebServiceMethodRepository webServiceRepository,
             IBlobRepository photoCreator,
             IMediaInfoExtractor infoExtractor,
-            GaleriaDbContext dbContext)
+            GaleriaDbContext dbContext,
+            SignInManager<IdentityUser> signInManager)
         {
             _logger = logger;
             _configuration = configuration;
@@ -45,6 +49,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _photoCreator = photoCreator;
             _infoExtractor = infoExtractor;
             _dbContext = dbContext;
+            _signInManager = signInManager;
         }
 
         private async Task<Guid?> ExtractSnapshot(FileInfo uploadedFile, CancellationToken token)
@@ -87,6 +92,21 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
         {
+            var loginResult = await _webServiceRepository
+                .GetMethod("pwg.session.login")
+                .Execute(parameters, token);
+
+            if (!loginResult.Equals(true))
+            {
+                return loginResult;
+            }
+
+            var authResult = await _signInManager.PasswordSignInAsync(parameters["username"].ToString(null), parameters["password"].ToString(null), false, true);
+            if (!authResult.Succeeded)
+            {
+                throw new Exception("Invalid username/password") { HResult = 401 };
+            }
+
             var chunk = parameters["chunk"].ToInt32(null);
             var chunks = parameters["chunks"].ToInt32(null);
             var categoryId = parameters["category"].ToUInt32(null);

@@ -9,6 +9,7 @@ namespace Ae.Galeriya.Piwigo.Methods
     internal sealed class PiwigoGetFavourites : IPiwigoWebServiceMethod
     {
         public string MethodName => "pwg.users.favorites.getList";
+        public bool AllowAnonymous => false;
 
         public Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
         {

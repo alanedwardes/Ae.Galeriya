@@ -1,14 +1,13 @@
 ﻿using Ae.Galeriya.Core;
+using Ae.Galeriya.Piwigo;
 using Amazon;
 using Amazon.S3.Transfer;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace Ae.Galeriya.Piwigo
+namespace Ae.Galeriya.Console
 {
     public sealed class Startup
     {
@@ -28,16 +27,13 @@ namespace Ae.Galeriya.Piwigo
                 BaseAddress = new Uri("http://192.168.178.21:5000")
             });
 
-            services.AddIdentity<IdentityUser, IdentityRole>()
-                    .AddEntityFrameworkStores<GaleriaDbContext>();
-
-            services.AddGalleriaStore(x => x.UseSqlite("Data Source=test.sqlite"));
+            services.AddCommonServices();
         }
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseMiddleware<PiwigoMiddleware>();
             app.UseAuthentication();
+            app.UseMiddleware<PiwigoMiddleware>();
         }
     }
 }

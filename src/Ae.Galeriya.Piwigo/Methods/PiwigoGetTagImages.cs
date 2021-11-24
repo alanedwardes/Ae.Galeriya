@@ -13,6 +13,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IPiwigoPhotosPageGenerator _pageGenerator;
 
         public string MethodName => "pwg.tags.getImages";
+        public bool AllowAnonymous => false;
 
         public PiwigoGetTagImages(GaleriaDbContext context,
             IPiwigoPhotosPageGenerator pageGenerator)

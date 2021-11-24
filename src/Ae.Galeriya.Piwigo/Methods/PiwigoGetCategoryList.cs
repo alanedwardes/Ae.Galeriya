@@ -17,6 +17,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IPiwigoImageDerivativesGenerator _derivativesGenerator;
 
         public string MethodName => "pwg.categories.getList";
+        public bool AllowAnonymous => false;
 
         public PiwigoGetCategoryList(GaleriaDbContext context, IPiwigoConfiguration configuration, IPiwigoImageDerivativesGenerator derivativesGenerator)
         {

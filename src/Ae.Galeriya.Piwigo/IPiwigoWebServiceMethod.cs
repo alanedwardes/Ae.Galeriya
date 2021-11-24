@@ -7,6 +7,7 @@ namespace Ae.Galeriya.Piwigo
 {
     public interface IPiwigoWebServiceMethod
     {
+        bool AllowAnonymous { get; }
         string MethodName { get; }
         Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token);
     }

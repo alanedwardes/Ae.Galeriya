@@ -12,6 +12,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly GaleriaDbContext _context;
 
         public string MethodName => "pwg.categories.move";
+        public bool AllowAnonymous => false;
 
         public PiwigoMoveCategory(GaleriaDbContext context)
         {

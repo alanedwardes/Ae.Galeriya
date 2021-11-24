@@ -16,6 +16,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IPiwigoImageDerivativesGenerator _derivativesGenerator;
 
         public string MethodName => "pwg.images.getInfo";
+        public bool AllowAnonymous => false;
 
         public PiwigoGetImageInfo(GaleriaDbContext dbContext, IPiwigoConfiguration configuration, IPiwigoImageDerivativesGenerator derivativesGenerator)
         {

@@ -14,6 +14,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IPiwigoPhotosPageGenerator _pageGenerator;
 
         public string MethodName => "pwg.images.search";
+        public bool AllowAnonymous => false;
 
         public PiwigoSearchImages(GaleriaDbContext context, IPiwigoPhotosPageGenerator pageGenerator)
         {
