@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -8,17 +8,17 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoLogoutMethod : IPiwigoWebServiceMethod
     {
-        private readonly IHttpContextAccessor _contextAccessor;
+        private readonly SignInManager<IdentityUser> _signInManager;
 
         public string MethodName => "pwg.session.logout";
         public bool AllowAnonymous => false;
 
-        public PiwigoLogoutMethod(IHttpContextAccessor contextAccessor) => _contextAccessor = contextAccessor;
+        public PiwigoLogoutMethod(SignInManager<IdentityUser> signInManager) => _signInManager = signInManager;
 
-        public Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
         {
-            _contextAccessor.HttpContext.Response.Cookies.Delete("session");
-            return Task.FromResult<object>(true);
+            await _signInManager.SignOutAsync();
+            return true;
         }
     }
 }

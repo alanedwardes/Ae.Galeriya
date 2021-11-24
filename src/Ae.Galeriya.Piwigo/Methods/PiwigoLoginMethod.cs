@@ -14,7 +14,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly SignInManager<IdentityUser> _signInManager;
 
         public string MethodName => "pwg.session.login";
-        public bool AllowAnonymous => false;
+        public bool AllowAnonymous => true;
 
         public PiwigoLoginMethod(IHttpContextAccessor contextAccessor, SignInManager<IdentityUser> signInManager)
         {
