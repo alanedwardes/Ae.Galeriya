@@ -1,4 +1,5 @@
 ﻿using Ae.Galeriya.Core.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -31,7 +32,10 @@ namespace Ae.Galeriya.Core.Tables
         [Required]
         public string Extension { get; set; } = null!;
         public string? Comment { get; set; }
-        public string? Author { get; set; }
+        [Required]
+        public string AuthorId { get; set; }
+        [ForeignKey(nameof(AuthorId))]
+        public IdentityUser Author { get; set; }
         public string? Make { get; set; }
         public string? Model { get; set; }
         public string? Software { get; set; }

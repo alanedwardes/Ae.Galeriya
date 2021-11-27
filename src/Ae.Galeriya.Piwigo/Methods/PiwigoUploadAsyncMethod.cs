@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,7 +27,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IBlobRepository _photoCreator;
         private readonly IMediaInfoExtractor _infoExtractor;
         private readonly GaleriaDbContext _dbContext;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<IdentityUser> _userManager;
 
         public string MethodName => "pwg.images.uploadAsync";
         public bool AllowAnonymous => true;
@@ -39,7 +40,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             IBlobRepository photoCreator,
             IMediaInfoExtractor infoExtractor,
             GaleriaDbContext dbContext,
-            SignInManager<IdentityUser> signInManager)
+            UserManager<IdentityUser> userManager)
         {
             _logger = logger;
             _configuration = configuration;
@@ -49,7 +50,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _photoCreator = photoCreator;
             _infoExtractor = infoExtractor;
             _dbContext = dbContext;
-            _signInManager = signInManager;
+            _userManager = userManager;
         }
 
         private async Task<Guid?> ExtractSnapshot(FileInfo uploadedFile, CancellationToken token)
@@ -101,11 +102,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                 return loginResult;
             }
 
-            var authResult = await _signInManager.PasswordSignInAsync(parameters["username"].ToString(null), parameters["password"].ToString(null), false, true);
-            if (!authResult.Succeeded)
-            {
-                throw new Exception("Invalid username/password") { HResult = 401 };
-            }
+            var user = await _userManager.FindByNameAsync(parameters["username"].ToString());
 
             var chunk = parameters["chunk"].ToInt32(null);
             var chunks = parameters["chunks"].ToInt32(null);
@@ -120,13 +117,13 @@ namespace Ae.Galeriya.Piwigo.Methods
             var uploadedFile = await _sessionRepository.AcceptChunk(originalChecksum, chunk, chunks, file, token);
             if (uploadedFile != null)
             {
-                return await CompleteFile(categoryId, fileName, name, creationDate, uploadedFile, CancellationToken.None);
+                return await CompleteFile(categoryId, fileName, name, user, creationDate, uploadedFile, CancellationToken.None);
             }
 
             return new PiwigoUploadedChunkResponse { Message = $"chunks uploaded" };
         }
 
-        private async Task<object> CompleteFile(uint categoryId, string fileName, string name, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
+        private async Task<object> CompleteFile(uint categoryId, string fileName, string name, IdentityUser identityUser, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
         {
             var blobId = Guid.NewGuid();
             var blobIdTask = _photoCreator.PutBlob(uploadedFile.OpenRead(), blobId, token);
@@ -145,11 +142,14 @@ namespace Ae.Galeriya.Piwigo.Methods
                 throw new InvalidOperationException("No file extension found");
             }
 
+            var authorId = _contextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+
             var photo = new Photo
             {
                 Blob = blobId,
                 SnapshotBlob = snapshotId,
                 FileSize = (ulong)uploadedFile.Length,
+                AuthorId = identityUser.Id,
                 Extension = fileExtension,
                 FileName = fileName,
                 Hash = hash,

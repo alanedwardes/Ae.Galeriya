@@ -1,4 +1,5 @@
 ﻿using Ae.Galeriya.Core.Tables;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,5 +32,6 @@ namespace Ae.Galeriya.Core
         public DbSet<Tag> Tags => Set<Tag>();
         public DbSet<Photo> Photos => Set<Photo>();
         public DbSet<Category> Categories => Set<Category>();
+        public DbSet<CategoryUser> CategoryUsers => Set<CategoryUser>();
     }
 }

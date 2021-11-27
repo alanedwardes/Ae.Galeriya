@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -33,8 +32,8 @@ namespace Ae.Galeriya.Piwigo
             var context = _serviceProvider.GetRequiredService<IHttpContextAccessor>().HttpContext;
             if (!context.User.Identity.IsAuthenticated && !method.AllowAnonymous)
             {
-                context.Response.StatusCode = 403;
-                await WriteJsonResult(new PiwigoResponse { Stat = "fail", Error = 403, Message = "Authentication required" });
+                context.Response.StatusCode = 401;
+                await WriteJsonResult(new PiwigoResponse { Stat = "fail", Error = 401, Message = "Authentication required" });
                 return;
             }
 

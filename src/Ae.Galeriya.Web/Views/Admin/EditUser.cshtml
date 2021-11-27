@@ -1,0 +1,25 @@
+﻿@model EditUserModel
+
+@if (Model is EditUserModelErrorFail fail)
+{
+<ul>
+    @foreach (var error in fail.Errors)
+    {
+    <li>@error.Code - @error.Description</li>
+    }
+</ul>
+}
+
+<form action="" method="post">
+    <p>
+        <label asp-for="Username">Username</label>
+        <input asp-for="Username" />
+    </p>
+    <p>
+        <label asp-for="Password">Password</label>
+        <input asp-for="Password" />
+    </p>
+    <p>
+        <button type="submit">@(Model == null ? "Add" : "Edit") User</button>
+    </p>
+</form>

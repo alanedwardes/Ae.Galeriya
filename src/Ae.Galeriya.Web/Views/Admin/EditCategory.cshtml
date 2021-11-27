@@ -1,0 +1,26 @@
+﻿@model EditCategoryModel
+
+<h1>Edit Category @Model.Category.Name</h1>
+
+<h2>Permissions</h2>
+
+<form action="" method="post">
+    <p>
+        <select name="userIds" id="userIds" multiple="multiple">
+            @foreach (var user in Model.Users)
+            {
+                @if (Model.Category.Users.Select(x => x.User).Contains(user))
+                {
+                    <option value="@user.Id" selected="selected">@user.UserName</option>
+                }
+                else
+                {
+                    <option value="@user.Id">@user.UserName</option>
+                }
+            }
+        </select>
+    </p>
+    <p>
+        <button>Save Category</button>
+    </p>
+</form>

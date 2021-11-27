@@ -27,8 +27,8 @@ namespace Ae.Galeriya.Piwigo.Methods
             var result = await _signInManager.PasswordSignInAsync(parameters["username"].ToString(), parameters["password"].ToString(), true, false);
             if (!result.Succeeded)
             {
-                _contextAccessor.HttpContext.Response.StatusCode = 403;
-                return new PiwigoResponse { Stat = "fail", Error = 403, Message = "Invalid username/password" };
+                _contextAccessor.HttpContext.Response.StatusCode = 400;
+                return new PiwigoResponse { Stat = "fail", Error = 400, Message = "Invalid username/password" };
             }
 
             return true;

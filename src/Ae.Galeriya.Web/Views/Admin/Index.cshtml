@@ -1,0 +1,56 @@
+﻿@model Ae.Galeriya.Web.Models.IndexModel
+
+<h1>Galeriya Administration</h1>
+
+<h2>Users</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model.Users)
+        {
+            <tr>
+                <td>@user.Id</td>
+                <td>@user.UserName</td>
+                <td>
+                    <a href="@Url.Action("EditUser", "Admin", new { UserId = user.Id })">Edit</a>
+                    <a onclick="return confirm('Are you sure you want to delete the user @user.UserName?');" href="@Url.Action("DeleteUser", "Admin", new { UserId = user.Id })">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<p><a href="@Url.Action("AddUser", "Admin")">Add User</a></p>
+
+<h2>Categories</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Photos</th>
+            <th>Users</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var category in Model.Categories)
+        {
+            <tr>
+                <td>@category.CategoryId</td>
+                <td>@category.Name</td>
+                <td>@category.Photos.Count</td>
+                <td>@category.Users.Count</td>
+                <td><a href="@Url.Action("EditCategory", "Admin", new { CategoryId = category.CategoryId })">Edit</a></td>
+            </tr>
+        }
+    </tbody>
+</table>
