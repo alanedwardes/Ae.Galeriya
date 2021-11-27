@@ -1,13 +1,15 @@
 ﻿@model EditUserModel
 
+<h1>@(Model == null ? "Add" : "Edit") User</h2>
+
 @if (Model is EditUserModelErrorFail fail)
 {
-<ul>
-    @foreach (var error in fail.Errors)
-    {
-    <li>@error.Code - @error.Description</li>
-    }
-</ul>
+    <ul>
+        @foreach (var error in fail.Errors)
+        {
+            <li>@error.Code - @error.Description</li>
+        }
+    </ul>
 }
 
 <form action="" method="post">

@@ -117,13 +117,13 @@ namespace Ae.Galeriya.Piwigo.Methods
             var uploadedFile = await _sessionRepository.AcceptChunk(originalChecksum, chunk, chunks, file, token);
             if (uploadedFile != null)
             {
-                return await CompleteFile(categoryId, fileName, name, user, creationDate, uploadedFile, CancellationToken.None);
+                return await CompleteFile(categoryId, fileName, name, creationDate, uploadedFile, CancellationToken.None);
             }
 
             return new PiwigoUploadedChunkResponse { Message = $"chunks uploaded" };
         }
 
-        private async Task<object> CompleteFile(uint categoryId, string fileName, string name, IdentityUser identityUser, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
+        private async Task<object> CompleteFile(uint categoryId, string fileName, string name, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
         {
             var blobId = Guid.NewGuid();
             var blobIdTask = _photoCreator.PutBlob(uploadedFile.OpenRead(), blobId, token);
@@ -149,7 +149,6 @@ namespace Ae.Galeriya.Piwigo.Methods
                 Blob = blobId,
                 SnapshotBlob = snapshotId,
                 FileSize = (ulong)uploadedFile.Length,
-                AuthorId = identityUser.Id,
                 Extension = fileExtension,
                 FileName = fileName,
                 Hash = hash,

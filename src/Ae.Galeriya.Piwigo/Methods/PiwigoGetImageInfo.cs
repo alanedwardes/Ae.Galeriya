@@ -29,7 +29,8 @@ namespace Ae.Galeriya.Piwigo.Methods
         {
             var imageId = parameters["image_id"].ToUInt32(null);
 
-            var photo = await _dbContext.Photos.Include(x => x.Categories)
+            var photo = await _dbContext.Photos
+                .Include(x => x.Categories)
                 .SingleAsync(x => x.PhotoId == imageId, token);
 
             return new PiwigoImage
@@ -37,6 +38,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                 Id = photo.PhotoId,
                 Derivatives = _derivativesGenerator.GenerateDerivatives(photo.PhotoId),
                 FileSize = photo.FileSize,
+                Author = photo.Author,
                 AvailableOn = photo.CreatedOn,
                 LastModified = photo.UpdatedOn,
                 CreatedOn = photo.CreatedOn,

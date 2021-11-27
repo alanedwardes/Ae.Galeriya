@@ -9,6 +9,7 @@
         <tr>
             <th>ID</th>
             <th>Username</th>
+            <th>Access Failed Count</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -18,6 +19,7 @@
             <tr>
                 <td>@user.Id</td>
                 <td>@user.UserName</td>
+                <td>@user.AccessFailedCount</td>
                 <td>
                     <a href="@Url.Action("EditUser", "Admin", new { UserId = user.Id })">Edit</a>
                     <a onclick="return confirm('Are you sure you want to delete the user @user.UserName?');" href="@Url.Action("DeleteUser", "Admin", new { UserId = user.Id })">Delete</a>

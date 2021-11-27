@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace Ae.Galeriya.Web.Controllers
 {
+    [Route("/admin/")]
     public class AdminController : Controller
     {
         private readonly GaleriaDbContext _context;
@@ -42,7 +43,7 @@ namespace Ae.Galeriya.Web.Controllers
         [HttpPost("users")]
         public async Task<IActionResult> AddUser([FromForm] EditUserModel userModel)
         {
-            var result = await _userManager.CreateAsync(new IdentityUser { UserName = userModel.Username }, userModel.Password);
+            var result = await _userManager.CreateAsync(new IdentityUser { UserName = userModel.Username }, userModel.Password ?? string.Empty);
             if (result.Succeeded)
             {
                 return RedirectToAction(nameof(Index));
