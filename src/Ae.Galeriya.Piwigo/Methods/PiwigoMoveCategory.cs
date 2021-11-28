@@ -34,7 +34,6 @@ namespace Ae.Galeriya.Piwigo.Methods
             if (newParentCategory == null)
             {
                 category.Users = !category.IsTopLevel() ? category.FindTopLevel().Users : new List<User>();
-                category.ParentCategory = null;
                 category.ParentCategoryId = null;
             }
             else
