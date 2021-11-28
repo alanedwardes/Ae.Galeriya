@@ -11,6 +11,8 @@ namespace Ae.Galeriya.Console
         public long MemoryCacheSize { get; set; } = 512_000_000;
         public string AdminUsername { get; set; }
         public string AdminPassword { get; set; }
-        public string UploadCache { get; set; }
+        public string UploadCacheDirectory { get; set; }
+        public string SqliteDatabaseFile { get; set; }
+        public string DataProtectionDirectory { get; set; }
     }
 }
