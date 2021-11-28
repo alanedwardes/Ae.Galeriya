@@ -1,4 +1,5 @@
-﻿using Ae.Galeriya.Piwigo.Entities;
+﻿using Ae.Galeriya.Core.Tables;
+using Ae.Galeriya.Piwigo.Entities;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _contextAccessor = contextAccessor;
         }
 
-        public Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
+        public Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
             return Task.FromResult<object>(new PiwigoSessionStatus
             {

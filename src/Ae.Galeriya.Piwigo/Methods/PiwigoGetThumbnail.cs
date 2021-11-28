@@ -1,5 +1,7 @@
 ﻿using Ae.Galeriya.Core;
 using Ae.Galeriya.Core.Entities;
+using Ae.Galeriya.Core.Tables;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SixLabors.ImageSharp;
@@ -39,7 +41,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             { MediaOrientation.LeftBottom, context => context.Rotate(RotateMode.Rotate270) },
         };
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
             var width = parameters["width"].ToInt32(null);
             var height = parameters["height"].ToInt32(null);

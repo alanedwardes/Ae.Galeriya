@@ -1,5 +1,7 @@
-﻿using Ae.Galeriya.Piwigo.Entities;
+﻿using Ae.Galeriya.Core.Tables;
+using Ae.Galeriya.Piwigo.Entities;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Routing;
@@ -41,10 +43,18 @@ namespace Ae.Galeriya.Piwigo
             ActionDescriptor actionDescriptor = new ActionDescriptor();
             ActionContext actionContext = new ActionContext(context, routeData, actionDescriptor);
 
+            var userManager = _serviceProvider.GetRequiredService<UserManager<User>>();
+
+            User user = null;
+            if (context.User.Identity.IsAuthenticated)
+            {
+                user = await userManager.FindByNameAsync(context.User.Identity.Name);
+            }
+
             object response;
             try
             {
-                response = await method.Execute(parameters, token);
+                response = await method.Execute(parameters, user, token);
             }
             catch (Exception e)
             {

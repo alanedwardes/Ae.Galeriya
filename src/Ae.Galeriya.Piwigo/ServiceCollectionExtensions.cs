@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
-using Ae.Galeriya.Core;
-using Microsoft.EntityFrameworkCore;
 
 namespace Ae.Galeriya.Piwigo
 {

@@ -1,4 +1,6 @@
 ﻿using Ae.Galeriya.Core;
+using Ae.Galeriya.Core.Tables;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -19,7 +21,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _context = context;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
             var categoryId = parameters["category_id"].ToUInt32(null);
             var newParentCategoryId = parameters["parent"].ToUInt32(null);

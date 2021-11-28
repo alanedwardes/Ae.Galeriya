@@ -1,10 +1,15 @@
-﻿using Ae.Galeriya.Core;
+﻿using Ae.Galeriya.Console;
+using Ae.Galeriya.Core;
 using Ae.Galeriya.Core.Tables;
 using Ae.Galeriya.Web.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Ae.Galeriya.Web.Controllers
@@ -13,12 +18,54 @@ namespace Ae.Galeriya.Web.Controllers
     public class AdminController : Controller
     {
         private readonly GaleriaDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<User> _userManager;
+        private readonly GaleriyaConfiguration _configuration;
 
-        public AdminController(GaleriaDbContext context, UserManager<IdentityUser> userManager)
+        public string AuthorizationHeader => "Authorization";
+        public string BasicPrefix => "Basic";
+
+        public AdminController(GaleriaDbContext context, UserManager<User> userManager, GaleriyaConfiguration configuration)
         {
             _context = context;
             _userManager = userManager;
+            _configuration = configuration;
+        }
+
+        private (string Username, string Password)? GetBasicAuth()
+        {
+            if (!Request.Headers.TryGetValue(AuthorizationHeader, out var authorizationHeader))
+            {
+                return null;
+            }
+
+            var auth = authorizationHeader.ToString()[BasicPrefix.Length..];
+
+            byte[] decoded = Convert.FromBase64String(auth);
+            Encoding iso = Encoding.GetEncoding("ISO-8859-1");
+            string[] authPair = iso.GetString(decoded).Split(':');
+
+            if (string.IsNullOrWhiteSpace(authPair[0]) || string.IsNullOrWhiteSpace(authPair[1]))
+            {
+                return null;
+            }
+
+            return (authPair[0], authPair[1]);
+        }
+
+        public override void OnActionExecuting(ActionExecutingContext context)
+        {
+            var basicAuth = GetBasicAuth();
+
+            if (basicAuth.HasValue &&
+                basicAuth.Value.Username == _configuration.AdminUsername &&
+                basicAuth.Value.Password == _configuration.AdminPassword)
+            {
+                base.OnActionExecuting(context);
+                return;
+            }
+
+            Response.StatusCode = 401;
+            Response.Headers.Add("WWW-Authenticate", "Basic");
         }
 
         public async Task<IActionResult> Index()
@@ -43,7 +90,7 @@ namespace Ae.Galeriya.Web.Controllers
         [HttpPost("users")]
         public async Task<IActionResult> AddUser([FromForm] EditUserModel userModel)
         {
-            var result = await _userManager.CreateAsync(new IdentityUser { UserName = userModel.Username }, userModel.Password ?? string.Empty);
+            var result = await _userManager.CreateAsync(new User { UserName = userModel.Username }, userModel.Password ?? string.Empty);
             if (result.Succeeded)
             {
                 return RedirectToAction(nameof(Index));
@@ -112,25 +159,16 @@ namespace Ae.Galeriya.Web.Controllers
         [HttpPost("categories/{CategoryId}/edit")]
         public async Task<IActionResult> EditCategory([FromRoute] uint categoryId, [FromForm] string[] userIds)
         {
-            var category = await _context.Categories.SingleAsync(x => x.CategoryId == categoryId);
+            var category = await _context.Categories.Include(x => x.Users).SingleAsync(x => x.CategoryId == categoryId);
 
-            var categoryUsers = await _context.CategoryUsers.Where(x => x.Category == category).ToArrayAsync();
-
-            foreach (var categoryUser in categoryUsers)
-            {
-                _context.CategoryUsers.Remove(categoryUser);
-            }
+            var newUsers = new List<User>();
 
             foreach (var userId in userIds)
             {
-                var user = await _userManager.FindByIdAsync(userId);
-
-                _context.CategoryUsers.Add(new CategoryUser
-                {
-                    Category = category,
-                    User = user
-                });
+                newUsers.Add(await _userManager.FindByIdAsync(userId));
             }
+
+            category.Users = newUsers;
 
             await _context.SaveChangesAsync();
 

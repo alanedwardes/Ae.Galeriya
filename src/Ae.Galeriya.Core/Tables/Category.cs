@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -22,25 +22,20 @@ namespace Ae.Galeriya.Core.Tables
         [ForeignKey(nameof(ParentCategoryId))]
         public Category? ParentCategory { get; set; }
 
+        [Required]
+        public uint CreatedById { get; set; }
+        [ForeignKey(nameof(CreatedById))]
+        public User CreatedBy { get; set; }
+        [Required]
+        public DateTimeOffset CreatedOn { get; set; }
+
+        public uint? UpdatedById { get; set; }
+        [ForeignKey(nameof(UpdatedById))]
+        public User? UpdatedBy { get; set; }
+        public DateTimeOffset? UpdatedOn { get; set; }
+
         public ICollection<Photo> Photos { get; set; } = new List<Photo>();
         public ICollection<Category> Categories { get; set; } = new List<Category>();
-        public ICollection<CategoryUser> Users { get; set; } = new List<CategoryUser>();
-    }
-
-    public sealed class CategoryUser
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public uint CategoryUserId { get; set; }
-
-        [Required]
-        public uint CategoryId { get; set; }
-        [ForeignKey(nameof(CategoryId))]
-        public Category Category { get; set; }
-
-        [Required]
-        public string UserId { get; set; }
-        [ForeignKey(nameof(UserId))]
-        public IdentityUser User { get; set; }
+        public ICollection<User> Users { get; set; } = new List<User>();
     }
 }

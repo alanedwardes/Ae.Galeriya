@@ -1,4 +1,5 @@
 ﻿using Ae.Galeriya.Piwigo;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,6 +14,7 @@ namespace Ae.Galeriya.Console
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseStaticFiles();
             app.UseAuthentication();
             app.UseMiddleware<PiwigoMiddleware>();
 

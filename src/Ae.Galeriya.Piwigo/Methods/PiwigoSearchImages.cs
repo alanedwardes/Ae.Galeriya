@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using Microsoft.AspNetCore.Identity;
+using Ae.Galeriya.Core.Tables;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
@@ -22,7 +24,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _pageGenerator = pageGenerator;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
             var order = parameters["order"].ToString(null);
             var page = parameters["page"].ToInt32(null);

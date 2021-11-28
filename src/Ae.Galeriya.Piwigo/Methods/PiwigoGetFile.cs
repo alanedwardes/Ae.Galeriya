@@ -1,4 +1,6 @@
 ﻿using Ae.Galeriya.Core;
+using Ae.Galeriya.Core.Tables;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -41,7 +43,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             return ms;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
             var imageId = parameters["image_id"].ToUInt32(null);
 

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using Ae.Galeriya.Core.Tables;
+using Microsoft.AspNetCore.Identity;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
@@ -21,7 +22,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _context = context;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
             var imageId = parameters["image_id"].ToUInt32(null);
             var multipleValueMode = parameters["multiple_value_mode"].ToString(null);
@@ -30,11 +31,6 @@ namespace Ae.Galeriya.Piwigo.Methods
                 .Include(x => x.Categories)
                 .Include(x => x.Tags)
                 .SingleAsync(x => x.PhotoId == imageId, token);
-
-            if (parameters.TryGetValue("author", out var authorString))
-            {
-                photo.Author = authorString.ToString(null);
-            }
 
             if (parameters.TryGetValue("name", out var nameString))
             {

@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using Ae.Galeriya.Core.Tables;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
@@ -25,7 +27,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _derivativesGenerator = derivativesGenerator;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
             var imageId = parameters["image_id"].ToUInt32(null);
 
@@ -38,7 +40,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                 Id = photo.PhotoId,
                 Derivatives = _derivativesGenerator.GenerateDerivatives(photo.PhotoId),
                 FileSize = photo.FileSize,
-                Author = photo.Author,
+                Author = photo.CreatedBy.UserName,
                 AvailableOn = photo.CreatedOn,
                 LastModified = photo.UpdatedOn,
                 CreatedOn = photo.CreatedOn,

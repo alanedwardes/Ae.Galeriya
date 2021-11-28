@@ -1,30 +1,32 @@
 ﻿@model Ae.Galeriya.Web.Models.IndexModel
 
-<h1>Galeriya Administration</h1>
-
 <h2>Users</h2>
 
-<table>
+<table class="table">
     <thead>
         <tr>
             <th>ID</th>
             <th>Username</th>
-            <th>Access Failed Count</th>
+            <th>Photos</th>
+            <th>Categories</th>
+            <th>Tags</th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var user in Model.Users)
         {
-            <tr>
-                <td>@user.Id</td>
-                <td>@user.UserName</td>
-                <td>@user.AccessFailedCount</td>
-                <td>
-                    <a href="@Url.Action("EditUser", "Admin", new { UserId = user.Id })">Edit</a>
-                    <a onclick="return confirm('Are you sure you want to delete the user @user.UserName?');" href="@Url.Action("DeleteUser", "Admin", new { UserId = user.Id })">Delete</a>
-                </td>
-            </tr>
+        <tr>
+            <td>@user.Id</td>
+            <td>@user.UserName</td>
+            <td>@user.CreatedPhotos.Count</td>
+            <td>@user.CreatedCategories.Count</td>
+            <td>@user.CreatedTags.Count</td>
+            <td>
+                <a href="@Url.Action("EditUser", "Admin", new { UserId = user.Id })">Edit</a>
+                <a onclick="return confirm('Are you sure you want to delete the user @user.UserName?');" href="@Url.Action("DeleteUser", "Admin", new { UserId = user.Id })">Delete</a>
+            </td>
+        </tr>
         }
     </tbody>
 </table>
@@ -33,7 +35,7 @@
 
 <h2>Categories</h2>
 
-<table>
+<table class="table">
     <thead>
         <tr>
             <th>ID</th>

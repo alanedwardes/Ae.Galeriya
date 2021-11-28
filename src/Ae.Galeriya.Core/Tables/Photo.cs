@@ -32,7 +32,6 @@ namespace Ae.Galeriya.Core.Tables
         [Required]
         public string Extension { get; set; } = null!;
         public string? Comment { get; set; }
-        public string? Author { get; set; }
         public string? Make { get; set; }
         public string? Model { get; set; }
         public string? Software { get; set; }
@@ -41,8 +40,17 @@ namespace Ae.Galeriya.Core.Tables
         public float? Duration { get; set; }
         [Required]
         public MediaOrientation Orientation { get; set; }
+
+        [Required]
+        public uint CreatedById { get; set; }
+        [ForeignKey(nameof(CreatedById))]
+        public User CreatedBy { get; set; }
         [Required]
         public DateTimeOffset CreatedOn { get; set; }
+
+        public uint? UpdatedById { get; set; }
+        [ForeignKey(nameof(UpdatedById))]
+        public User? UpdatedBy { get; set; }
         public DateTimeOffset? UpdatedOn { get; set; }
 
         public ICollection<Category> Categories { get; set; } = new List<Category>();

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Ae.Galeriya.Core.Tables;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
@@ -21,7 +22,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _context = context;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
             var name = parameters["name"].ToString(null);
 

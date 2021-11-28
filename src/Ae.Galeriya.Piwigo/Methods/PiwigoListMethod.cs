@@ -1,4 +1,6 @@
-﻿using Ae.Galeriya.Piwigo.Entities;
+﻿using Ae.Galeriya.Core.Tables;
+using Ae.Galeriya.Piwigo.Entities;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -15,7 +17,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         public string MethodName => "reflection.getMethodList";
         public bool AllowAnonymous => true;
 
-        public Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
+        public Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
             return Task.FromResult<object>(new PiwigoMethods { Methods =  _methodRepository.GetMethods() });
         }

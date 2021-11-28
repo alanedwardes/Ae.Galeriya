@@ -1,15 +1,13 @@
 ﻿@model EditCategoryModel
 
-<h1>Edit Category @Model.Category.Name</h1>
-
-<h2>Permissions</h2>
+<h2>Edit Category @Model.Category.Name</h2>
 
 <form action="" method="post">
-    <p>
-        <select name="userIds" id="userIds" multiple="multiple">
+    <div class="form-group">
+        <select class="form-control" name="userIds" id="userIds" multiple="multiple">
             @foreach (var user in Model.Users)
             {
-                @if (Model.Category.Users.Select(x => x.User).Contains(user))
+                @if (Model.Category.Users.Contains(user))
                 {
                     <option value="@user.Id" selected="selected">@user.UserName</option>
                 }
@@ -19,8 +17,8 @@
                 }
             }
         </select>
-    </p>
-    <p>
-        <button>Save Category</button>
-    </p>
+    </div>
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Save Category</button>
+    </div>
 </form>

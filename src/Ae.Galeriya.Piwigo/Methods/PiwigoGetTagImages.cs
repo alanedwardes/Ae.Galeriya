@@ -1,4 +1,6 @@
 ﻿using Ae.Galeriya.Core;
+using Ae.Galeriya.Core.Tables;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -22,7 +24,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _pageGenerator = pageGenerator;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
             var page = parameters["page"].ToInt32(null);
             var perPage = parameters["per_page"].ToInt32(null);

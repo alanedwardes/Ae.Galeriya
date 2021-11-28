@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Ae.Galeriya.Core.Tables;
+using Microsoft.AspNetCore.Identity;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
@@ -21,7 +22,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _context = context;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
             var parentId = parameters["parent"].ToUInt32(null);
 
@@ -35,7 +36,9 @@ namespace Ae.Galeriya.Piwigo.Methods
             {
                 Name = parameters["name"].ToString(null),
                 ParentCategory = parentCategory,
-                Comment = parameters["comment"].ToString(null)
+                Comment = parameters["comment"].ToString(null),
+                CreatedBy = user,
+                Users = new [] { user }
             };
 
             _context.Categories.Add(category);

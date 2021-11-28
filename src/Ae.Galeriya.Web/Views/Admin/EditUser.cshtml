@@ -1,6 +1,6 @@
 ﻿@model EditUserModel
 
-<h1>@(Model == null ? "Add" : "Edit") User</h2>
+<h2>@(Model == null ? "Add" : "Edit") User</h2>
 
 @if (Model is EditUserModelErrorFail fail)
 {
@@ -13,15 +13,15 @@
 }
 
 <form action="" method="post">
-    <p>
+    <div class="form-group">
         <label asp-for="Username">Username</label>
-        <input asp-for="Username" />
-    </p>
-    <p>
+        <input class="form-control" asp-for="Username" />
+    </div>
+    <div class="form-group">
         <label asp-for="Password">Password</label>
-        <input asp-for="Password" />
-    </p>
-    <p>
-        <button type="submit">@(Model == null ? "Add" : "Edit") User</button>
-    </p>
+        <input class="form-control" asp-for="Password" />
+    </div>
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">@(Model == null ? "Add" : "Edit") User</button>
+    </div>
 </form>
