@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,6 +34,7 @@ namespace Ae.Galeriya.Piwigo
         {
             var userManager = _serviceProvider.GetRequiredService<UserManager<User>>();
             var context = _serviceProvider.GetRequiredService<IHttpContextAccessor>().HttpContext;
+            var logger = _serviceProvider.GetRequiredService<ILogger<PiwigoWebServiceMethodRepository>>();
 
             async Task Deny()
             {
@@ -69,6 +71,7 @@ namespace Ae.Galeriya.Piwigo
             catch (Exception e)
             {
                 context.Response.StatusCode = 500;
+                logger.LogCritical(e, "Exception thrown from {MethodName}", method.MethodName);
                 await WriteJsonResult(new PiwigoResponse { Stat = "fail", Error = e.HResult, Message = e.Message });
                 return;
             }
