@@ -31,25 +31,35 @@ namespace Ae.Galeriya.Piwigo
 
         public async Task ExecuteMethod(IPiwigoWebServiceMethod method, IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
         {
+            var userManager = _serviceProvider.GetRequiredService<UserManager<User>>();
             var context = _serviceProvider.GetRequiredService<IHttpContextAccessor>().HttpContext;
-            if (!context.User.Identity.IsAuthenticated && !method.AllowAnonymous)
+
+            async Task Deny()
             {
                 context.Response.StatusCode = 401;
                 await WriteJsonResult(new PiwigoResponse { Stat = "fail", Error = 401, Message = "Authentication required" });
-                return;
+            }
+
+            User user = null;
+            if (!method.AllowAnonymous)
+            {
+                if (!context.User.Identity.IsAuthenticated)
+                {
+                    await Deny();
+                    return;
+                }
+
+                user = await userManager.FindByNameAsync(context.User.Identity.Name);
+                if (user == null)
+                {
+                    await Deny();
+                    return;
+                }
             }
 
             RouteData routeData = context.GetRouteData();
             ActionDescriptor actionDescriptor = new ActionDescriptor();
             ActionContext actionContext = new ActionContext(context, routeData, actionDescriptor);
-
-            var userManager = _serviceProvider.GetRequiredService<UserManager<User>>();
-
-            User user = null;
-            if (context.User.Identity.IsAuthenticated)
-            {
-                user = await userManager.FindByNameAsync(context.User.Identity.Name);
-            }
 
             object response;
             try
