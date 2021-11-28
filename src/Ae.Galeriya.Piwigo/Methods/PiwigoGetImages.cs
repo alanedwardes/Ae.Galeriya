@@ -16,7 +16,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         public string MethodName => "pwg.categories.getImages";
         public bool AllowAnonymous => false;
 
-        public PiwigoGetImages(PiwigoPhotosPageGenerator pageGenerator,
+        public PiwigoGetImages(IPiwigoPhotosPageGenerator pageGenerator,
             ICategoryPermissionsRepository permissionsRepository)
         {
             _pageGenerator = pageGenerator;
