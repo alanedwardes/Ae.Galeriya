@@ -34,7 +34,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             var tag = await _context.Tags.SingleAsync(x => x.TagId == parameters["tag_id"].ToUInt32(null), token);
 
-            var photosQuery = _categoryPermissions.GetAccessiblePhotos(user)
+            var photosQuery = (await _categoryPermissions.GetAccessiblePhotos(user, token))
                 .Where(x => x.Tags.Contains(tag));
 
             return await _pageGenerator.CreatePage(page, perPage, photosQuery, token);

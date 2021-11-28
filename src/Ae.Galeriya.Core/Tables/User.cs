@@ -9,5 +9,6 @@ namespace Ae.Galeriya.Core.Tables
         public ICollection<Category> CreatedCategories { get; set; } = new List<Category>();
         public ICollection<Tag> CreatedTags { get; set; } = new List<Tag>();
         public ICollection<Category> AccessibleCategories { get; set; } = new List<Category>();
+        public ICollection<Photo> FavouritePhotos { get; set; } = new List<Photo>();
     }
 }

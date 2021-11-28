@@ -29,6 +29,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             var tag = new Tag
             {
                 Name = name,
+                CreatedBy = user,
                 CreatedOn = DateTimeOffset.UtcNow
             };
 

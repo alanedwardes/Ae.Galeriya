@@ -55,5 +55,6 @@ namespace Ae.Galeriya.Core.Tables
 
         public ICollection<Category> Categories { get; set; } = new List<Category>();
         public ICollection<Tag> Tags { get; set; } = new List<Tag>();
+        public ICollection<User> FavouritedBy { get; set; } = new List<User>();
     }
 }

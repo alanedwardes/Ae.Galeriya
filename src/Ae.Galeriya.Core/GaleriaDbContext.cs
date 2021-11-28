@@ -60,6 +60,10 @@ namespace Ae.Galeriya.Core
             modelBuilder.Entity<Category>()
                 .HasMany(category => category.Users)
                 .WithMany(user => user.AccessibleCategories);
+
+            modelBuilder.Entity<User>()
+                .HasMany(user => user.FavouritePhotos)
+                .WithMany(photo => photo.FavouritedBy);
         }
 
         public DbSet<Tag> Tags => Set<Tag>();

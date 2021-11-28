@@ -33,7 +33,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             var queryValue = $"%{query}%";
 
-            var photosQuery = _categoryPermissions.GetAccessiblePhotos(user)
+            var photosQuery = (await _categoryPermissions.GetAccessiblePhotos(user, token))
                 .Where(photo => EF.Functions.Like(photo.Name, queryValue) ||
                                 EF.Functions.Like(photo.FileName, queryValue) ||
                                 photo.Tags.Any(tag => EF.Functions.Like(tag.Name, queryValue)) ||
