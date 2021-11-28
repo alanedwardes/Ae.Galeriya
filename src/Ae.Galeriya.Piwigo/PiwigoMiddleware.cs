@@ -1,5 +1,4 @@
-﻿using Ae.Galeriya.Core;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
@@ -20,8 +19,6 @@ namespace Ae.Galeriya.Piwigo
 
         public async Task InvokeAsync(HttpContext context)
         {
-            var dbContext = context.RequestServices.GetRequiredService<GaleriyaDbContext>();
-
             var repository = context.RequestServices.GetRequiredService<IPiwigoWebServiceMethodRepository>();
 
             var logger = context.RequestServices.GetRequiredService<ILogger<PiwigoMiddleware>>();

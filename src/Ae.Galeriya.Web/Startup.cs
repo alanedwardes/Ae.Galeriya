@@ -1,5 +1,4 @@
 ﻿using Ae.Galeriya.Piwigo;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
