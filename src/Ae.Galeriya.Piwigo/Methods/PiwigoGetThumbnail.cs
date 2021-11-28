@@ -1,9 +1,7 @@
 ﻿using Ae.Galeriya.Core;
 using Ae.Galeriya.Core.Entities;
 using Ae.Galeriya.Core.Tables;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using System;
@@ -16,15 +14,15 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoGetThumbnail : IPiwigoWebServiceMethod
     {
-        private readonly GaleriaDbContext _context;
+        private readonly ICategoryPermissionsRepository _categoryPermissions;
         private readonly IBlobRepository _blobRepository;
 
         public string MethodName => "pwg.images.getThumbnail";
         public bool AllowAnonymous => false;
 
-        public PiwigoGetThumbnail(GaleriaDbContext context, IBlobRepository blobRepository)
+        public PiwigoGetThumbnail(ICategoryPermissionsRepository categoryPermissions, IBlobRepository blobRepository)
         {
-            _context = context;
+            _categoryPermissions = categoryPermissions;
             _blobRepository = blobRepository;
         }
 
@@ -46,9 +44,8 @@ namespace Ae.Galeriya.Piwigo.Methods
             var width = parameters["width"].ToInt32(null);
             var height = parameters["height"].ToInt32(null);
             var type = parameters["type"].ToString(null);
-            var imageId = parameters["image_id"].ToUInt32(null);
 
-            var photo = await _context.Photos.SingleAsync(x => x.PhotoId == imageId, token);
+            var photo = await _categoryPermissions.EnsureCanAccessPhoto(user, parameters["image_id"].ToUInt32(null), token);
 
             using var stream = await _blobRepository.GetBlob(photo.SnapshotBlob ?? photo.Blob, token);
 

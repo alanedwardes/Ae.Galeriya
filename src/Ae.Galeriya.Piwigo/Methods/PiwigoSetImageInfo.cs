@@ -6,31 +6,28 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using Ae.Galeriya.Core.Tables;
-using Microsoft.AspNetCore.Identity;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoSetImageInfo : IPiwigoWebServiceMethod
     {
         private readonly GaleriaDbContext _context;
+        private readonly ICategoryPermissionsRepository _categoryPermissions;
 
         public string MethodName => "pwg.images.setInfo";
         public bool AllowAnonymous => false;
 
-        public PiwigoSetImageInfo(GaleriaDbContext context)
+        public PiwigoSetImageInfo(GaleriaDbContext context, ICategoryPermissionsRepository categoryPermissions)
         {
             _context = context;
+            _categoryPermissions = categoryPermissions;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
-            var imageId = parameters["image_id"].ToUInt32(null);
-            var multipleValueMode = parameters["multiple_value_mode"].ToString(null);
+            var photo = await _categoryPermissions.EnsureCanAccessPhoto(user, parameters["image_id"].ToUInt32(null), token);
 
-            var photo = await _context.Photos
-                .Include(x => x.Categories)
-                .Include(x => x.Tags)
-                .SingleAsync(x => x.PhotoId == imageId, token);
+            var multipleValueMode = parameters["multiple_value_mode"].ToString(null);
 
             if (parameters.TryGetValue("name", out var nameString))
             {

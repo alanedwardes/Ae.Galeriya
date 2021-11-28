@@ -1,28 +1,26 @@
 ﻿using Ae.Galeriya.Piwigo.Entities;
 using Ae.Galeriya.Core;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Ae.Galeriya.Core.Tables;
-using Microsoft.AspNetCore.Identity;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoGetCategoryList : IPiwigoWebServiceMethod
     {
-        private readonly GaleriaDbContext _context;
         private readonly IPiwigoImageDerivativesGenerator _derivativesGenerator;
+        private readonly ICategoryPermissionsRepository _categoryRepository;
 
         public string MethodName => "pwg.categories.getList";
         public bool AllowAnonymous => false;
 
-        public PiwigoGetCategoryList(GaleriaDbContext context, IPiwigoImageDerivativesGenerator derivativesGenerator)
+        public PiwigoGetCategoryList(IPiwigoImageDerivativesGenerator derivativesGenerator, ICategoryPermissionsRepository categoryRepository)
         {
-            _context = context;
             _derivativesGenerator = derivativesGenerator;
+            _categoryRepository = categoryRepository;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
@@ -31,13 +29,13 @@ namespace Ae.Galeriya.Piwigo.Methods
             var recursive = parameters["recursive"].ToBoolean(null);
             var thumbnailSize = parameters["thumbnail_size"].ToString(null);
 
-            var nullableCategoryId = categoryId == 0 ? (uint?)null : categoryId;
+            var nullableParentCategory = categoryId == 0 ? null : await _categoryRepository.EnsureCanAccessCategory(user, categoryId, token);
 
             var response = new PiwigoCategories { Categories = new List<PiwigoCategory>() };
 
-            var allCategories = await _context.Categories.Include(x => x.Photos).Include(x => x.Categories).AsSplitQuery().ToArrayAsync(token);
+            var categories = await _categoryRepository.GetAccessibleCategories(user, token);
 
-            foreach (var category in allCategories.Where(x => recursive || x.ParentCategoryId == nullableCategoryId))
+            foreach (var category in categories.Where(x => recursive || x.ParentCategory == nullableParentCategory))
             {
                 uint firstPhoto = category.CoverPhotoId ?? category.Photos.Select(x => x.PhotoId).FirstOrDefault();
 
@@ -73,7 +71,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                     RepresentativePictureId = firstPhoto,
                     LastImageDate = category.Photos.LastOrDefault()?.CreatedOn,
                     PageLastImageDate = category.Photos.LastOrDefault()?.CreatedOn,
-                    CategoryCount = allCategories.Count(x => x.ParentCategory == category),
+                    CategoryCount = categories.Count(x => x.ParentCategory == category),
                     Url = new Uri("https://www.example.com/"),
                     ThumbnailUrl = thumbnailUri
                 });

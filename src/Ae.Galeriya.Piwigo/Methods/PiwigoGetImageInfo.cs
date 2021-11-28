@@ -1,39 +1,33 @@
 ﻿using Ae.Galeriya.Piwigo.Entities;
 using Ae.Galeriya.Core;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
 using Ae.Galeriya.Core.Tables;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoGetImageInfo : IPiwigoWebServiceMethod
     {
-        private readonly GaleriaDbContext _dbContext;
         private readonly IPiwigoConfiguration _configuration;
         private readonly IPiwigoImageDerivativesGenerator _derivativesGenerator;
+        private readonly ICategoryPermissionsRepository _categoryPermissions;
 
         public string MethodName => "pwg.images.getInfo";
         public bool AllowAnonymous => false;
 
-        public PiwigoGetImageInfo(GaleriaDbContext dbContext, IPiwigoConfiguration configuration, IPiwigoImageDerivativesGenerator derivativesGenerator)
+        public PiwigoGetImageInfo(IPiwigoConfiguration configuration, IPiwigoImageDerivativesGenerator derivativesGenerator, ICategoryPermissionsRepository categoryPermissions)
         {
-            _dbContext = dbContext;
             _configuration = configuration;
             _derivativesGenerator = derivativesGenerator;
+            _categoryPermissions = categoryPermissions;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
-            var imageId = parameters["image_id"].ToUInt32(null);
-
-            var photo = await _dbContext.Photos
-                .Include(x => x.Categories)
-                .SingleAsync(x => x.PhotoId == imageId, token);
+            var photo = await _categoryPermissions.EnsureCanAccessPhoto(user, parameters["image_id"].ToUInt32(null), token);
 
             return new PiwigoImage
             {

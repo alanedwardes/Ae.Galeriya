@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +26,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IBlobRepository _photoCreator;
         private readonly IMediaInfoExtractor _infoExtractor;
         private readonly GaleriaDbContext _dbContext;
+        private readonly ICategoryPermissionsRepository _categoryPermissions;
         private readonly UserManager<User> _userManager;
 
         public string MethodName => "pwg.images.uploadAsync";
@@ -40,6 +40,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             IBlobRepository photoCreator,
             IMediaInfoExtractor infoExtractor,
             GaleriaDbContext dbContext,
+            ICategoryPermissionsRepository categoryPermissions,
             UserManager<User> userManager)
         {
             _logger = logger;
@@ -50,6 +51,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _photoCreator = photoCreator;
             _infoExtractor = infoExtractor;
             _dbContext = dbContext;
+            _categoryPermissions = categoryPermissions;
             _userManager = userManager;
         }
 
@@ -112,18 +114,20 @@ namespace Ae.Galeriya.Piwigo.Methods
             var name = parameters["name"].ToString(null);
             var creationDate = DateTimeOffset.ParseExact(parameters["date_creation"].ToString(null), "yyyy-MM-dd HH:mm:ss", null);
 
+            var category = await _categoryPermissions.EnsureCanAccessCategory(user, categoryId, token);
+
             var file = _contextAccessor.HttpContext.Request.Form.Files.Single();
 
             var uploadedFile = await _sessionRepository.AcceptChunk(originalChecksum, chunk, chunks, file, token);
             if (uploadedFile != null)
             {
-                return await CompleteFile(categoryId, fileName, name, user, creationDate, uploadedFile, CancellationToken.None);
+                return await CompleteFile(category, fileName, name, user, creationDate, uploadedFile, CancellationToken.None);
             }
 
             return new PiwigoUploadedChunkResponse { Message = $"chunks uploaded" };
         }
 
-        private async Task<object> CompleteFile(uint categoryId, string fileName, string name, User user, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
+        private async Task<object> CompleteFile(Category category, string fileName, string name, User user, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
         {
             var blobId = Guid.NewGuid();
             var blobIdTask = _photoCreator.PutBlob(uploadedFile.OpenRead(), blobId, token);
@@ -162,7 +166,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                 Height = (uint)mediaInfo.Size.Height,
                 Latitude = mediaInfo.Location?.Latitude,
                 Longitude = mediaInfo.Location?.Longitude,
-                Categories = await _dbContext.Categories.Where(x => x.CategoryId == categoryId).ToListAsync(token)
+                Categories = new List<Category> { category }
             };
 
             _dbContext.Photos.Add(photo);

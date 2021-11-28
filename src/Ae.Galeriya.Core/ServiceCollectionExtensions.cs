@@ -9,6 +9,7 @@ namespace Ae.Galeriya.Core
         public static IServiceCollection AddGalleriaStore(this IServiceCollection services, Action<DbContextOptionsBuilder> optionsAction)
         {
             return services.AddDbContext<GaleriaDbContext>(optionsAction)
+                .AddTransient<ICategoryPermissionsRepository, CategoryPermissionsRepository>()
                 .AddTransient<IMediaInfoExtractor, MediaInfoExtractor>();
         }
     }

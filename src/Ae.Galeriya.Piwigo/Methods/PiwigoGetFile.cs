@@ -1,8 +1,6 @@
 ﻿using Ae.Galeriya.Core;
 using Ae.Galeriya.Core.Tables;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,19 +11,19 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoGetFile : IPiwigoWebServiceMethod
     {
-        private readonly GaleriaDbContext _context;
         private readonly IBlobRepository _blobRepository;
+        private readonly ICategoryPermissionsRepository _categoryPermissions;
 
         public string MethodName => "pwg.images.getFile";
         public bool AllowAnonymous => false;
 
-        public PiwigoGetFile(GaleriaDbContext context, IBlobRepository blobRepository)
+        public PiwigoGetFile(IBlobRepository blobRepository, ICategoryPermissionsRepository categoryPermissions)
         {
-            _context = context;
             _blobRepository = blobRepository;
+            _categoryPermissions = categoryPermissions;
         }
 
-        private async Task<Stream> BufferIfNotSeekable(Stream stream, CancellationToken token)
+        private static async Task<Stream> BufferIfNotSeekable(Stream stream, CancellationToken token)
         {
             if (stream.CanSeek)
             {
@@ -45,9 +43,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
-            var imageId = parameters["image_id"].ToUInt32(null);
-
-            var photo = await _context.Photos.SingleAsync(x => x.PhotoId == imageId, token);
+            var photo = await _categoryPermissions.EnsureCanAccessPhoto(user, parameters["image_id"].ToUInt32(null), token);
 
             var stream = await BufferIfNotSeekable(await _blobRepository.GetBlob(photo.Blob, token), token);
 

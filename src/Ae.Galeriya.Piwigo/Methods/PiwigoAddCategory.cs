@@ -1,25 +1,25 @@
 ﻿using Ae.Galeriya.Piwigo.Entities;
 using Ae.Galeriya.Core;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Ae.Galeriya.Core.Tables;
-using Microsoft.AspNetCore.Identity;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoAddCategory : IPiwigoWebServiceMethod
     {
         private readonly GaleriaDbContext _context;
+        private readonly ICategoryPermissionsRepository _categoryPermissions;
 
         public string MethodName => "pwg.categories.add";
         public bool AllowAnonymous => false;
 
-        public PiwigoAddCategory(GaleriaDbContext context)
+        public PiwigoAddCategory(GaleriaDbContext context, ICategoryPermissionsRepository categoryPermissions)
         {
             _context = context;
+            _categoryPermissions = categoryPermissions;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
@@ -29,7 +29,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             Category parentCategory = null;
             if (parentId > 0)
             {
-                parentCategory = await _context.Categories.SingleAsync(x => x.CategoryId == parentId, token);
+                parentCategory = await _categoryPermissions.EnsureCanAccessCategory(user, parentId, token);
             }
 
             var category = new Category
@@ -38,7 +38,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                 ParentCategory = parentCategory,
                 Comment = parameters["comment"].ToString(null),
                 CreatedBy = user,
-                Users = new [] { user }
+                Users = parentCategory == null ? new[] { user } : Array.Empty<User>()
             };
 
             _context.Categories.Add(category);
