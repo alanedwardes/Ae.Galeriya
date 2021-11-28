@@ -12,16 +12,16 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoSearchImages : IPiwigoWebServiceMethod
     {
-        private readonly GaleriaDbContext _context;
         private readonly IPiwigoPhotosPageGenerator _pageGenerator;
+        private readonly ICategoryPermissionsRepository _categoryPermissions;
 
         public string MethodName => "pwg.images.search";
         public bool AllowAnonymous => false;
 
-        public PiwigoSearchImages(GaleriaDbContext context, IPiwigoPhotosPageGenerator pageGenerator)
+        public PiwigoSearchImages(IPiwigoPhotosPageGenerator pageGenerator, ICategoryPermissionsRepository categoryPermissions)
         {
-            _context = context;
             _pageGenerator = pageGenerator;
+            _categoryPermissions = categoryPermissions;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
@@ -33,13 +33,13 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             var queryValue = $"%{query}%";
 
-            var photos = await _context.Photos.Where(photo => EF.Functions.Like(photo.Name, queryValue) ||
-                                                              EF.Functions.Like(photo.FileName, queryValue) ||
-                                                              photo.Tags.Any(tag => EF.Functions.Like(tag.Name, queryValue)) ||
-                                                              photo.Categories.Any(category => EF.Functions.Like(category.Name, queryValue)))
-                                              .ToArrayAsync(token);
+            var photosQuery = _categoryPermissions.GetAccessiblePhotos(user)
+                .Where(photo => EF.Functions.Like(photo.Name, queryValue) ||
+                                EF.Functions.Like(photo.FileName, queryValue) ||
+                                photo.Tags.Any(tag => EF.Functions.Like(tag.Name, queryValue)) ||
+                                photo.Categories.Any(category => EF.Functions.Like(category.Name, queryValue)));
 
-            return _pageGenerator.CreatePage(page, perPage, photos.Length, photos);
+            return await _pageGenerator.CreatePage(page, perPage, photosQuery, token);
         }
     }
 }

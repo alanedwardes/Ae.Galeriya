@@ -1,11 +1,14 @@
 ﻿using Ae.Galeriya.Core.Tables;
 using Ae.Galeriya.Piwigo.Entities;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Ae.Galeriya.Piwigo
 {
     internal interface IPiwigoPhotosPageGenerator
     {
-        PiwigoImages CreatePage(int page, int perPage, int total, ICollection<Photo> photos);
+        Task<PiwigoImages> CreatePage(int page, int perPage, IQueryable<Photo> query, CancellationToken token);
     }
 }

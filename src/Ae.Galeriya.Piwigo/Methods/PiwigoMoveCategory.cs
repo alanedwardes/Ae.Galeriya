@@ -1,7 +1,5 @@
 ﻿using Ae.Galeriya.Core;
 using Ae.Galeriya.Core.Tables;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Threading;

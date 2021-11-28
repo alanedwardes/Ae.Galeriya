@@ -76,14 +76,6 @@ namespace Ae.Galeriya.Core
             };
         }
 
-        private static void ThrowForNoAccess(User user, Photo photo)
-        {
-            throw new InvalidOperationException($"User {user} cannot access photo {photo}")
-            {
-                HResult = 403
-            };
-        }
-
         public void EnsureCanAccessCategory(User user, Category? category)
         {
             if (category == null)
@@ -97,19 +89,6 @@ namespace Ae.Galeriya.Core
             }
         }
 
-        public void EnsureCanAccessPhoto(User user, Photo? photo)
-        {
-            if (photo == null)
-            {
-                ThrowForNoAccess(user, photo);
-            }
-
-            if (!CanAccessPhoto(user, photo))
-            {
-                ThrowForNoAccess(user, photo);
-            }
-        }
-
         public async Task<Category> EnsureCanAccessCategory(User user, uint categoryId, CancellationToken token)
         {
             var category = (await GetAllCategories(token)).SingleOrDefault(x => x.CategoryId == categoryId);
@@ -119,10 +98,24 @@ namespace Ae.Galeriya.Core
 
         public async Task<Photo> EnsureCanAccessPhoto(User user, uint photoId, CancellationToken token)
         {
-            await GetAllCategories(token);
-            var photo = await _dbContext.Photos.SingleOrDefaultAsync(x => x.PhotoId == photoId, token);
-            EnsureCanAccessPhoto(user, photo);
+            var photo = await GetAccessiblePhotos(user).SingleOrDefaultAsync(x => x.PhotoId == photoId, token);
+            if (photo == null)
+            {
+                throw new InvalidOperationException($"User {user} cannot access photo {photoId}")
+                {
+                    HResult = 403
+                };
+            }
             return photo;
+        }
+
+        public IQueryable<Photo> GetAccessiblePhotos(User user)
+        {
+            return _dbContext.Users
+                .Include(x => x.AccessibleCategories)
+                .ThenInclude(x => x.Photos)
+                .Where(x => x == user)
+                .SelectMany(x => x.AccessibleCategories.SelectMany(x => x.Photos));
         }
     }
 }

@@ -3,6 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Ae.Galeriya.Core.Tables;
+using System.Threading.Tasks;
+using System.Threading;
+using Microsoft.EntityFrameworkCore;
 
 namespace Ae.Galeriya.Piwigo
 {
@@ -18,21 +21,25 @@ namespace Ae.Galeriya.Piwigo
             _derivativesGenerator = derivativesGenerator;
         }
 
-        public PiwigoImages CreatePage(int page, int perPage, int total, ICollection<Photo> photos)
+        public async Task<PiwigoImages> CreatePage(int page, int perPage, IQueryable<Photo> query, CancellationToken token)
         {
+            var photosPage = await query.Skip(page * perPage)
+                .Take(perPage)
+                .ToArrayAsync(token);
+
             var response = new PiwigoImages
             {
                 Pagination = new PiwigoPagination
                 {
                     Page = page,
                     PerPage = perPage,
-                    Count = photos.Count,
-                    TotalCount = total
+                    Count = photosPage.Length,
+                    TotalCount = await query.CountAsync(token)
                 },
                 Images = new List<PiwigoImageSummary>()
             };
 
-            foreach (var photo in photos)
+            foreach (var photo in photosPage)
             {
                 var image = new PiwigoImageSummary
                 {

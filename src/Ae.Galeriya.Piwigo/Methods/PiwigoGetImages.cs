@@ -33,9 +33,10 @@ namespace Ae.Galeriya.Piwigo.Methods
             var perPage = parameters["per_page"].ToInt32(null);
             var category = await _permissionsRepository.EnsureCanAccessCategory(user, parameters["cat_id"].ToUInt32(null), token);
 
-            var photos = category.Photos;
+            var photosQuery = _permissionsRepository.GetAccessiblePhotos(user)
+                .Where(x => x.Categories.Contains(category));
 
-            return _pageGenerator.CreatePage(page, perPage, photos.Count, photos);
+            return await _pageGenerator.CreatePage(page, perPage, photosQuery, token);
         }
     }
 }

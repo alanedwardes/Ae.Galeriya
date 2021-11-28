@@ -105,16 +105,14 @@ namespace Ae.Galeriya.Piwigo.Methods
             }
 
             user = await _userManager.FindByNameAsync(parameters["username"].ToString());
+            var category = await _categoryPermissions.EnsureCanAccessCategory(user, parameters["category"].ToUInt32(null), token);
 
             var chunk = parameters["chunk"].ToInt32(null);
             var chunks = parameters["chunks"].ToInt32(null);
-            var categoryId = parameters["category"].ToUInt32(null);
             var originalChecksum = parameters["original_sum"].ToString(null);
             var fileName = parameters["filename"].ToString(null);
             var name = parameters["name"].ToString(null);
             var creationDate = DateTimeOffset.ParseExact(parameters["date_creation"].ToString(null), "yyyy-MM-dd HH:mm:ss", null);
-
-            var category = await _categoryPermissions.EnsureCanAccessCategory(user, categoryId, token);
 
             var file = _contextAccessor.HttpContext.Request.Form.Files.Single();
 
