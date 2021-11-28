@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Ae.Galeriya.Core.Tables;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {

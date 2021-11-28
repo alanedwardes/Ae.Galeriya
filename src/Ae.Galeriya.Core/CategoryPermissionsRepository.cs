@@ -17,23 +17,6 @@ namespace Ae.Galeriya.Core
             _dbContext = dbContext;
         }
 
-        private static bool IsTopLevel(Category category)
-        {
-            return category.ParentCategoryId == null;
-        }
-
-        private static Category FindTopLevel(Category start)
-        {
-            var current = start;
-
-            while (!IsTopLevel(current!))
-            {
-                current = current!.ParentCategory;
-            }
-
-            return current!;
-        }
-
         private async Task<IReadOnlyList<Category>> GetAllCategories(CancellationToken token)
         {
             return await _dbContext.Categories
@@ -52,7 +35,7 @@ namespace Ae.Galeriya.Core
 
         public bool CanAccessCategory(User user, Category category)
         {
-            var relevantCategory = IsTopLevel(category) ? category : FindTopLevel(category);
+            var relevantCategory = category.IsTopLevel() ? category : category.FindTopLevel();
             return relevantCategory.Users.Contains(user);
         }
 
