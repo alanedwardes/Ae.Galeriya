@@ -25,7 +25,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IPiwigoWebServiceMethodRepository _webServiceRepository;
         private readonly IBlobRepository _photoCreator;
         private readonly IMediaInfoExtractor _infoExtractor;
-        private readonly GaleriaDbContext _dbContext;
+        private readonly GaleriyaDbContext _dbContext;
         private readonly ICategoryPermissionsRepository _categoryPermissions;
         private readonly UserManager<User> _userManager;
 
@@ -39,7 +39,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             IPiwigoWebServiceMethodRepository webServiceRepository,
             IBlobRepository photoCreator,
             IMediaInfoExtractor infoExtractor,
-            GaleriaDbContext dbContext,
+            GaleriyaDbContext dbContext,
             ICategoryPermissionsRepository categoryPermissions,
             UserManager<User> userManager)
         {

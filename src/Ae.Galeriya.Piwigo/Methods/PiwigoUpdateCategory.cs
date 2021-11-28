@@ -9,13 +9,13 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoUpdateCategory : IPiwigoWebServiceMethod
     {
-        private readonly GaleriaDbContext _context;
+        private readonly GaleriyaDbContext _context;
         private readonly ICategoryPermissionsRepository _categoryPermissions;
 
         public string MethodName => "pwg.categories.setInfo";
         public bool AllowAnonymous => false;
 
-        public PiwigoUpdateCategory(GaleriaDbContext context, ICategoryPermissionsRepository categoryPermissions)
+        public PiwigoUpdateCategory(GaleriyaDbContext context, ICategoryPermissionsRepository categoryPermissions)
         {
             _context = context;
             _categoryPermissions = categoryPermissions;

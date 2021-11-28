@@ -11,14 +11,14 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoGetTagImages : IPiwigoWebServiceMethod
     {
-        private readonly GaleriaDbContext _context;
+        private readonly GaleriyaDbContext _context;
         private readonly IPiwigoPhotosPageGenerator _pageGenerator;
         private readonly ICategoryPermissionsRepository _categoryPermissions;
 
         public string MethodName => "pwg.tags.getImages";
         public bool AllowAnonymous => false;
 
-        public PiwigoGetTagImages(GaleriaDbContext context,
+        public PiwigoGetTagImages(GaleriyaDbContext context,
             IPiwigoPhotosPageGenerator pageGenerator,
             ICategoryPermissionsRepository categoryPermissions)
         {

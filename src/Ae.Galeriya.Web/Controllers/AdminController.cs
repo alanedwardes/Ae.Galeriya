@@ -17,14 +17,14 @@ namespace Ae.Galeriya.Web.Controllers
     [Route("/admin/")]
     public class AdminController : Controller
     {
-        private readonly GaleriaDbContext _context;
+        private readonly GaleriyaDbContext _context;
         private readonly UserManager<User> _userManager;
         private readonly GaleriyaConfiguration _configuration;
 
         public string AuthorizationHeader => "Authorization";
         public string BasicPrefix => "Basic";
 
-        public AdminController(GaleriaDbContext context, UserManager<User> userManager, GaleriyaConfiguration configuration)
+        public AdminController(GaleriyaDbContext context, UserManager<User> userManager, GaleriyaConfiguration configuration)
         {
             _context = context;
             _userManager = userManager;

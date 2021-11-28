@@ -13,13 +13,13 @@ namespace Ae.Galeriya.Piwigo.Methods
     internal sealed class PiwigoGetFavourites : IPiwigoWebServiceMethod
     {
         private readonly ICategoryPermissionsRepository _permissionsRepository;
-        private readonly GaleriaDbContext _dbContext;
+        private readonly GaleriyaDbContext _dbContext;
         private readonly IPiwigoPhotosPageGenerator _pageGenerator;
 
         public string MethodName => "pwg.users.favorites.getList";
         public bool AllowAnonymous => false;
 
-        public PiwigoGetFavourites(ICategoryPermissionsRepository permissionsRepository, GaleriaDbContext dbContext, IPiwigoPhotosPageGenerator pageGenerator)
+        public PiwigoGetFavourites(ICategoryPermissionsRepository permissionsRepository, GaleriyaDbContext dbContext, IPiwigoPhotosPageGenerator pageGenerator)
         {
             _permissionsRepository = permissionsRepository;
             _dbContext = dbContext;

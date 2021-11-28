@@ -11,13 +11,13 @@ namespace Ae.Galeriya.Piwigo.Methods
     internal sealed class PiwigoRemoveFavourite : IPiwigoWebServiceMethod
     {
         private readonly ICategoryPermissionsRepository _categoryPermissions;
-        private readonly GaleriaDbContext _dbContext;
+        private readonly GaleriyaDbContext _dbContext;
 
         public bool AllowAnonymous => false;
 
         public string MethodName => "pwg.users.favorites.remove";
 
-        public PiwigoRemoveFavourite(ICategoryPermissionsRepository categoryPermissions, GaleriaDbContext dbContext)
+        public PiwigoRemoveFavourite(ICategoryPermissionsRepository categoryPermissions, GaleriyaDbContext dbContext)
         {
             _categoryPermissions = categoryPermissions;
             _dbContext = dbContext;

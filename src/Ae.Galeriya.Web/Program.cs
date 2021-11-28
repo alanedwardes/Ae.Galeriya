@@ -27,7 +27,7 @@ namespace Ae.Galeriya.Console
                 .Bind(configuration);
 
             using (var commonServiceProvider = GetServiceProvider())
-            using (var dbContext = commonServiceProvider.GetRequiredService<GaleriaDbContext>())
+            using (var dbContext = commonServiceProvider.GetRequiredService<GaleriyaDbContext>())
             {
                 dbContext.Database.EnsureCreated();
             }
@@ -76,9 +76,9 @@ namespace Ae.Galeriya.Console
         {
             services.AddIdentity<User, Role>()
                     .AddDefaultTokenProviders()
-                    .AddEntityFrameworkStores<GaleriaDbContext>();
+                    .AddEntityFrameworkStores<GaleriyaDbContext>();
 
-            return services.AddGalleriaStore(x => x.UseSqlite("Data Source=galeriya.sqlite"));
+            return services.AddGaleriyaStore(x => x.UseSqlite("Data Source=galeriya.sqlite"));
         }
 
         public static ILoggingBuilder AddCommonLogging(this ILoggingBuilder builder)

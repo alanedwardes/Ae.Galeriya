@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Ae.Galeriya.Core
 {
-    public sealed class GaleriaDbContext : IdentityDbContext<User, Role, uint>
+    public sealed class GaleriyaDbContext : IdentityDbContext<User, Role, uint>
     {
-        public GaleriaDbContext(DbContextOptions<GaleriaDbContext> options)
+        public GaleriyaDbContext(DbContextOptions<GaleriyaDbContext> options)
             : base(options)
         {
         }

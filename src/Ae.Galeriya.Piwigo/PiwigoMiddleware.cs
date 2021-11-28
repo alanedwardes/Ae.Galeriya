@@ -20,7 +20,7 @@ namespace Ae.Galeriya.Piwigo
 
         public async Task InvokeAsync(HttpContext context)
         {
-            var dbContext = context.RequestServices.GetRequiredService<GaleriaDbContext>();
+            var dbContext = context.RequestServices.GetRequiredService<GaleriyaDbContext>();
 
             var repository = context.RequestServices.GetRequiredService<IPiwigoWebServiceMethodRepository>();
 

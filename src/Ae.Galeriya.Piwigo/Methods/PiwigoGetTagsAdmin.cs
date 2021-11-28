@@ -13,12 +13,12 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoGetTagsAdmin : IPiwigoWebServiceMethod
     {
-        private readonly GaleriaDbContext _context;
+        private readonly GaleriyaDbContext _context;
 
         public string MethodName => "pwg.tags.getAdminList";
         public bool AllowAnonymous => false;
 
-        public PiwigoGetTagsAdmin(GaleriaDbContext context)
+        public PiwigoGetTagsAdmin(GaleriyaDbContext context)
         {
             _context = context;
         }

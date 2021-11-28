@@ -10,9 +10,9 @@ namespace Ae.Galeriya.Core
 {
     internal sealed class CategoryPermissionsRepository : ICategoryPermissionsRepository
     {
-        private readonly GaleriaDbContext _dbContext;
+        private readonly GaleriyaDbContext _dbContext;
 
-        public CategoryPermissionsRepository(GaleriaDbContext dbContext)
+        public CategoryPermissionsRepository(GaleriyaDbContext dbContext)
         {
             _dbContext = dbContext;
         }
