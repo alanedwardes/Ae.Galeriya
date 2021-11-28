@@ -36,10 +36,13 @@ namespace Ae.Galeriya.Core
 
         private async Task<IReadOnlyList<Category>> GetAllCategories(CancellationToken token)
         {
-            return await _dbContext.Categories.Include(x => x.ParentCategory).Include(x => x.Photos).Include(x => x.Categories).Include(x => x.Users).AsSplitQuery().ToArrayAsync();
+            return await _dbContext.Categories.Include(x => x.ParentCategory)
+                .Include(x => x.Photos)
+                .Include(x => x.Categories)
+                .Include(x => x.Users)
+                .AsSplitQuery()
+                .ToArrayAsync();
         }
-
-        private IQueryable<Photo> PhotosQuery => _dbContext.Photos.Include(x => x.Categories).ThenInclude(x => x.ParentCategory).ThenInclude(x => x.Users).AsSplitQuery();
 
         public async Task<IReadOnlyCollection<Category>> GetAccessibleCategories(User user, CancellationToken token)
         {
@@ -116,7 +119,8 @@ namespace Ae.Galeriya.Core
 
         public async Task<Photo> EnsureCanAccessPhoto(User user, uint photoId, CancellationToken token)
         {
-            var photo = await PhotosQuery.SingleOrDefaultAsync(x => x.PhotoId == photoId, token);
+            await GetAllCategories(token);
+            var photo = await _dbContext.Photos.SingleOrDefaultAsync(x => x.PhotoId == photoId, token);
             EnsureCanAccessPhoto(user, photo);
             return photo;
         }
