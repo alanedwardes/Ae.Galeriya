@@ -94,7 +94,11 @@ namespace Ae.Galeriya.Console
         public static ILoggingBuilder AddCommonLogging(this ILoggingBuilder builder)
         {
             builder.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
-            return builder.AddConsole(x => x.IncludeScopes = true);
+            return builder.AddConsole(x =>
+            {
+                x.IncludeScopes = true;
+                x.LogToStandardErrorThreshold = LogLevel.None;
+            });
         }
     }
 }
