@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.IO;
+using Xabe.FFmpeg;
 
 namespace Ae.Galeriya.Console
 {
@@ -27,6 +28,8 @@ namespace Ae.Galeriya.Console
                 .AddCommandLine(args)
                 .Build()
                 .Bind(configuration);
+
+            FFmpeg.SetExecutablesPath(configuration.FfmpegDirectory);
 
             using (var commonServiceProvider = GetServiceProvider(configuration))
             using (var dbContext = commonServiceProvider.GetRequiredService<GaleriyaDbContext>())

@@ -14,5 +14,6 @@ namespace Ae.Galeriya.Console
         public string UploadCacheDirectory { get; set; }
         public string SqliteDatabaseFile { get; set; }
         public string DataProtectionDirectory { get; set; }
+        public string FfmpegDirectory { get; set; }
     }
 }
