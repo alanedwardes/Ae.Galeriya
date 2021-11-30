@@ -51,13 +51,11 @@ namespace Ae.Galeriya.Console
                 {
                     services.AddCommonServices(configuration);
                     services.AddSingleton(configuration);
-                    services.AddMemoryCache(x => x.SizeLimit = configuration.MemoryCacheSize);
                     services.AddSingleton<ITransferUtility, TransferUtility>();
                     services.AddSingleton<IBlobRepository>(x =>
                     {
-                        var localBlobCache = new MemoryCacheBlobRepository(x.GetRequiredService<IMemoryCache>());
                         var remoteBlobRepository = new AmazonS3BlobRepository(x.GetRequiredService<ITransferUtility>(), configuration.BucketName);
-                        return new CachingBlobRepository(localBlobCache, remoteBlobRepository);
+                        return new CachingBlobRepository(uploadCache, remoteBlobRepository);
                     });
                     services.AddPiwigo(new PiwigoConfiguration
                     {

@@ -8,6 +8,5 @@
     "UploadCacheDirectory": "cache",
     "SqliteDatabaseFile": "galeriya.sqlite",
     "DataProtectionDirectory": "protection",
-    "FfmpegDirectory": "C:\\Users\\alan\\Downloads\\ffmpeg-4.3.1-2020-11-19-full_build\\bin",
-    "MemoryCacheSize": 128000000
+    "FfmpegDirectory": "C:\\Users\\alan\\Downloads\\ffmpeg-4.3.1-2020-11-19-full_build\\bin"
 }
