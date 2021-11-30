@@ -1,6 +1,5 @@
 ﻿using Ae.Galeriya.Core.Tables;
 using Ae.Galeriya.Piwigo.Entities;
-using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Threading;
