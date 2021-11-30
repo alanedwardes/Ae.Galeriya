@@ -25,7 +25,7 @@ namespace Ae.Galeriya.Console
 
             new ConfigurationBuilder()
                 .AddEnvironmentVariables()
-                .AddJsonFile("config.json")
+                .AddJsonFile("config.json", true)
                 .AddCommandLine(args)
                 .Build()
                 .Bind(configuration);
