@@ -1,0 +1,13 @@
+{
+    "BucketName": "ae-piwigo-test",
+    "UploadCache": "temp",
+    "AdminUsername": "admin",
+    "AdminPassword": "test",
+    "BaseAddress": "http://localhost:5000/",
+    "BindAddress": "http://0.0.0.0:5000/",
+    "UploadCacheDirectory": "cache",
+    "SqliteDatabaseFile": "galeriya.sqlite",
+    "DataProtectionDirectory": "protection",
+    "FfmpegDirectory": "C:\\Users\\alan\\Downloads\\ffmpeg-4.3.1-2020-11-19-full_build\\bin",
+    "MemoryCacheSize": 128000000
+}
