@@ -64,8 +64,8 @@ namespace Ae.Galeriya.Web.Controllers
                 return;
             }
 
-            Response.StatusCode = 401;
             Response.Headers.Add("WWW-Authenticate", "Basic");
+            context.Result = Unauthorized();
         }
 
         public async Task<IActionResult> Index()
