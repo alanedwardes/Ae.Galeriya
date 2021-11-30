@@ -13,8 +13,7 @@ namespace Ae.Galeriya.Piwigo
                 services.AddScoped(typeof(IPiwigoWebServiceMethod), type);
             }
 
-            return services.AddScoped<IHttpContextAccessor, HttpContextAccessor>()
-                .AddSingleton(configuration)
+            return services.AddSingleton(configuration)
                 .AddScoped<IPiwigoWebServiceMethodRepository, PiwigoWebServiceMethodRepository>()
                 .AddSingleton<IPiwigoImageDerivativesGenerator, PiwigoImageDerivativesGenerator>()
                 .AddSingleton<IPiwigoPhotosPageGenerator, PiwigoPhotosPageGenerator>()
