@@ -13,7 +13,6 @@ namespace Ae.Galeriya.Console
         public Startup()
         {
             var builder = new ConfigurationBuilder();
-            builder.SetBasePath(Directory.GetCurrentDirectory());
             builder.AddJsonFile("appsettings.json", false);
 
             Configuration = builder.Build();
