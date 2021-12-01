@@ -8,6 +8,7 @@ namespace Ae.Galeriya.Console
     {
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddLettuceEncrypt();
             services.AddMvc();
         }
 
