@@ -2,24 +2,17 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.IO;
 
 namespace Ae.Galeriya.Console
 {
     public sealed class Startup
     {
-        public IConfiguration Configuration { get; set; }
-
-        public Startup()
-        {
-            var builder = new ConfigurationBuilder();
-            builder.AddJsonFile("appsettings.json", false);
-
-            Configuration = builder.Build();
-        }
-
         public void ConfigureServices(IServiceCollection services)
         {
+            var builder = new ConfigurationBuilder();
+            builder.AddJsonFile("appsettings.json");
+            services.AddSingleton<IConfiguration>(builder.Build());
+
             services.AddLettuceEncrypt();
             services.AddMvc();
         }
