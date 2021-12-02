@@ -4,7 +4,6 @@ namespace Ae.Galeriya.Console
 {
     public sealed class GaleriyaConfiguration
     {
-        public string BindAddress { get; set; }
         public Uri BaseAddress { get; set; }
         public string BucketName { get; set; }
         public string AdminUsername { get; set; }

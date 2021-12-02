@@ -43,7 +43,6 @@ namespace Ae.Galeriya.Console
                 .ConfigureWebHostDefaults(webHostBuilder =>
                 {
                     webHostBuilder.ConfigureLogging(configureLogging => configureLogging.AddCommonLogging());
-                    webHostBuilder.UseUrls(configuration.BindAddress);
                     webHostBuilder.UseStartup<Startup>();
                 })
                 .ConfigureServices(services =>
