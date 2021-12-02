@@ -4,7 +4,6 @@
     "AdminUsername": "admin",
     "AdminPassword": "test",
     "BaseAddress": "http://localhost:5000/",
-    "BindAddress": "http://0.0.0.0:5000/",
     "UploadCacheDirectory": "cache",
     "SqliteDatabaseFile": "galeriya.sqlite",
     "DataProtectionDirectory": "protection",

@@ -20,4 +20,11 @@
 		<None Include="wwwroot\*" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Content Update="config.json">
+		<CopyToPublishDirectory>Never</CopyToPublishDirectory>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
 </Project>
