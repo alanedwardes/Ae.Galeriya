@@ -9,11 +9,9 @@ namespace Ae.Galeriya.Console
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            var builder = new ConfigurationBuilder();
-            builder.AddJsonFile("appsettings.json");
-            services.AddSingleton<IConfiguration>(builder.Build());
+            var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
 
-            services.AddLettuceEncrypt();
+            services.AddLettuceEncrypt(x => config.Bind("LettuceEncrypt", x));
             services.AddMvc();
         }
 
