@@ -25,8 +25,9 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
-            var page = parameters["page"].ToInt32(null);
-            var perPage = parameters["per_page"].ToInt32(null);
+            var page = parameters.TryGetValue("page", out var pageValue) ? pageValue.ToInt32(null) : 0;
+            var perPage = parameters.TryGetValue("page", out var perPageValue) ? perPageValue.ToInt32(null) : 64;
+
             var category = await _permissionsRepository.EnsureCanAccessCategory(user, parameters["cat_id"].ToUInt32(null), token);
 
             var photosQuery = (await _permissionsRepository.GetAccessiblePhotos(user, token))
