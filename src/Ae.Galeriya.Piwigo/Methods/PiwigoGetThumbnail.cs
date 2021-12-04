@@ -3,6 +3,7 @@ using Ae.Galeriya.Core.Entities;
 using Ae.Galeriya.Core.Exceptions;
 using Ae.Galeriya.Core.Tables;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using System;
@@ -18,6 +19,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoGetThumbnail : IPiwigoWebServiceMethod
     {
+        private readonly ILogger<PiwigoGetThumbnail> _logger;
         private readonly ICategoryPermissionsRepository _categoryPermissions;
         private readonly IBlobRepository _blobRepository;
         private readonly IPiwigoConfiguration _piwigoConfiguration;
@@ -25,8 +27,9 @@ namespace Ae.Galeriya.Piwigo.Methods
         public string MethodName => "pwg.images.getThumbnail";
         public bool AllowAnonymous => false;
 
-        public PiwigoGetThumbnail(ICategoryPermissionsRepository categoryPermissions, IBlobRepository blobRepository, IPiwigoConfiguration piwigoConfiguration)
+        public PiwigoGetThumbnail(ILogger<PiwigoGetThumbnail> logger, ICategoryPermissionsRepository categoryPermissions, IBlobRepository blobRepository, IPiwigoConfiguration piwigoConfiguration)
         {
+            _logger = logger;
             _categoryPermissions = categoryPermissions;
             _blobRepository = blobRepository;
             _piwigoConfiguration = piwigoConfiguration;
@@ -64,6 +67,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             }
             catch (BlobNotFoundException)
             {
+                _logger.LogWarning("No cached thumbnail for {PhotoId}, generating from source", photo.PhotoId);
             }
 
             using var stream = await _blobRepository.GetBlob(photo.SnapshotBlob ?? photo.Blob, token);
