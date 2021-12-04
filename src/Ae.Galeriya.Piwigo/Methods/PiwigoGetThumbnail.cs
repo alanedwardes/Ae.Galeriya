@@ -1,5 +1,6 @@
 ﻿using Ae.Galeriya.Core;
 using Ae.Galeriya.Core.Entities;
+using Ae.Galeriya.Core.Exceptions;
 using Ae.Galeriya.Core.Tables;
 using Microsoft.AspNetCore.Mvc;
 using SixLabors.ImageSharp;
@@ -7,6 +8,9 @@ using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,14 +20,16 @@ namespace Ae.Galeriya.Piwigo.Methods
     {
         private readonly ICategoryPermissionsRepository _categoryPermissions;
         private readonly IBlobRepository _blobRepository;
+        private readonly IPiwigoConfiguration _piwigoConfiguration;
 
         public string MethodName => "pwg.images.getThumbnail";
         public bool AllowAnonymous => false;
 
-        public PiwigoGetThumbnail(ICategoryPermissionsRepository categoryPermissions, IBlobRepository blobRepository)
+        public PiwigoGetThumbnail(ICategoryPermissionsRepository categoryPermissions, IBlobRepository blobRepository, IPiwigoConfiguration piwigoConfiguration)
         {
             _categoryPermissions = categoryPermissions;
             _blobRepository = blobRepository;
+            _piwigoConfiguration = piwigoConfiguration;
         }
 
         private readonly IReadOnlyDictionary<MediaOrientation, Action<IImageProcessingContext>> _orientationActions = new Dictionary<MediaOrientation, Action<IImageProcessingContext>>
@@ -39,13 +45,26 @@ namespace Ae.Galeriya.Piwigo.Methods
             { MediaOrientation.LeftBottom, context => context.Rotate(RotateMode.Rotate270) },
         };
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
+        private Guid CacheHash(params object[] items)
         {
-            var width = parameters["width"].ToInt32(null);
-            var height = parameters["height"].ToInt32(null);
-            var type = parameters["type"].ToString(null);
+            using (var md5 = MD5.Create())
+            {
+                var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(string.Join('|', items.Select(x => x.ToString()))));
+                return new Guid(hash);
+            }
+        }
 
-            var photo = await _categoryPermissions.EnsureCanAccessPhoto(user, parameters["image_id"].ToUInt32(null), token);
+        private async Task<Stream> GetThubmnail(Photo photo, int width, int height, string type, CancellationToken token)
+        {
+            var cacheBlobId = CacheHash(width, height, type, photo.PhotoId);
+
+            try
+            {
+                return await _piwigoConfiguration.FileBlobRepository.GetBlob(cacheBlobId, token);
+            }
+            catch (BlobNotFoundException)
+            {
+            }
 
             using var stream = await _blobRepository.GetBlob(photo.SnapshotBlob ?? photo.Blob, token);
 
@@ -61,11 +80,28 @@ namespace Ae.Galeriya.Piwigo.Methods
                 _orientationActions[photo.Orientation]?.Invoke(processor);
             });
 
-            var ms = new MemoryStream();
-            await image.SaveAsJpegAsync(ms, token);
-            ms.Position = 0;
+            using (var ms = new MemoryStream())
+            {
+                await image.SaveAsJpegAsync(ms, token);
+                ms.Position = 0;
+                await _piwigoConfiguration.FileBlobRepository.PutBlob(ms, cacheBlobId, token);
+            }
 
-            return new FileStreamResult(ms, "image/jpeg")
+            return await _piwigoConfiguration.FileBlobRepository.GetBlob(cacheBlobId, token);
+        }
+
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
+        {
+            var width = parameters["width"].ToInt32(null);
+            var height = parameters["height"].ToInt32(null);
+            var type = parameters["type"].ToString(null);
+            var imageId = parameters["image_id"].ToUInt32(null);
+
+            var photo = await _categoryPermissions.EnsureCanAccessPhoto(user, imageId, token);
+
+            var thumbnailStream = await GetThubmnail(photo, width, height, type, token);
+
+            return new FileStreamResult(thumbnailStream, "image/jpeg")
             {
                 LastModified = photo.CreatedOn
             };
