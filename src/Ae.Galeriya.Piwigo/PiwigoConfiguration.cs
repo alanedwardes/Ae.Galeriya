@@ -6,7 +6,6 @@ namespace Ae.Galeriya.Piwigo
 {
     public sealed class PiwigoConfiguration : IPiwigoConfiguration
     {
-        public Uri BaseAddress { get; set; }
         public IBlobRepository ChunkBlobRepository { get; set; } = new FileBlobRepository(GetTempFolder());
         public IFileBlobRepository FileBlobRepository { get; set; } = new FileBlobRepository(GetTempFolder());
 

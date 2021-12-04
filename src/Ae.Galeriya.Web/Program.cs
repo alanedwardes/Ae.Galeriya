@@ -57,7 +57,6 @@ namespace Ae.Galeriya.Console
                     });
                     services.AddPiwigo(new PiwigoConfiguration
                     {
-                        BaseAddress = configuration.BaseAddress,
                         ChunkBlobRepository = uploadCache,
                         FileBlobRepository = uploadCache
                     });

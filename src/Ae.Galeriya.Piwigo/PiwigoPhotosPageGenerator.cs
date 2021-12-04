@@ -11,13 +11,13 @@ namespace Ae.Galeriya.Piwigo
 {
     internal sealed class PiwigoPhotosPageGenerator : IPiwigoPhotosPageGenerator
     {
-        private readonly IPiwigoConfiguration _configuration;
+        private readonly IPiwigoBaseAddressLocator _baseAddressLocator;
         private readonly IPiwigoImageDerivativesGenerator _derivativesGenerator;
 
-        public PiwigoPhotosPageGenerator(IPiwigoConfiguration configuration,
+        public PiwigoPhotosPageGenerator(IPiwigoBaseAddressLocator baseAddressLocator,
             IPiwigoImageDerivativesGenerator derivativesGenerator)
         {
-            _configuration = configuration;
+            _baseAddressLocator = baseAddressLocator;
             _derivativesGenerator = derivativesGenerator;
         }
 
@@ -53,7 +53,7 @@ namespace Ae.Galeriya.Piwigo
                     CreatedOn = photo.CreatedOn,
                     AvailableOn = photo.CreatedOn,
                     PageUrl = new Uri("http://www.example.com/"),
-                    ElementUrl = new Uri(_configuration.BaseAddress, $"/blobs/{photo.PhotoId}.{photo.Extension}"),
+                    ElementUrl = new Uri(_baseAddressLocator.GetBaseAddress(), $"/blobs/{photo.PhotoId}.{photo.Extension}"),
                     Derivatives = _derivativesGenerator.GenerateDerivatives(photo.PhotoId),
                     Categories = photo.Categories.Select(x => new PiwigoCategorySummary
                     {

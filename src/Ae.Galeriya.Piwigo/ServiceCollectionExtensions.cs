@@ -15,6 +15,7 @@ namespace Ae.Galeriya.Piwigo
             return services.AddSingleton(configuration)
                 .AddScoped<IPiwigoWebServiceMethodRepository, PiwigoWebServiceMethodRepository>()
                 .AddSingleton<IPiwigoImageDerivativesGenerator, PiwigoImageDerivativesGenerator>()
+                .AddSingleton<IPiwigoBaseAddressLocator, PiwigoBaseAddressLocator>()
                 .AddSingleton<IPiwigoPhotosPageGenerator, PiwigoPhotosPageGenerator>()
                 .AddSingleton<IUploadRepository, UploadRepository>();
         }

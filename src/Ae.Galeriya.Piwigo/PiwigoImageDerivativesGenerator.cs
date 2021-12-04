@@ -6,11 +6,11 @@ namespace Ae.Galeriya.Piwigo
 {
     internal sealed class PiwigoImageDerivativesGenerator : IPiwigoImageDerivativesGenerator
     {
-        private readonly IPiwigoConfiguration _configuration;
+        private readonly IPiwigoBaseAddressLocator _baseAddressLocator;
 
-        public PiwigoImageDerivativesGenerator(IPiwigoConfiguration configuration)
+        public PiwigoImageDerivativesGenerator(IPiwigoBaseAddressLocator baseAddressLocator)
         {
-            _configuration = configuration;
+            _baseAddressLocator = baseAddressLocator;
         }
 
         public IReadOnlyDictionary<string, PiwigoThumbnail> GenerateDerivatives(uint imageId)
@@ -104,7 +104,7 @@ namespace Ae.Galeriya.Piwigo
 
         public Uri CreateThumbnailUri(uint imageId, int width, int height, string type)
         {
-            return new Uri(_configuration.BaseAddress, $"/ws.php?method=pwg.images.getThumbnail&image_id={imageId}&width={width}&height={height}&type={type}");
+            return new Uri(_baseAddressLocator.GetBaseAddress(), $"/ws.php?method=pwg.images.getThumbnail&image_id={imageId}&width={width}&height={height}&type={type}");
         }
     }
 }
