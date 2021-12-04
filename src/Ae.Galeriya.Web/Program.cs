@@ -2,6 +2,7 @@
 using Ae.Galeriya.Core.Tables;
 using Ae.Galeriya.Piwigo;
 using Amazon.S3.Transfer;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -11,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System;
 using System.IO;
 using Xabe.FFmpeg;
 
@@ -78,6 +80,12 @@ namespace Ae.Galeriya.Console
             services.AddIdentity<User, Role>()
                     .AddDefaultTokenProviders()
                     .AddEntityFrameworkStores<GaleriyaDbContext>();
+
+            services.PostConfigure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme, option =>
+            {
+                option.Cookie.Name = "pwg_id";
+                option.ExpireTimeSpan = TimeSpan.FromDays(356 * 10);
+            });
 
             services.AddDataProtection()
                     .PersistKeysToFileSystem(new DirectoryInfo(configuration.DataProtectionDirectory));
