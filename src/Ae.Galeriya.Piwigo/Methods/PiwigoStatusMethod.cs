@@ -1,5 +1,6 @@
 ﻿using Ae.Galeriya.Core.Tables;
 using Ae.Galeriya.Piwigo.Entities;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -11,13 +12,15 @@ namespace Ae.Galeriya.Piwigo.Methods
     internal sealed class PiwigoStatusMethod : IPiwigoWebServiceMethod
     {
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IAntiforgery _antiforgery;
 
         public string MethodName => "pwg.session.getStatus";
         public bool AllowAnonymous => false;
 
-        public PiwigoStatusMethod(IHttpContextAccessor contextAccessor)
+        public PiwigoStatusMethod(IHttpContextAccessor contextAccessor, IAntiforgery antiforgery)
         {
             _contextAccessor = contextAccessor;
+            _antiforgery = antiforgery;
         }
 
         public Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
@@ -28,7 +31,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                 Status = "webmaster",
                 Theme = "modus",
                 Language = "en_GB",
-                Token = "b13b427a677537e23206709450591cc7",
+                Token = _antiforgery.GetTokens(_contextAccessor.HttpContext).RequestToken,
                 Charset = "utf-8",
                 CurrentDatetime = DateTimeOffset.UtcNow,
                 Version = "11.5.0",

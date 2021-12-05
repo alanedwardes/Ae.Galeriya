@@ -3,7 +3,6 @@
     "UploadCache": "temp",
     "AdminUsername": "admin",
     "AdminPassword": "test",
-    "BaseAddress": "http://localhost:5000/",
     "UploadCacheDirectory": "cache",
     "SqliteDatabaseFile": "galeriya.sqlite",
     "DataProtectionDirectory": "protection",
