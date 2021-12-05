@@ -1,4 +1,5 @@
 ﻿using Ae.Galeriya.Core;
+using Ae.Galeriya.Core.Entities;
 using Ae.Galeriya.Core.Tables;
 using Ae.Galeriya.Piwigo.Entities;
 using Microsoft.AspNetCore.Http;
@@ -155,10 +156,10 @@ namespace Ae.Galeriya.Piwigo.Methods
                 Hash = hash,
                 Name = name,
                 CreatedOn = mediaInfo.CreationTime ?? creationDate,
-                Make = mediaInfo.Camera.Make,
-                Model = mediaInfo.Camera.Model,
-                Software = mediaInfo.Camera.Software,
-                Orientation = mediaInfo.Orientation,
+                Make = mediaInfo.CameraMake,
+                Model = mediaInfo.CameraModel,
+                Software = mediaInfo.CameraSoftware,
+                Orientation = mediaInfo.Orientation ?? MediaOrientation.Unknown,
                 Duration = mediaInfo.Duration,
                 Width = (uint)mediaInfo.Size.Width,
                 Height = (uint)mediaInfo.Size.Height,
