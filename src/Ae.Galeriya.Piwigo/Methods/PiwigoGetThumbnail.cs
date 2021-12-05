@@ -1,10 +1,8 @@
 ﻿using Ae.Galeriya.Core;
-using Ae.Galeriya.Core.Entities;
 using Ae.Galeriya.Core.Exceptions;
 using Ae.Galeriya.Core.Tables;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
@@ -23,30 +21,19 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly ICategoryPermissionsRepository _categoryPermissions;
         private readonly IBlobRepository _blobRepository;
         private readonly IPiwigoConfiguration _piwigoConfiguration;
+        private readonly IThumbnailGenerator _thumbnailGenerator;
 
         public string MethodName => "pwg.images.getThumbnail";
         public bool AllowAnonymous => false;
 
-        public PiwigoGetThumbnail(ILogger<PiwigoGetThumbnail> logger, ICategoryPermissionsRepository categoryPermissions, IBlobRepository blobRepository, IPiwigoConfiguration piwigoConfiguration)
+        public PiwigoGetThumbnail(ILogger<PiwigoGetThumbnail> logger, ICategoryPermissionsRepository categoryPermissions, IBlobRepository blobRepository, IPiwigoConfiguration piwigoConfiguration, IThumbnailGenerator thumbnailGenerator)
         {
             _logger = logger;
             _categoryPermissions = categoryPermissions;
             _blobRepository = blobRepository;
             _piwigoConfiguration = piwigoConfiguration;
+            _thumbnailGenerator = thumbnailGenerator;
         }
-
-        private readonly IReadOnlyDictionary<MediaOrientation, Action<IImageProcessingContext>> _orientationActions = new Dictionary<MediaOrientation, Action<IImageProcessingContext>>
-        {
-            { MediaOrientation.Unknown, null },
-            { MediaOrientation.TopLeft, null },
-            { MediaOrientation.TopRight, context => context.Flip(FlipMode.Horizontal) },
-            { MediaOrientation.BottomRight, context => context.Rotate(RotateMode.Rotate180) },
-            { MediaOrientation.BottomLeft, context => context.Flip(FlipMode.Vertical) },
-            { MediaOrientation.LeftTop, context => context.RotateFlip(RotateMode.Rotate90, FlipMode.Horizontal) },
-            { MediaOrientation.RightTop, context => context.Rotate(RotateMode.Rotate90) },
-            { MediaOrientation.RightBottom, context => context.RotateFlip(RotateMode.Rotate270, FlipMode.Vertical) },
-            { MediaOrientation.LeftBottom, context => context.Rotate(RotateMode.Rotate270) },
-        };
 
         private Guid CacheHash(params object[] items)
         {
@@ -72,23 +59,11 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             using var stream = await _blobRepository.GetBlob(photo.SnapshotBlob ?? photo.Blob, token);
 
-            using var image = await Image.LoadAsync(Configuration.Default, stream, token);
+            var resizeMode = type == "classic" ? ResizeMode.Max : ResizeMode.Crop;
 
-            image.Mutate(processor =>
+            using (var thumbnail = await _thumbnailGenerator.GenerateThumbnail(stream, photo.Orientation, width, height, resizeMode, token))
             {
-                processor.Resize(new ResizeOptions
-                {
-                    Mode = type == "classic" ? ResizeMode.Max : ResizeMode.Crop,
-                    Size = new Size(width, height)
-                });
-                _orientationActions[photo.Orientation]?.Invoke(processor);
-            });
-
-            using (var ms = new MemoryStream())
-            {
-                await image.SaveAsJpegAsync(ms, token);
-                ms.Position = 0;
-                await _piwigoConfiguration.FileBlobRepository.PutBlob(ms, cacheBlobId, token);
+                await _piwigoConfiguration.FileBlobRepository.PutBlob(thumbnail, cacheBlobId, token);
             }
 
             return await _piwigoConfiguration.FileBlobRepository.GetBlob(cacheBlobId, token);

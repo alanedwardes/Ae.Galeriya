@@ -9,6 +9,7 @@
 	<ItemGroup>
 		<PackageReference Include="Ae.MediaMetadata" Version="1.0.0" />
 		<PackageReference Include="AWSSDK.S3" Version="3.7.4" />
+		<PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.12" />
 	</ItemGroup>
 

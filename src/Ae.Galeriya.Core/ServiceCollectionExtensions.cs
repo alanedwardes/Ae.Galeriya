@@ -10,7 +10,8 @@ namespace Ae.Galeriya.Core
         {
             return services.AddDbContext<GaleriyaDbContext>(optionsAction)
                 .AddTransient<ICategoryPermissionsRepository, CategoryPermissionsRepository>()
-                .AddTransient<IMediaInfoExtractor, MediaInfoExtractor>();
+                .AddTransient<IMediaInfoExtractor, MediaInfoExtractor>()
+                .AddSingleton<IThumbnailGenerator, ThumbnailGenerator>();
         }
     }
 }
