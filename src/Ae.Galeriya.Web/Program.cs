@@ -5,6 +5,7 @@ using Amazon.S3.Transfer;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,36 @@ using Xabe.FFmpeg;
 
 namespace Ae.Galeriya.Console
 {
+    public class TestCookieManager : ICookieManager
+    {
+        private readonly ChunkingCookieManager _cookieManager;
+
+        public TestCookieManager()
+        {
+            _cookieManager = new ChunkingCookieManager();
+        }
+
+        public string GetRequestCookie(HttpContext context, string key)
+        {
+            if (context.Request.Query.TryGetValue(key, out var queryValue))
+            {
+                return queryValue;
+            }
+
+            return _cookieManager.GetRequestCookie(context, key);
+        }
+
+        public void AppendResponseCookie(HttpContext context, string key, string value, CookieOptions options)
+        {
+            _cookieManager.AppendResponseCookie(context, key, value, options);
+        }
+
+        public void DeleteCookie(HttpContext context, string key, CookieOptions options)
+        {
+            _cookieManager.DeleteCookie(context, key, options);
+        }
+    }
+
     public static class Program
     {
         public static void Main(string[] args)
@@ -85,6 +116,7 @@ namespace Ae.Galeriya.Console
             {
                 option.Cookie.Name = "pwg_id";
                 option.ExpireTimeSpan = TimeSpan.FromDays(356 * 10);
+                option.CookieManager = new TestCookieManager();
             });
 
             services.AddDataProtection()
