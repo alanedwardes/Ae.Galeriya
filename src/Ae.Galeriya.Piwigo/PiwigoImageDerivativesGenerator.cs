@@ -1,4 +1,6 @@
 ﻿using Ae.Galeriya.Piwigo.Entities;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebUtilities;
 using System;
 using System.Collections.Generic;
 
@@ -7,10 +9,12 @@ namespace Ae.Galeriya.Piwigo
     internal sealed class PiwigoImageDerivativesGenerator : IPiwigoImageDerivativesGenerator
     {
         private readonly IPiwigoBaseAddressLocator _baseAddressLocator;
+        private readonly IHttpContextAccessor _httpAccessor;
 
-        public PiwigoImageDerivativesGenerator(IPiwigoBaseAddressLocator baseAddressLocator)
+        public PiwigoImageDerivativesGenerator(IPiwigoBaseAddressLocator baseAddressLocator, IHttpContextAccessor httpAccessor)
         {
             _baseAddressLocator = baseAddressLocator;
+            _httpAccessor = httpAccessor;
         }
 
         public IReadOnlyDictionary<string, PiwigoThumbnail> GenerateDerivatives(uint imageId)
@@ -104,7 +108,21 @@ namespace Ae.Galeriya.Piwigo
 
         public Uri CreateThumbnailUri(uint imageId, int width, int height, string type)
         {
-            return new Uri(_baseAddressLocator.GetBaseAddress(), $"/ws.php?method=pwg.images.getThumbnail&image_id={imageId}&width={width}&height={height}&type={type}");
+            var queryParmeters = new Dictionary<string, string>
+            {
+                { "method", "pwg.images.getThumbnail" },
+                { "image_id", imageId.ToString() },
+                { "width", width.ToString() },
+                { "height", height.ToString() },
+                { "type", type }
+            };
+            
+            foreach (var cookie in _httpAccessor.HttpContext.Request.Cookies)
+            {
+                queryParmeters.Add(cookie.Key, cookie.Value);
+            }
+
+            return new Uri(_baseAddressLocator.GetBaseAddress(), QueryHelpers.AddQueryString("/ws.php", queryParmeters));
         }
     }
 }
