@@ -1,5 +1,6 @@
 ﻿using Ae.Galeriya.Core;
 using Ae.Galeriya.Core.Tables;
+using Ae.Galeriya.Piwigo.Entities;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,6 @@ namespace Ae.Galeriya.Piwigo.Methods
     internal sealed class PiwigoUploadMethod : IPiwigoWebServiceMethod
     {
         private readonly IHttpContextAccessor _contextAccessor;
-        private readonly IPiwigoWebServiceMethodRepository _webServiceRepository;
         private readonly ICategoryPermissionsRepository _categoryPermissions;
         private readonly IPhotoCreator _photoCreator;
         private readonly IPiwigoConfiguration _piwigoConfiguration;
@@ -21,13 +21,11 @@ namespace Ae.Galeriya.Piwigo.Methods
         public bool AllowAnonymous => false;
 
         public PiwigoUploadMethod(IHttpContextAccessor contextAccessor,
-            IPiwigoWebServiceMethodRepository webServiceRepository,
             ICategoryPermissionsRepository categoryPermissions,
             IPhotoCreator photoCreator,
             IPiwigoConfiguration piwigoConfiguration)
         {
             _contextAccessor = contextAccessor;
-            _webServiceRepository = webServiceRepository;
             _categoryPermissions = categoryPermissions;
             _photoCreator = photoCreator;
             _piwigoConfiguration = piwigoConfiguration;
@@ -50,12 +48,16 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             var photo = await _photoCreator.CreatePhoto(_piwigoConfiguration.FileBlobRepository, category, file.FileName, name, user, DateTimeOffset.UtcNow, uploadedFile, token);
 
-            return await _webServiceRepository
-                .GetMethod("pwg.images.getInfo")
-                .Execute(new Dictionary<string, IConvertible>
+            return new PiwigoUploadedResponse
+            {
+                ImageId = photo.PhotoId,
+                Category = new PiwigoUploadedCategory
                 {
-                        { "image_id", photo.PhotoId }
-                }, user, token);
+                    CategoryId = category.CategoryId,
+                    NumberOfPhotos = (uint)category.Photos.Count,
+                    Name = category.Name
+                }
+            };
         }
     }
 }
