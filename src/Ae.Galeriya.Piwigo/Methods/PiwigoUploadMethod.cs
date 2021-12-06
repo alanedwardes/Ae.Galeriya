@@ -18,7 +18,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IPiwigoConfiguration _piwigoConfiguration;
 
         public string MethodName => "pwg.images.upload";
-        public bool AllowAnonymous => true;
+        public bool AllowAnonymous => false;
 
         public PiwigoUploadMethod(IHttpContextAccessor contextAccessor,
             IPiwigoWebServiceMethodRepository webServiceRepository,
