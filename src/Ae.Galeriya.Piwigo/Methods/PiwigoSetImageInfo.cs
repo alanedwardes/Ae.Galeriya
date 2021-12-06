@@ -25,23 +25,23 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
-            var photo = await _categoryPermissions.EnsureCanAccessPhoto(user, parameters["image_id"].ToUInt32(null), token);
+            var photo = await _categoryPermissions.EnsureCanAccessPhoto(user, parameters.GetRequiredValue<uint>("image_id"), token);
 
-            var multipleValueMode = parameters["multiple_value_mode"].ToString(null);
+            var multipleValueMode = parameters.GetRequiredValue<string>("multiple_value_mode");
 
-            if (parameters.TryGetValue("name", out var nameString))
+            if (parameters.TryGetOptionalValue<string>("name", out var nameString))
             {
-                photo.Name = nameString.ToString(null);
+                photo.Name = nameString;
             }
 
-            if (parameters.TryGetValue("comment", out var commentString))
+            if (parameters.TryGetOptionalValue<string>("comment", out var commentString))
             {
-                photo.Comment = commentString.ToString(null);
+                photo.Comment = commentString;
             }
 
-            if (parameters.TryGetValue("categories", out var categoriesString))
+            if (parameters.TryGetOptionalValue<string>("categories", out var categoriesString))
             {
-                var categoryIds = categoriesString.ToString(null).Split(";").Select(uint.Parse).ToArray();
+                var categoryIds = categoriesString.Split(";").Select(uint.Parse).ToArray();
 
                 var categories = await _context.Categories.Where(x => categoryIds.Contains(x.CategoryId)).ToArrayAsync(token);
 
@@ -55,10 +55,8 @@ namespace Ae.Galeriya.Piwigo.Methods
                 }
             }
 
-            if (parameters.TryGetValue("tag_ids", out var tagsRaw))
+            if (parameters.TryGetOptionalValue<string>("tag_ids", out var tagsString))
             {
-                var tagsString = tagsRaw.ToString(null);
-
                 var tags = Array.Empty<Tag>();
                 if (!string.IsNullOrWhiteSpace(tagsString))
                 {

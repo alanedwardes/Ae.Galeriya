@@ -25,7 +25,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
-            var photo = await _categoryPermissions.EnsureCanAccessPhoto(user, parameters["image_id"].ToUInt32(null), token);
+            var photo = await _categoryPermissions.EnsureCanAccessPhoto(user, parameters.GetRequiredValue<uint>("image_id"), token);
 
             user = await _dbContext.Users.Include(x => x.FavouritePhotos).SingleAsync(x => x == user, token);
 

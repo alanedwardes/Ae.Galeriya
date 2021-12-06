@@ -29,10 +29,10 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
-            var page = parameters["page"].ToInt32(null);
-            var perPage = parameters["per_page"].ToInt32(null);
+            var page = parameters.GetOptionalValue<int?>("page") ?? 0;
+            var perPage = parameters.GetOptionalValue<int?>("per_page") ?? 64;
 
-            var tag = await _context.Tags.SingleAsync(x => x.TagId == parameters["tag_id"].ToUInt32(null), token);
+            var tag = await _context.Tags.SingleAsync(x => x.TagId == parameters.GetRequiredValue<uint>("tag_id"), token);
 
             var photosQuery = (await _categoryPermissions.GetAccessiblePhotos(user, token))
                 .Where(x => x.Tags.Contains(tag));

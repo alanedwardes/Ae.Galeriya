@@ -23,16 +23,16 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
-            var category = await _categoryPermissions.EnsureCanAccessCategory(user, parameters["category_id"].ToUInt32(null), token);
+            var category = await _categoryPermissions.EnsureCanAccessCategory(user, parameters.GetRequiredValue<uint>("category_id"), token);
 
-            if (parameters.TryGetValue("name", out var name))
+            if (parameters.TryGetOptionalValue<string>("name", out var name))
             {
-                category.Name = name.ToString(null);
+                category.Name = name;
             }
 
-            if (parameters.TryGetValue("comment", out var comment))
+            if (parameters.TryGetOptionalValue<string>("comment", out var comment))
             {
-                category.Comment = comment.ToString(null);
+                category.Comment = comment;
             }
 
             await _context.SaveChangesAsync(token);

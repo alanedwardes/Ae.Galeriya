@@ -23,8 +23,8 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
-            var category = await _categoryPermissions.EnsureCanAccessCategory(user, parameters["category_id"].ToUInt32(null), token);
-            var photo = await _categoryPermissions.EnsureCanAccessPhoto(user, parameters["image_id"].ToUInt32(null), token);
+            var category = await _categoryPermissions.EnsureCanAccessCategory(user, parameters.GetRequiredValue<uint>("category_id"), token);
+            var photo = await _categoryPermissions.EnsureCanAccessPhoto(user, parameters.GetRequiredValue<uint>("image_id"), token);
 
             if (!category.Photos.Contains(photo))
             {
