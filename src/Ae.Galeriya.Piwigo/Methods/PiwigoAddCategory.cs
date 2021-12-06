@@ -24,7 +24,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
-            var parentId = parameters.GetRequiredValue<uint>("parent");
+            var parentId = parameters.GetRequired<uint>("parent");
 
             Category parentCategory = null;
             if (parentId > 0)
@@ -34,9 +34,9 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             var category = new Category
             {
-                Name = parameters.GetRequiredValue<string>("name"),
+                Name = parameters.GetRequired<string>("name"),
                 ParentCategory = parentCategory,
-                Comment = parameters.GetOptionalValue<string>("comment"),
+                Comment = parameters.GetOptional("comment"),
                 CreatedBy = user,
                 Users = parentCategory == null ? new[] { user } : Array.Empty<User>()
             };

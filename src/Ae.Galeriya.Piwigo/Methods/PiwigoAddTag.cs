@@ -23,7 +23,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
-            var name = parameters.GetRequiredValue<string>("name");
+            var name = parameters.GetRequired<string>("name");
 
             var tag = new Tag
             {

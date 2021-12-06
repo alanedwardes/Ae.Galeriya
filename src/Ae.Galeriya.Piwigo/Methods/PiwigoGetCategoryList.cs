@@ -25,9 +25,9 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
-            var categoryId = parameters.GetRequiredValue<uint>("cat_id");
-            var recursive = parameters.GetOptionalValue<bool>("recursive");
-            var thumbnailSize = parameters.GetRequiredValue<string>("thumbnail_size");
+            var categoryId = parameters.GetRequired<uint>("cat_id");
+            var recursive = parameters.GetOptional<bool>("recursive") ?? false;
+            var thumbnailSize = parameters.GetRequired<string>("thumbnail_size");
 
             var nullableParentCategory = categoryId == 0 ? null : await _categoryRepository.EnsureCanAccessCategory(user, categoryId, token);
 

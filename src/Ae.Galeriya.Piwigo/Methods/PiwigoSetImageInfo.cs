@@ -25,21 +25,21 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
-            var photo = await _categoryPermissions.EnsureCanAccessPhoto(user, parameters.GetRequiredValue<uint>("image_id"), token);
+            var photo = await _categoryPermissions.EnsureCanAccessPhoto(user, parameters.GetRequired<uint>("image_id"), token);
 
-            var multipleValueMode = parameters.GetRequiredValue<string>("multiple_value_mode");
+            var multipleValueMode = parameters.GetRequired<string>("multiple_value_mode");
 
-            if (parameters.TryGetOptionalValue<string>("name", out var nameString))
+            if (parameters.TryGetOptional<string>("name", out var nameString))
             {
                 photo.Name = nameString;
             }
 
-            if (parameters.TryGetOptionalValue<string>("comment", out var commentString))
+            if (parameters.TryGetOptional<string>("comment", out var commentString))
             {
                 photo.Comment = commentString;
             }
 
-            if (parameters.TryGetOptionalValue<string>("categories", out var categoriesString))
+            if (parameters.TryGetOptional<string>("categories", out var categoriesString))
             {
                 var categoryIds = categoriesString.Split(";").Select(uint.Parse).ToArray();
 
@@ -55,7 +55,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                 }
             }
 
-            if (parameters.TryGetOptionalValue<string>("tag_ids", out var tagsString))
+            if (parameters.TryGetOptional<string>("tag_ids", out var tagsString))
             {
                 var tags = Array.Empty<Tag>();
                 if (!string.IsNullOrWhiteSpace(tagsString))

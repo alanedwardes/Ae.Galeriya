@@ -25,7 +25,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
-            var result = await _signInManager.PasswordSignInAsync(parameters.GetRequiredValue<string>("username"), parameters.GetRequiredValue<string>("password"), true, false);
+            var result = await _signInManager.PasswordSignInAsync(parameters.GetRequired<string>("username"), parameters.GetRequired<string>("password"), true, false);
             if (!result.Succeeded)
             {
                 _contextAccessor.HttpContext.Response.StatusCode = 400;

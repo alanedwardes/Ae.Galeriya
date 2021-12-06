@@ -25,11 +25,11 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
-            var page = parameters.GetOptionalValue<int?>("page") ?? 0;
-            var perPage = parameters.GetOptionalValue<int?>("per_page") ?? 64;
+            var page = parameters.GetOptional<int>("page") ?? 0;
+            var perPage = parameters.GetOptional<int>("per_page") ?? 64;
 
-            var order = parameters.GetRequiredValue<string>("order");
-            var query = parameters.GetRequiredValue<string>("query");
+            var order = parameters.GetRequired<string>("order");
+            var query = parameters.GetRequired<string>("query");
 
             var queryValue = $"%{query}%";
 

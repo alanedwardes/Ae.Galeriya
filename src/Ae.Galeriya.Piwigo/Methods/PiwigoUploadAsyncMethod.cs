@@ -105,15 +105,15 @@ namespace Ae.Galeriya.Piwigo.Methods
                 return loginResult;
             }
 
-            user = await _userManager.FindByNameAsync(parameters.GetRequiredValue<string>("username"));
-            var category = await _categoryPermissions.EnsureCanAccessCategory(user, parameters.GetRequiredValue<uint>("category"), token);
+            user = await _userManager.FindByNameAsync(parameters.GetRequired<string>("username"));
+            var category = await _categoryPermissions.EnsureCanAccessCategory(user, parameters.GetRequired<uint>("category"), token);
 
-            var chunk = parameters.GetRequiredValue<int>("chunk");
-            var chunks = parameters.GetRequiredValue<int>("chunks");
-            var originalChecksum = parameters.GetRequiredValue<string>("original_sum");
-            var fileName = parameters.GetRequiredValue<string>("filename");
-            var name = parameters.GetRequiredValue<string>("name");
-            var creationDate = DateTimeOffset.ParseExact(parameters.GetRequiredValue<string>("date_creation"), "yyyy-MM-dd HH:mm:ss", null);
+            var chunk = parameters.GetRequired<int>("chunk");
+            var chunks = parameters.GetRequired<int>("chunks");
+            var originalChecksum = parameters.GetRequired<string>("original_sum");
+            var fileName = parameters.GetRequired<string>("filename");
+            var name = parameters.GetRequired<string>("name");
+            var creationDate = DateTimeOffset.ParseExact(parameters.GetRequired<string>("date_creation"), "yyyy-MM-dd HH:mm:ss", null);
 
             var file = _contextAccessor.HttpContext.Request.Form.Files.Single();
 

@@ -5,23 +5,33 @@ namespace Ae.Galeriya.Piwigo
 {
     internal static class DictionaryExtensions
     {
-        public static TValue? GetOptionalValue<TValue>(this IReadOnlyDictionary<string, IConvertible> dictionary, string key)
-            where TValue : notnull
+        public static Nullable<TValue> GetOptional<TValue>(this IReadOnlyDictionary<string, IConvertible> dictionary, string key)
+            where TValue : struct
         {
             if (dictionary.TryGetValue(key, out var value))
             {
-                return (TValue)value.ToType(typeof(TValue), null);
+                return GetValue<TValue>(value);
             }
 
             return default;
         }
 
-        public static bool TryGetOptionalValue<TValue>(this IReadOnlyDictionary<string, IConvertible> dictionary, string key, out TValue value)
+        public static string? GetOptional(this IReadOnlyDictionary<string, IConvertible> dictionary, string key)
+        {
+            if (dictionary.TryGetValue(key, out var value))
+            {
+                return value.ToString(null);
+            }
+
+            return null;
+        }
+
+        public static bool TryGetOptional<TValue>(this IReadOnlyDictionary<string, IConvertible> dictionary, string key, out TValue value)
             where TValue : notnull
         {
-            if (dictionary.TryGetValue(key, out var v))
+            if (dictionary.TryGetValue(key, out var convertible))
             {
-                value = (TValue)v.ToType(typeof(TValue), null);
+                value = GetValue<TValue>(convertible);
                 return true;
             }
 
@@ -29,10 +39,15 @@ namespace Ae.Galeriya.Piwigo
             return false;
         }
 
-        public static TValue GetRequiredValue<TValue>(this IReadOnlyDictionary<string, IConvertible> dictionary, string key)
+        public static TValue GetRequired<TValue>(this IReadOnlyDictionary<string, IConvertible> dictionary, string key)
             where TValue : notnull
         {
-            return (TValue)dictionary[key].ToType(typeof(TValue), null);
+            return GetValue<TValue>(dictionary[key]);
+        }
+
+        private static TValue GetValue<TValue>(IConvertible convertible)
+        {
+            return (TValue)convertible.ToType(typeof(TValue), null); ;
         }
     }
 }

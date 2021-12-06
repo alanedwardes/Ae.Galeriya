@@ -54,7 +54,7 @@ namespace Ae.Galeriya.Piwigo
                     logger.BeginScope(parameter.Key + ":{" + parameter.Key + "}", parameter.Value);
                 }
 
-                var requestedMethod = parameters.GetRequiredValue<string>("method");
+                var requestedMethod = parameters.GetRequired<string>("method");
                 var method = repository.GetMethod(requestedMethod);
                 if (method != null)
                 {

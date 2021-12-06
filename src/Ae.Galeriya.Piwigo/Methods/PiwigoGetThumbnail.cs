@@ -71,10 +71,10 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
-            var width = parameters.GetRequiredValue<int>("width");
-            var height = parameters.GetRequiredValue<int>("height");
-            var type = parameters.GetRequiredValue<string>("type");
-            var imageId = parameters.GetRequiredValue<uint>("image_id");
+            var width = parameters.GetRequired<int>("width");
+            var height = parameters.GetRequired<int>("height");
+            var type = parameters.GetRequired<string>("type");
+            var imageId = parameters.GetRequired<uint>("image_id");
 
             var photo = await _categoryPermissions.EnsureCanAccessPhoto(user, imageId, token);
 

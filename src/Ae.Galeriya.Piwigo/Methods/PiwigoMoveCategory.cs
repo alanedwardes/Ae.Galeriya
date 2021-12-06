@@ -24,11 +24,11 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
         {
-            var newParentCategoryId = parameters.GetRequiredValue<uint>("parent");
+            var newParentCategoryId = parameters.GetRequired<uint>("parent");
 
             var allCategories = await _categoryPermissions.GetAccessibleCategories(user, token);
 
-            var category = allCategories.Single(x => x.CategoryId == parameters.GetRequiredValue<uint>("category_id"));
+            var category = allCategories.Single(x => x.CategoryId == parameters.GetRequired<uint>("category_id"));
             var newParentCategory = newParentCategoryId > 0 ? allCategories.Single(x => x.CategoryId == newParentCategoryId) : null;
 
             if (newParentCategory == null)
