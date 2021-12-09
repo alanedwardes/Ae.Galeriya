@@ -1,4 +1,4 @@
-﻿using Ae.Galeriya.Core.Entities;
+﻿using Ae.MediaMetadata.Entities;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using System;

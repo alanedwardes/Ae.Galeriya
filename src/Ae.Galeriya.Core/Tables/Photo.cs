@@ -1,4 +1,4 @@
-﻿using Ae.Galeriya.Core.Entities;
+﻿using Ae.MediaMetadata.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -34,8 +34,8 @@ namespace Ae.Galeriya.Core.Tables
         public string? Make { get; set; }
         public string? Model { get; set; }
         public string? Software { get; set; }
-        public float? Latitude { get; set; }
-        public float? Longitude { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public float? Duration { get; set; }
         [Required]
         public MediaOrientation Orientation { get; set; }

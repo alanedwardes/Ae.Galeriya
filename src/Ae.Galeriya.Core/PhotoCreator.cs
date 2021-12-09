@@ -1,5 +1,6 @@
-﻿using Ae.Galeriya.Core.Entities;
-using Ae.Galeriya.Core.Tables;
+﻿using Ae.Galeriya.Core.Tables;
+using Ae.MediaMetadata;
+using Ae.MediaMetadata.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
