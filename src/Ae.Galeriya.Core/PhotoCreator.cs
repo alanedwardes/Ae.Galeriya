@@ -75,12 +75,12 @@ namespace Ae.Galeriya.Core
             }
         }
 
-        private async Task<IEnumerable<AddressComponent>> LookupLocation(Task<MediaInfo> mediaInfoTask, CancellationToken token)
+        private async Task<IReadOnlyList<AddressComponent>> LookupLocation(Task<MediaInfo> mediaInfoTask, CancellationToken token)
         {
             var mediaInfo = await mediaInfoTask;
             if (!mediaInfo.Location.HasValue)
             {
-                return Enumerable.Empty<AddressComponent>();
+                return Array.Empty<AddressComponent>();
             }
 
             var request = new GeocodeRequest(mediaInfo.Location.Value);
@@ -93,13 +93,14 @@ namespace Ae.Galeriya.Core
             catch (Exception e)
             {
                 _logger.LogError(e, "Error when geocoding");
-                return null;
+                return Array.Empty<AddressComponent>();
             }
 
             return response.GuessMajorLocationParts()
                 .Select(x => x.GetMostDescriptiveAddressComponent())
                 .Where(x => x != null && !string.IsNullOrWhiteSpace(x.LongName ?? x.ShortName))
-                .Select(x => x!);
+                .Select(x => x!)
+                .ToArray();
         }
 
         public async Task<Photo> CreatePhoto(IFileBlobRepository fileBlobRepository, Category category, string fileName, string name, User user, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
@@ -115,7 +116,7 @@ namespace Ae.Galeriya.Core
             var mediaInfo = await mediaInfoTask;
             var snapshotId = await snapshotIdTask;
             var hash = await hashTask;
-            var locationTag = await locationTask;
+            var addressComponents = await locationTask;
 
             var fileExtension = Path.GetExtension(fileName)?.ToLower().TrimStart('.');
             if (string.IsNullOrWhiteSpace(fileExtension))
@@ -146,29 +147,13 @@ namespace Ae.Galeriya.Core
                 Categories = new List<Category> { category },
             };
 
-            if (locationTag.Any())
+            if (addressComponents.Any())
             {
-                var locationName = string.Join(", ", locationTag.Select(x => x.ShortName));
-
-                Tag tag = new()
+                for (var i = 0; i < addressComponents.Count; i++)
                 {
-                    Name = locationName,
-                    CreatedOn = DateTimeOffset.UtcNow,
-                    CreatedBy = user
-                };
-                _dbContext.Tags.Add(tag);
-
-                try
-                {
-                    await _dbContext.SaveChangesAsync(token);
+                    var tagName = string.Join(", ", addressComponents.Skip(i).Select(x => x.ShortName));
+                    photo.Tags.Add(await CreateTag(user, tagName, token));
                 }
-                catch (DbUpdateException)
-                {
-                    _dbContext.Tags.Remove(tag);
-                    tag = await _dbContext.Tags.SingleAsync(x => x.Name == locationName, token);
-                }
-
-                photo.Tags.Add(tag);
             }
 
             _dbContext.Photos.Add(photo);
@@ -179,7 +164,9 @@ namespace Ae.Galeriya.Core
             }
             catch (DbUpdateException)
             {
-                return await _dbContext.Photos.SingleAsync(x => x.Hash == hash, token);
+                photo = await _dbContext.Photos.SingleAsync(x => x.Hash == hash, token);
+                photo.Categories.Add(category);
+                await _dbContext.SaveChangesAsync(token);
             }
             finally
             {
@@ -187,6 +174,29 @@ namespace Ae.Galeriya.Core
             }
 
             return photo;
+        }
+
+        private async Task<Tag> CreateTag(User user, string tagName, CancellationToken token)
+        {
+            Tag tag = new()
+            {
+                Name = tagName,
+                CreatedOn = DateTimeOffset.UtcNow,
+                CreatedBy = user
+            };
+            _dbContext.Tags.Add(tag);
+
+            try
+            {
+                await _dbContext.SaveChangesAsync(token);
+            }
+            catch (DbUpdateException)
+            {
+                _dbContext.Tags.Remove(tag);
+                tag = await _dbContext.Tags.SingleAsync(x => x.Name == tagName, token);
+            }
+
+            return tag;
         }
     }
 }
