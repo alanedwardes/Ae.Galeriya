@@ -45,7 +45,11 @@ namespace Ae.Galeriya.Console
             var builder = Host.CreateDefaultBuilder()
                 .ConfigureWebHostDefaults(webHostBuilder =>
                 {
-                    webHostBuilder.ConfigureLogging(configureLogging => configureLogging.AddCommonLogging());
+                    webHostBuilder.ConfigureLogging(configureLogging =>
+                    {
+                        configureLogging.AddCommonLogging();
+                        configureLogging.AddFilter("Microsoft.EntityFrameworkCore.Update", LogLevel.Warning);
+                    });
                     webHostBuilder.UseStartup<Startup>();
                 })
                 .ConfigureServices(services =>
