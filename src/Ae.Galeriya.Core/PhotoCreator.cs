@@ -151,13 +151,24 @@ namespace Ae.Galeriya.Core
 
             if (!string.IsNullOrWhiteSpace(locationTag))
             {
-                photo.Tags.Add(new Tag
+                Tag tag;
+                try
                 {
-                    Name = locationTag,
-                    CreatedBy = user,
-                    CreatedOn = DateTimeOffset.UtcNow,
-                    Photos = new List<Photo> { photo }
-                });
+                    tag = new Tag
+                    {
+                        Name = locationTag,
+                        CreatedOn = DateTimeOffset.UtcNow,
+                        CreatedBy = user
+                    };
+                    _dbContext.Tags.Add(tag);
+                    await _dbContext.SaveChangesAsync(token);
+                }
+                catch (DbUpdateException)
+                {
+                    tag = await _dbContext.Tags.SingleAsync(x => x.Name == locationTag, token);
+                }
+
+                photo.Tags.Add(tag);
             }
 
             _dbContext.Photos.Add(photo);
