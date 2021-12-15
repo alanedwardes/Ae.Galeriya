@@ -151,20 +151,21 @@ namespace Ae.Galeriya.Core
 
             if (!string.IsNullOrWhiteSpace(locationTag))
             {
-                Tag tag;
+                Tag tag = new()
+                {
+                    Name = locationTag,
+                    CreatedOn = DateTimeOffset.UtcNow,
+                    CreatedBy = user
+                };
+                _dbContext.Tags.Add(tag);
+
                 try
                 {
-                    tag = new Tag
-                    {
-                        Name = locationTag,
-                        CreatedOn = DateTimeOffset.UtcNow,
-                        CreatedBy = user
-                    };
-                    _dbContext.Tags.Add(tag);
                     await _dbContext.SaveChangesAsync(token);
                 }
                 catch (DbUpdateException)
                 {
+                    _dbContext.Tags.Remove(tag);
                     tag = await _dbContext.Tags.SingleAsync(x => x.Name == locationTag, token);
                 }
 
