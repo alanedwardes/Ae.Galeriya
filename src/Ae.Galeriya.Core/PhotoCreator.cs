@@ -165,7 +165,7 @@ namespace Ae.Galeriya.Core
             catch (DbUpdateException)
             {
                 photo = await _dbContext.Photos.SingleAsync(x => x.Hash == hash, token);
-                photo.Categories.Add(category);
+                category.Photos.Add(photo);
                 await _dbContext.SaveChangesAsync(token);
             }
             finally
