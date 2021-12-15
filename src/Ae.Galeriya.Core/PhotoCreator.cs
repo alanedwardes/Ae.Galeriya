@@ -1,4 +1,6 @@
 ﻿using Ae.Galeriya.Core.Tables;
+using Ae.Geocode.Google;
+using Ae.Geocode.Google.Entities;
 using Ae.MediaMetadata;
 using Ae.MediaMetadata.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -19,16 +21,19 @@ namespace Ae.Galeriya.Core
         private readonly ILogger<PhotoCreator> _logger;
         private readonly IBlobRepository _photoCreator;
         private readonly IMediaInfoExtractor _infoExtractor;
+        private readonly IGoogleGeocodeClient _geocodeClient;
         private readonly GaleriyaDbContext _dbContext;
 
         public PhotoCreator(ILogger<PhotoCreator> logger,
             IBlobRepository photoCreator,
             IMediaInfoExtractor infoExtractor,
+            IGoogleGeocodeClient geocodeClient,
             GaleriyaDbContext dbContext)
         {
             _logger = logger;
             _photoCreator = photoCreator;
             _infoExtractor = infoExtractor;
+            _geocodeClient = geocodeClient;
             _dbContext = dbContext;
         }
 
@@ -70,6 +75,36 @@ namespace Ae.Galeriya.Core
             }
         }
 
+        private async Task<string?> LookupLocation(Task<MediaInfo> mediaInfoTask, CancellationToken token)
+        {
+            var mediaInfo = await mediaInfoTask;
+            if (!mediaInfo.Location.HasValue)
+            {
+                return null;
+            }
+
+            var request = new GeocodeRequest(mediaInfo.Location.Value);
+
+            GeocodeResponse? response = null;
+            try
+            {
+                response = await _geocodeClient.ReverseGeoCode(request, token);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error when geocoding");
+                return null;
+            }
+
+            var parts = response.GuessMajorLocationParts()
+                .Select(x => x.GetMostDescriptiveAddressComponent())
+                .Where(x => x != null)
+                .Select(x => x.LongName ?? x.ShortName)
+                .Where(x => !string.IsNullOrWhiteSpace(x));
+
+            return string.Join(", ", parts);
+        }
+
         public async Task<Photo> CreatePhoto(IFileBlobRepository fileBlobRepository, Category category, string fileName, string name, User user, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
         {
             var blobId = Guid.NewGuid();
@@ -77,11 +112,13 @@ namespace Ae.Galeriya.Core
             var mediaInfoTask = _infoExtractor.ExtractInformation(uploadedFile, token);
             var snapshotIdTask = ExtractSnapshot(fileBlobRepository, uploadedFile, token);
             var hashTask = CalculateFileHash(uploadedFile, token);
+            var locationTask = LookupLocation(mediaInfoTask, token);
 
             await blobIdTask;
             var mediaInfo = await mediaInfoTask;
             var snapshotId = await snapshotIdTask;
             var hash = await hashTask;
+            var locationTag = await locationTask;
 
             var fileExtension = Path.GetExtension(fileName)?.ToLower().TrimStart('.');
             if (string.IsNullOrWhiteSpace(fileExtension))
@@ -109,8 +146,18 @@ namespace Ae.Galeriya.Core
                 Height = (uint)mediaInfo.Size.Height,
                 Latitude = mediaInfo.Location?.Latitude,
                 Longitude = mediaInfo.Location?.Longitude,
-                Categories = new List<Category> { category }
+                Categories = new List<Category> { category },
             };
+
+            if (!string.IsNullOrWhiteSpace(locationTag))
+            {
+                photo.Tags.Add(new Tag
+                {
+                    Name = locationTag,
+                    CreatedBy = user,
+                    CreatedOn = DateTimeOffset.UtcNow
+                });
+            }
 
             _dbContext.Photos.Add(photo);
 

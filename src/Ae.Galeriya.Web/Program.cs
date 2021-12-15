@@ -1,6 +1,7 @@
 ﻿using Ae.Galeriya.Core;
 using Ae.Galeriya.Core.Tables;
 using Ae.Galeriya.Piwigo;
+using Ae.Geocode.Google;
 using Amazon.S3.Transfer;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
@@ -51,6 +52,8 @@ namespace Ae.Galeriya.Console
                 {
                     services.AddCommonServices(configuration);
                     services.AddSingleton(configuration);
+                    services.AddHttpClient<IGoogleGeocodeClient, GoogleGeocodeClient>()
+                            .AddHttpMessageHandler(x => new GoogleGeocodeAuthenticationHandler(configuration.ApiKey));
                     services.AddSingleton<ITransferUtility, TransferUtility>();
                     services.AddSingleton<IBlobRepository>(x =>
                     {
