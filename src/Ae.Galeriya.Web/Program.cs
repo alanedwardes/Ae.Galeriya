@@ -52,7 +52,7 @@ namespace Ae.Galeriya.Console
                 {
                     services.AddCommonServices(configuration);
                     services.AddSingleton(configuration);
-                    services.AddHttpClient<IGoogleGeocodeClient, GoogleGeocodeClient>()
+                    services.AddHttpClient<IGoogleGeocodeClient, GoogleGeocodeClient>(x => x.BaseAddress = new Uri("https://maps.googleapis.com/"))
                             .AddHttpMessageHandler(x => new GoogleGeocodeAuthenticationHandler(configuration.ApiKey));
                     services.AddSingleton<ITransferUtility, TransferUtility>();
                     services.AddSingleton<IBlobRepository>(x =>
