@@ -48,7 +48,8 @@ namespace Ae.Galeriya.Console
                     webHostBuilder.ConfigureLogging(configureLogging =>
                     {
                         configureLogging.AddCommonLogging();
-                        configureLogging.AddFilter("Microsoft.EntityFrameworkCore.Update", LogLevel.Warning);
+                        configureLogging.AddFilter("Microsoft.EntityFrameworkCore.Update", LogLevel.None);
+                        configureLogging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);
                     });
                     webHostBuilder.UseStartup<Startup>();
                 })
