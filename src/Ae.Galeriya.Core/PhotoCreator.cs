@@ -155,7 +155,8 @@ namespace Ae.Galeriya.Core
                 {
                     Name = locationTag,
                     CreatedBy = user,
-                    CreatedOn = DateTimeOffset.UtcNow
+                    CreatedOn = DateTimeOffset.UtcNow,
+                    Photos = new List<Photo> { photo }
                 });
             }
 
