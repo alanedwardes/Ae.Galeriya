@@ -45,12 +45,7 @@ namespace Ae.Galeriya.Console
             var builder = Host.CreateDefaultBuilder()
                 .ConfigureWebHostDefaults(webHostBuilder =>
                 {
-                    webHostBuilder.ConfigureLogging(configureLogging =>
-                    {
-                        configureLogging.AddCommonLogging();
-                        configureLogging.AddFilter("Microsoft.EntityFrameworkCore.Update", LogLevel.None);
-                        configureLogging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);
-                    });
+                    webHostBuilder.ConfigureLogging(configureLogging => configureLogging.AddCommonLogging());
                     webHostBuilder.UseStartup<Startup>();
                 })
                 .ConfigureServices(services =>
@@ -109,8 +104,10 @@ namespace Ae.Galeriya.Console
 
         public static ILoggingBuilder AddCommonLogging(this ILoggingBuilder builder)
         {
-            builder.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
-            return builder.AddConsole(x => x.IncludeScopes = true);
+            return builder.AddFilter("Microsoft.EntityFrameworkCore.Update", LogLevel.None)
+                .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None)
+                .AddConsole(x => x.IncludeScopes = true)
+                .SetMinimumLevel(LogLevel.Warning);
         }
     }
 }
