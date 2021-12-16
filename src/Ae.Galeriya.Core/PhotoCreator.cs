@@ -161,8 +161,7 @@ namespace Ae.Galeriya.Core
             {
                 _dbContext.Photos.Remove(photo);
                 photo = await _dbContext.Photos.SingleAsync(x => x.Hash == hash, token);
-                photo.Categories.Add(category);
-                await _dbContext.SaveChangesAsync(token);
+                await AddPhotoToCategory(photo, category, token);
             }
             finally
             {
@@ -170,6 +169,20 @@ namespace Ae.Galeriya.Core
             }
 
             return photo;
+        }
+
+        private async Task AddPhotoToCategory(Photo photo, Category category, CancellationToken token)
+        {
+            photo.Categories.Add(category);
+
+            try
+            {
+                await _dbContext.SaveChangesAsync(token);
+            }
+            catch (DbUpdateException)
+            {
+                // This is OK
+            }
         }
 
         private async Task<Tag> CreateTag(User user, string tagName, CancellationToken token)
