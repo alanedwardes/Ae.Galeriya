@@ -149,11 +149,8 @@ namespace Ae.Galeriya.Core
 
             if (addressComponents.Any())
             {
-                for (var i = 0; i < addressComponents.Count; i++)
-                {
-                    var tagName = string.Join(", ", addressComponents.Skip(i).Select(x => x.ShortName));
-                    photo.Tags.Add(await CreateTag(user, tagName, token));
-                }
+                var tagName = string.Join(", ", addressComponents.Select(x => x.ShortName));
+                photo.Tags.Add(await CreateTag(user, tagName, token));
             }
 
             _dbContext.Photos.Add(photo);
