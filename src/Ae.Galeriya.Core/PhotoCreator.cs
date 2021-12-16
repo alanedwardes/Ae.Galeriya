@@ -75,9 +75,8 @@ namespace Ae.Galeriya.Core
             }
         }
 
-        private async Task<IReadOnlyList<AddressComponent>> LookupLocation(Task<MediaInfo> mediaInfoTask, CancellationToken token)
+        private async Task<IReadOnlyList<AddressComponent>> LookupLocation(MediaInfo mediaInfo, CancellationToken token)
         {
-            var mediaInfo = await mediaInfoTask;
             if (!mediaInfo.Location.HasValue)
             {
                 return Array.Empty<AddressComponent>();
@@ -107,13 +106,12 @@ namespace Ae.Galeriya.Core
         {
             var blobId = Guid.NewGuid();
             var blobIdTask = _photoCreator.PutBlob(uploadedFile.OpenRead(), blobId, token);
-            var mediaInfoTask = _infoExtractor.ExtractInformation(uploadedFile, token);
-            var snapshotIdTask = ExtractSnapshot(fileBlobRepository, uploadedFile, token);
+            var mediaInfo = await _infoExtractor.ExtractInformation(uploadedFile, token);
+            var snapshotIdTask = mediaInfo.Duration.HasValue ? ExtractSnapshot(fileBlobRepository, uploadedFile, token) : Task.FromResult<Guid?>(null);
             var hashTask = CalculateFileHash(uploadedFile, token);
-            var locationTask = LookupLocation(mediaInfoTask, token);
+            var locationTask = LookupLocation(mediaInfo, token);
 
             await blobIdTask;
-            var mediaInfo = await mediaInfoTask;
             var snapshotId = await snapshotIdTask;
             var hash = await hashTask;
             var addressComponents = await locationTask;
