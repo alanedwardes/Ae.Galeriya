@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -75,26 +76,29 @@ namespace Ae.Galeriya.Core
             }
         }
 
-        private async Task<IReadOnlyList<AddressComponent>> LookupLocation(MediaInfo mediaInfo, CancellationToken token)
+        private async Task<GeocodeResponse?> LookupLocation(MediaInfo mediaInfo, CancellationToken token)
         {
-            if (!mediaInfo.Location.HasValue)
+            if (mediaInfo.Location == null)
             {
-                return Array.Empty<AddressComponent>();
+                return null;
             }
 
-            var request = new GeocodeRequest(mediaInfo.Location.Value);
+            var request = new GeocodeRequest((mediaInfo.Location.Latitude, mediaInfo.Location.Longitude));
 
-            GeocodeResponse? response = null;
             try
             {
-                response = await _geocodeClient.ReverseGeoCode(request, token);
+                return await _geocodeClient.ReverseGeoCode(request, token);
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error when geocoding");
-                return Array.Empty<AddressComponent>();
             }
 
+            return null;
+        }
+
+        private static IReadOnlyList<AddressComponent> GetMostDescriptiveAddressComponents(GeocodeResponse response)
+        {
             return response.GuessMajorLocationParts()
                 .Select(x => x.GetMostDescriptiveAddressComponent())
                 .Where(x => x != null && !string.IsNullOrWhiteSpace(x.LongName ?? x.ShortName))
@@ -111,15 +115,25 @@ namespace Ae.Galeriya.Core
             var hashTask = CalculateFileHash(uploadedFile, token);
             var locationTask = LookupLocation(mediaInfo, token);
 
+            if (mediaInfo.Size.Width == 0 || mediaInfo.Size.Height == 0)
+            {
+                throw new InvalidOperationException("Found zero-sized image");
+            }
+
             await blobIdTask;
             var snapshotId = await snapshotIdTask;
             var hash = await hashTask;
-            var addressComponents = await locationTask;
+            var geocodeResponse = await locationTask;
 
             var fileExtension = Path.GetExtension(fileName)?.ToLower().TrimStart('.');
             if (string.IsNullOrWhiteSpace(fileExtension))
             {
-                throw new InvalidOperationException("No file extension found");
+                throw new InvalidOperationException("Found no file extension");
+            }
+
+            if (!mediaInfo.CreationTime.HasValue)
+            {
+                _logger.LogWarning("Unable to find creation time for {UploadedFile}, using UtcNow", uploadedFile);
             }
 
             var photo = new Photo
@@ -133,9 +147,6 @@ namespace Ae.Galeriya.Core
                 Hash = hash,
                 Name = name,
                 CreatedOn = mediaInfo.CreationTime ?? creationDate,
-                Make = mediaInfo.CameraMake,
-                Model = mediaInfo.CameraModel,
-                Software = mediaInfo.CameraSoftware,
                 Orientation = mediaInfo.Orientation ?? MediaOrientation.Unknown,
                 Duration = mediaInfo.Duration,
                 Width = (uint)mediaInfo.Size.Width,
@@ -143,12 +154,19 @@ namespace Ae.Galeriya.Core
                 Latitude = mediaInfo.Location?.Latitude,
                 Longitude = mediaInfo.Location?.Longitude,
                 Categories = new List<Category> { category },
+                Metadata = mediaInfo == null ? null : JsonSerializer.Serialize(mediaInfo)
             };
 
-            if (addressComponents.Any())
+            if (geocodeResponse != null)
             {
-                var tagName = string.Join(", ", addressComponents.Select(x => x.ShortName));
+                var tagName = string.Join(", ", GetMostDescriptiveAddressComponents(geocodeResponse).Select(x => x.ShortName));
                 photo.Tags.Add(await CreateTag(user, tagName, token));
+            }
+
+            var cameraTagName = $"{mediaInfo.CameraMake} {mediaInfo.CameraModel} {mediaInfo.CameraSoftware}";
+            if (!string.IsNullOrWhiteSpace(cameraTagName))
+            {
+                photo.Tags.Add(await CreateTag(user, cameraTagName, token));
             }
 
             _dbContext.Photos.Add(photo);

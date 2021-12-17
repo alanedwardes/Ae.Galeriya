@@ -19,7 +19,6 @@ namespace Ae.Galeriya.Core.Tables
         public string Hash { get; set; } = null!;
         [Required]
         public Guid Blob { get; set; }
-        public Guid? SnapshotBlob { get; set; }
         [Required]
         public ulong FileSize { get; set; }
         [Required]
@@ -30,15 +29,15 @@ namespace Ae.Galeriya.Core.Tables
         public string Name { get; set; } = null!;
         [Required]
         public string Extension { get; set; } = null!;
+        [Required]
+        public MediaOrientation Orientation { get; set; }
+        public string? Metadata { get; set; }
+
         public string? Comment { get; set; }
-        public string? Make { get; set; }
-        public string? Model { get; set; }
-        public string? Software { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public float? Duration { get; set; }
-        [Required]
-        public MediaOrientation Orientation { get; set; }
+        public Guid? SnapshotBlob { get; set; }
 
         [Required]
         public uint CreatedById { get; set; }
