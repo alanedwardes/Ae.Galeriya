@@ -77,6 +77,9 @@ namespace Ae.Galeriya.Web.Controllers
                     .Where(x => x.ParentCategory == null)
                     .Include(x => x.Users)
                     .Include(x => x.Photos)
+                    .ToArrayAsync(),
+                Tags = await _context.Tags
+                    .Include(x => x.Photos)
                     .ToArrayAsync()
             });
         }

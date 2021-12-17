@@ -7,5 +7,6 @@ namespace Ae.Galeriya.Web.Models
     {
         public IReadOnlyList<User> Users { get; set; }
         public IReadOnlyList<Category> Categories { get; set; }
+        public IReadOnlyList<Tag> Tags { get; set; }
     }
 }

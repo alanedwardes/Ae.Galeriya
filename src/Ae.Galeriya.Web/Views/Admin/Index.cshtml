@@ -16,17 +16,17 @@
     <tbody>
         @foreach (var user in Model.Users)
         {
-        <tr>
-            <td>@user.Id</td>
-            <td>@user.UserName</td>
-            <td>@user.CreatedPhotos.Count</td>
-            <td>@user.CreatedCategories.Count</td>
-            <td>@user.CreatedTags.Count</td>
-            <td>
-                <a href="@Url.Action("EditUser", "Admin", new { UserId = user.Id })">Edit</a>
-                <a onclick="return confirm('Are you sure you want to delete the user @user.UserName?');" href="@Url.Action("DeleteUser", "Admin", new { UserId = user.Id })">Delete</a>
-            </td>
-        </tr>
+            <tr>
+                <td>@user.Id</td>
+                <td>@user.UserName</td>
+                <td>@user.CreatedPhotos.Count</td>
+                <td>@user.CreatedCategories.Count</td>
+                <td>@user.CreatedTags.Count</td>
+                <td>
+                    <a href="@Url.Action("EditUser", "Admin", new { UserId = user.Id })">Edit</a>
+                    <a onclick="return confirm('Are you sure you want to delete the user @user.UserName?');" href="@Url.Action("DeleteUser", "Admin", new { UserId = user.Id })">Delete</a>
+                </td>
+            </tr>
         }
     </tbody>
 </table>
@@ -54,6 +54,28 @@
                 <td>@category.Photos.Count</td>
                 <td>@category.Users.Count</td>
                 <td><a href="@Url.Action("EditCategory", "Admin", new { CategoryId = category.CategoryId })">Edit</a></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2>Tags</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Photos</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var tags in Model.Tags)
+        {
+            <tr>
+                <td>@tags.TagId</td>
+                <td>@tags.Name</td>
+                <td>@tags.Photos.Count</td>
             </tr>
         }
     </tbody>
