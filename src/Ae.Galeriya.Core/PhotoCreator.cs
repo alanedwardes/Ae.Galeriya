@@ -159,7 +159,7 @@ namespace Ae.Galeriya.Core
 
             if (geocodeResponse != null)
             {
-                var tagName = string.Join(", ", GetMostDescriptiveAddressComponents(geocodeResponse).Select(x => x.ShortName));
+                var tagName = string.Join(", ", GetMostDescriptiveAddressComponents(geocodeResponse).Select(x => x.LongName));
                 photo.Tags.Add(await CreateTag(user, tagName, token));
             }
 
