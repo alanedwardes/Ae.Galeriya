@@ -42,9 +42,16 @@ namespace Ae.Galeriya.Core.Tables
         [Required]
         public uint CreatedById { get; set; }
         [ForeignKey(nameof(CreatedById))]
-        public User CreatedBy { get; set; }
+        public User CreatedBy { get; set; } = null!;
         [Required]
-        public DateTimeOffset CreatedOn { get; set; }
+        public string CreatedOn { get; set; } = null!;
+
+        [NotMapped]
+        public DateTimeOffset CreatedOnMarshaled
+        {
+            get => DateTimeOffset.ParseExact(CreatedOn, "u", null);
+            set => CreatedOn = value.ToString("u");
+        }
 
         public uint? UpdatedById { get; set; }
         [ForeignKey(nameof(UpdatedById))]

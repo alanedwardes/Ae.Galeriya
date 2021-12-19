@@ -39,25 +39,23 @@ namespace Ae.Galeriya.Core
             return relevantCategory.Users.Contains(user);
         }
 
-        private static void ThrowForNoAccess(User user, Category category)
-        {
-            throw new InvalidOperationException($"User {user} cannot access category {category}")
-            {
-                HResult = 403
-            };
-        }
-
         public async Task<Category> EnsureCanAccessCategory(User user, uint categoryId, CancellationToken token)
         {
             var category = (await GetAllCategories(token)).SingleOrDefault(x => x.CategoryId == categoryId);
             if (category == null)
             {
-                ThrowForNoAccess(user, category);
+                throw new InvalidOperationException($"User {user} cannot access category {categoryId}")
+                {
+                    HResult = 403
+                };
             }
 
             if (!CanAccessCategory(user, category))
             {
-                ThrowForNoAccess(user, category);
+                throw new InvalidOperationException($"User {user} cannot access category {categoryId}")
+                {
+                    HResult = 403
+                };
             }
             return category;
         }
@@ -78,8 +76,7 @@ namespace Ae.Galeriya.Core
         public async Task<IQueryable<Photo>> GetAccessiblePhotos(User user, CancellationToken token)
         {
             var acessibleCategories = await GetAccessibleCategories(user, token);
-            return _dbContext.Photos.Where(photo => photo.Categories.Any(category => acessibleCategories.Contains(category)))
-                .OrderByDescending(x => x.PhotoId);
+            return _dbContext.Photos.Where(photo => photo.Categories.Any(category => acessibleCategories.Contains(category)));
         }
     }
 }

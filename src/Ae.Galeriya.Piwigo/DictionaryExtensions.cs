@@ -5,7 +5,7 @@ namespace Ae.Galeriya.Piwigo
 {
     internal static class DictionaryExtensions
     {
-        public static Nullable<TValue> GetOptional<TValue>(this IReadOnlyDictionary<string, IConvertible> dictionary, string key)
+        public static TValue? GetOptional<TValue>(this IReadOnlyDictionary<string, IConvertible> dictionary, string key)
             where TValue : struct
         {
             if (dictionary.TryGetValue(key, out var value))

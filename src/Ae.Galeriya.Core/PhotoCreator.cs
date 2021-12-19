@@ -146,7 +146,7 @@ namespace Ae.Galeriya.Core
                 CreatedBy = user,
                 Hash = hash,
                 Name = name,
-                CreatedOn = mediaInfo.CreationTime ?? creationDate,
+                CreatedOnMarshaled = mediaInfo.CreationTime ?? creationDate,
                 Orientation = mediaInfo.Orientation ?? MediaOrientation.Unknown,
                 Duration = mediaInfo.Duration,
                 Width = (uint)mediaInfo.Size.Width,
@@ -161,12 +161,6 @@ namespace Ae.Galeriya.Core
             {
                 var tagName = string.Join(", ", GetMostDescriptiveAddressComponents(geocodeResponse).Select(x => x.LongName));
                 photo.Tags.Add(await CreateTag(user, tagName, token));
-            }
-
-            var cameraTagName = $"{mediaInfo.CameraMake} {mediaInfo.CameraModel} {mediaInfo.CameraSoftware}";
-            if (!string.IsNullOrWhiteSpace(cameraTagName))
-            {
-                photo.Tags.Add(await CreateTag(user, cameraTagName, token));
             }
 
             _dbContext.Photos.Add(photo);
