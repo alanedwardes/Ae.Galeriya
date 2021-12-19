@@ -47,10 +47,10 @@ namespace Ae.Galeriya.Piwigo.Methods
             switch (order)
             {
                 case "date_creation asc":
-                    photosQuery = photosQuery.OrderBy(x => x.CreatedOn);
+                    photosQuery = photosQuery.OrderBy(x => x.CreatedOn.ToString());
                     break;
                 case "date_creation desc":
-                    photosQuery = photosQuery.OrderByDescending(x => x.CreatedOn);
+                    photosQuery = photosQuery.OrderByDescending(x => x.CreatedOn.ToString());
                     break;
             }
 
