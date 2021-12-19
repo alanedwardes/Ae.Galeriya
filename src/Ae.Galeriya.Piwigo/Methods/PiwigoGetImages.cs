@@ -5,24 +5,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using Ae.Galeriya.Core.Tables;
-using Microsoft.Extensions.Logging;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoGetImages : IPiwigoWebServiceMethod
     {
-        private readonly ILogger<PiwigoGetImages> _logger;
         private readonly IPiwigoPhotosPageGenerator _pageGenerator;
         private readonly ICategoryPermissionsRepository _permissionsRepository;
 
         public string MethodName => "pwg.categories.getImages";
         public bool AllowAnonymous => false;
 
-        public PiwigoGetImages(ILogger<PiwigoGetImages> logger,
-            IPiwigoPhotosPageGenerator pageGenerator,
+        public PiwigoGetImages(IPiwigoPhotosPageGenerator pageGenerator,
             ICategoryPermissionsRepository permissionsRepository)
         {
-            _logger = logger;
             _pageGenerator = pageGenerator;
             _permissionsRepository = permissionsRepository;
         }
