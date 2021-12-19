@@ -34,8 +34,6 @@ namespace Ae.Galeriya.Piwigo.Methods
             var categoryId = parameters.GetOptional<uint>("cat_id");
             var order = parameters.GetOptional("order") ?? "date_creation asc";
 
-            _logger.LogWarning("Parameters: {Parameters}", string.Join(",", parameters.Select(x => $"{x.Key}={x.Value}")));
-
             var photosQuery = await _permissionsRepository.GetAccessiblePhotos(user, token);
 
             if (categoryId.HasValue)
@@ -52,6 +50,8 @@ namespace Ae.Galeriya.Piwigo.Methods
                 case "date_creation desc":
                     photosQuery = photosQuery.OrderByDescending(x => x.CreatedOn);
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(order), order, "Order is not supported");
             }
 
             return await _pageGenerator.CreatePage(page, perPage, photosQuery, token);
