@@ -49,8 +49,8 @@ namespace Ae.Galeriya.Core.Tables
         [NotMapped]
         public DateTimeOffset CreatedOnMarshaled
         {
-            get => DateTimeOffset.ParseExact(CreatedOn, "u", null);
-            set => CreatedOn = value.ToString("u");
+            get => DateTimeOffset.ParseExact(CreatedOn, "yyyy-MM-dd HH:mm:ss+00:00", null);
+            set => CreatedOn = value.ToString("yyyy-MM-dd HH:mm:ss+00:00");
         }
 
         public uint? UpdatedById { get; set; }
