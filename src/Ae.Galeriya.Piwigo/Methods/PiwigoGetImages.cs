@@ -31,13 +31,17 @@ namespace Ae.Galeriya.Piwigo.Methods
         {
             var page = parameters.GetOptional<int>("page") ?? 0;
             var perPage = parameters.GetOptional<int>("per_page") ?? 64;
+            var categoryId = parameters.GetOptional<uint>("cat_id");
 
-            _logger.LogWarning("Parameters: ", string.Join(",", parameters.Select(x => $"{x.Key}={x.Value}")));
+            _logger.LogWarning("Parameters: {Parameters}", string.Join(",", parameters.Select(x => $"{x.Key}={x.Value}")));
 
-            var category = await _permissionsRepository.EnsureCanAccessCategory(user, parameters.GetRequired<uint>("cat_id"), token);
+            var photosQuery = (await _permissionsRepository.GetAccessiblePhotos(user, token));
 
-            var photosQuery = (await _permissionsRepository.GetAccessiblePhotos(user, token))
-                .Where(x => x.Categories.Contains(category));
+            if (categoryId.HasValue)
+            {
+                var category = await _permissionsRepository.EnsureCanAccessCategory(user, categoryId.Value, token);
+                photosQuery = photosQuery.Where(x => x.Categories.Contains(category));
+            }
 
             return await _pageGenerator.CreatePage(page, perPage, photosQuery, token);
         }

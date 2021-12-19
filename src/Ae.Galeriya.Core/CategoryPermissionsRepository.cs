@@ -78,7 +78,8 @@ namespace Ae.Galeriya.Core
         public async Task<IQueryable<Photo>> GetAccessiblePhotos(User user, CancellationToken token)
         {
             var acessibleCategories = await GetAccessibleCategories(user, token);
-            return _dbContext.Photos.Where(photo => photo.Categories.Any(category => acessibleCategories.Contains(category)));
+            return _dbContext.Photos.Where(photo => photo.Categories.Any(category => acessibleCategories.Contains(category)))
+                .OrderByDescending(x => x.PhotoId);
         }
     }
 }
