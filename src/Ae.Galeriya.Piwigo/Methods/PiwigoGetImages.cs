@@ -32,15 +32,26 @@ namespace Ae.Galeriya.Piwigo.Methods
             var page = parameters.GetOptional<int>("page") ?? 0;
             var perPage = parameters.GetOptional<int>("per_page") ?? 64;
             var categoryId = parameters.GetOptional<uint>("cat_id");
+            var order = parameters.GetOptional("order") ?? "date_creation asc";
 
             _logger.LogWarning("Parameters: {Parameters}", string.Join(",", parameters.Select(x => $"{x.Key}={x.Value}")));
 
-            var photosQuery = (await _permissionsRepository.GetAccessiblePhotos(user, token));
+            var photosQuery = await _permissionsRepository.GetAccessiblePhotos(user, token);
 
             if (categoryId.HasValue)
             {
                 var category = await _permissionsRepository.EnsureCanAccessCategory(user, categoryId.Value, token);
                 photosQuery = photosQuery.Where(x => x.Categories.Contains(category));
+            }
+
+            switch (order)
+            {
+                case "date_creation asc":
+                    photosQuery = photosQuery.OrderBy(x => x.CreatedOn);
+                    break;
+                case "date_creation desc":
+                    photosQuery = photosQuery.OrderByDescending(x => x.CreatedOn);
+                    break;
             }
 
             return await _pageGenerator.CreatePage(page, perPage, photosQuery, token);
