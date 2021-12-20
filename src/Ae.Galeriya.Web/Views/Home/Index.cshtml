@@ -1,0 +1,10 @@
+﻿@model Ae.Galeriya.Web.Models.HomeModel
+
+<h2>Categories</h2>
+
+@foreach (var category in Model.Categories)
+{
+    <p>@category.Name - @category.Photos.Count photos</p>
+}
+
+<h2>Tags</h2>

@@ -22,6 +22,7 @@ namespace Ae.Galeriya.Console
             app.UseMiddleware<PiwigoMiddleware>();
 
             app.UseRouting();
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
