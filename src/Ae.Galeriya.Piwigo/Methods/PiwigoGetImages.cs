@@ -41,9 +41,11 @@ namespace Ae.Galeriya.Piwigo.Methods
             switch (order)
             {
                 case "date_creation asc":
+                case "date_available asc":
                     photosQuery = photosQuery.OrderBy(x => x.CreatedOn);
                     break;
                 case "date_creation desc":
+                case "date_available desc":
                     photosQuery = photosQuery.OrderByDescending(x => x.CreatedOn);
                     break;
                 default:
