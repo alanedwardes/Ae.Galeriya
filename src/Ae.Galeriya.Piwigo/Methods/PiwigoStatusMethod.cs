@@ -48,7 +48,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                     "xxlarge"
                 },
                 UploadFileTypes = "jpg,jpeg,png,gif,mov,mp4",
-                UploadFormChunkSize = 500
+                UploadFormChunkSize = 5000
             });
         }
     }

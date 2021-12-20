@@ -116,11 +116,6 @@ namespace Ae.Galeriya.Piwigo
                 { "height", height.ToString() },
                 { "type", type }
             };
-            
-            foreach (var cookie in _httpAccessor.HttpContext.Request.Cookies)
-            {
-                queryParmeters.Add(cookie.Key, cookie.Value);
-            }
 
             return new Uri(_baseAddressLocator.GetBaseAddress(), QueryHelpers.AddQueryString("/ws.php", queryParmeters));
         }
