@@ -105,6 +105,7 @@ namespace Ae.Galeriya.Console
         public static ILoggingBuilder AddCommonLogging(this ILoggingBuilder builder)
         {
             return builder
+                .AddFilter("Microsoft.EntityFrameworkCore.Infrastructure", LogLevel.Warning)
                 .AddFilter("Microsoft.EntityFrameworkCore.Query", LogLevel.None)
                 .AddFilter("Microsoft.EntityFrameworkCore.Update", LogLevel.None)
                 .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None)
