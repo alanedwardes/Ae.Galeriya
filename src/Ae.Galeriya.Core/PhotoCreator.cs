@@ -133,7 +133,7 @@ namespace Ae.Galeriya.Core
 
             if (!mediaInfo.CreationTime.HasValue)
             {
-                _logger.LogWarning("Unable to find creation time for {UploadedFile}, using UtcNow", uploadedFile);
+                _logger.LogWarning("Unable to find creation time for {UploadedFile}, using {CreationDate}", uploadedFile, creationDate);
             }
 
             var photo = new Photo
