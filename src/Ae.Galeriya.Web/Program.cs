@@ -108,8 +108,7 @@ namespace Ae.Galeriya.Console
                 .AddFilter("Microsoft.EntityFrameworkCore.Query", LogLevel.None)
                 .AddFilter("Microsoft.EntityFrameworkCore.Update", LogLevel.None)
                 .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None)
-                .AddConsole(x => x.IncludeScopes = true)
-                .SetMinimumLevel(LogLevel.Warning);
+                .AddConsole(x => x.IncludeScopes = true);
         }
     }
 }
