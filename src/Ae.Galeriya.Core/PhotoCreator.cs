@@ -168,9 +168,11 @@ namespace Ae.Galeriya.Core
             try
             {
                 await _dbContext.SaveChangesAsync(token);
+                _logger.LogInformation("Added photo with hash {Hash}", hash);
             }
             catch (DbUpdateException)
             {
+                _logger.LogWarning("Found duplicate photo with hash {Hash}, adding to category instead", hash);
                 _dbContext.Photos.Remove(photo);
                 photo = await _dbContext.Photos.SingleAsync(x => x.Hash == hash, token);
                 await AddPhotoToCategory(photo, category, token);
