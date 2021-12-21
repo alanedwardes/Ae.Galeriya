@@ -58,5 +58,7 @@ namespace Ae.Galeriya.Piwigo.Entities
         public IReadOnlyDictionary<string, PiwigoThumbnail> Derivatives { get; set; }
         [JsonPropertyName("categories")]
         public ICollection<PiwigoCategory> Categories { get; set; }
+        [JsonPropertyName("tags")]
+        public ICollection<PiwigoTagSummary> Tags { get; set; }
     }
 }

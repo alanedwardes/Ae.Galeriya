@@ -52,6 +52,15 @@ namespace Ae.Galeriya.Piwigo.Methods
                     UpperCategories = x.CategoryId.ToString(),
                     Url = new Uri("/wibble1", UriKind.Relative)
                 }).ToArray(),
+                Tags = photo.Tags.Select(x => new PiwigoTagSummary
+                {
+                    TagId = x.TagId,
+                    LastModified = x.UpdatedOn ?? x.CreatedOn,
+                    Name = x.Name,
+                    PageUrl = new Uri("https://www.example.com/"),
+                    Url = new Uri("https://www.example.com/"),
+                    Slug = x.GenerateSlug()
+                }).ToArray(),
                 PageUrl = new Uri("/wibble1", UriKind.Relative),
                 ElementUrl = new Uri(_baseAddressLocator.GetBaseAddress(), $"/blobs/{photo.PhotoId}.{photo.Extension}"),
             };

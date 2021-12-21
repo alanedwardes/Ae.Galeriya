@@ -31,4 +31,20 @@ namespace Ae.Galeriya.Piwigo.Entities
         [JsonPropertyName("url")]
         public Uri Url { get; set; }
     }
+
+    internal sealed class PiwigoTagSummary
+    {
+        [JsonPropertyName("id")]
+        public uint TagId { get; set; }
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+        [JsonPropertyName("url_name")]
+        public string Slug { get; set; }
+        [JsonPropertyName("lastmodified")]
+        public DateTimeOffset LastModified { get; set; }
+        [JsonPropertyName("url")]
+        public Uri Url { get; set; }
+        [JsonPropertyName("page_url")]
+        public Uri PageUrl { get; set; }
+    }
 }
