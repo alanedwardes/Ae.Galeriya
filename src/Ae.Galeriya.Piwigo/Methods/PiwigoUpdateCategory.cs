@@ -35,6 +35,8 @@ namespace Ae.Galeriya.Piwigo.Methods
                 category.Comment = comment;
             }
 
+            category.UpdatedById = userId;
+            category.UpdatedOn = DateTimeOffset.UtcNow;
             await _context.SaveChangesAsync(token);
             return null;
         }

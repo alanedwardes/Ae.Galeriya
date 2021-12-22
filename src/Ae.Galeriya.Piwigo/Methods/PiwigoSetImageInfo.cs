@@ -75,6 +75,8 @@ namespace Ae.Galeriya.Piwigo.Methods
                 }
             }
 
+            photo.UpdatedOn = DateTimeOffset.UtcNow;
+            photo.UpdatedById = userId;
             await _context.SaveChangesAsync(token);
             return null;
         }

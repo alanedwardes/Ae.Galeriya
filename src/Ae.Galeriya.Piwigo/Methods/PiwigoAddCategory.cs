@@ -40,6 +40,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                 Name = parameters.GetRequired<string>("name"),
                 ParentCategory = parentCategory,
                 Comment = parameters.GetOptional("comment"),
+                CreatedOn = DateTimeOffset.UtcNow,
                 CreatedById = userId.Value,
                 Users = parentCategory == null ? new[] { user } : Array.Empty<User>()
             };

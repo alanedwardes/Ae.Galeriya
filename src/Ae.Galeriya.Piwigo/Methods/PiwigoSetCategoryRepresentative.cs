@@ -33,6 +33,8 @@ namespace Ae.Galeriya.Piwigo.Methods
                 };
             }
 
+            category.UpdatedById = userId;
+            category.UpdatedOn = DateTimeOffset.UtcNow;
             category.CoverPhoto = photo;
             await _context.SaveChangesAsync(token);
             return null;
