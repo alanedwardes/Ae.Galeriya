@@ -36,7 +36,7 @@ namespace Ae.Galeriya.Core
         public bool CanAccessCategory(uint userId, Category category)
         {
             var relevantCategory = category.IsTopLevel() ? category : category.FindTopLevel();
-            return relevantCategory.Users.Contains(new User { Id = userId });
+            return relevantCategory.Users.Select(x => x.Id).Contains(userId);
         }
 
         public async Task<Category> EnsureCanAccessCategory(uint userId, uint categoryId, CancellationToken token)
