@@ -55,7 +55,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                 _logger.LogWarning("No cached thumbnail for {PhotoId}, generating from source", photo.PhotoId);
             }
 
-            using var stream = await _blobRepository.GetBlob(photo.SnapshotBlob ?? photo.BlobId, token);
+            using var stream = await _blobRepository.GetBlob(photo.BlobId + (photo.HasThumbnail ? "_thumb" : string.Empty), token);
 
             var resizeMode = type == "classic" ? ResizeMode.Max : ResizeMode.Crop;
 

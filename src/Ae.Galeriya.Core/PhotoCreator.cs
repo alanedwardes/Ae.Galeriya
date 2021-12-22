@@ -38,7 +38,7 @@ namespace Ae.Galeriya.Core
             _dbContext = dbContext;
         }
 
-        private async Task<string?> ExtractSnapshot(IFileBlobRepository fileBlobRepository, FileInfo uploadedFile, CancellationToken token)
+        private async Task<string?> ExtractSnapshot(IFileBlobRepository fileBlobRepository, FileInfo uploadedFile, string hash, CancellationToken token)
         {
             var sw = Stopwatch.StartNew();
 
@@ -46,10 +46,10 @@ namespace Ae.Galeriya.Core
 
             await _infoExtractor.ExtractSnapshot(uploadedFile, snapshotFile, token);
 
-            string? snapshotId = null;
+            string? snapshotId = hash;
             if (snapshotFile.Exists)
             {
-                snapshotId = Guid.NewGuid().ToString();
+                snapshotId = Guid.NewGuid().ToString() + "_thumb";
                 try
                 {
                     await _photoCreator.PutBlob(snapshotFile.OpenRead(), snapshotId, token);
@@ -111,7 +111,7 @@ namespace Ae.Galeriya.Core
             var hash = await CalculateFileHash(uploadedFile, token);
             var blobIdTask = _photoCreator.PutBlob(uploadedFile.OpenRead(), hash, token);
             var mediaInfo = await _infoExtractor.ExtractInformation(uploadedFile, token);
-            var snapshotIdTask = mediaInfo.Duration.HasValue ? ExtractSnapshot(fileBlobRepository, uploadedFile, token) : Task.FromResult<string?>(null);
+            var snapshotIdTask = mediaInfo.Duration.HasValue ? ExtractSnapshot(fileBlobRepository, uploadedFile, hash, token) : Task.FromResult<string?>(null);
             var locationTask = LookupLocation(mediaInfo, token);
 
             if (mediaInfo.Size.Width == 0 || mediaInfo.Size.Height == 0)
@@ -137,13 +137,14 @@ namespace Ae.Galeriya.Core
             var photo = new Photo
             {
                 BlobId = hash,
-                SnapshotBlob = snapshotId,
+                HasThumbnail = snapshotId != null,
                 FileSize = (ulong)uploadedFile.Length,
                 Extension = fileExtension,
                 FileName = fileName,
                 CreatedById = userId,
                 Name = name,
                 TakenOn = mediaInfo.CreationTime,
+                FileCreatedOn = creationDate,
                 CreatedOn = DateTimeOffset.UtcNow,
                 Orientation = mediaInfo.Orientation ?? MediaOrientation.Unknown,
                 Duration = mediaInfo.Duration,

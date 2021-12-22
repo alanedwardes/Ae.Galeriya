@@ -35,8 +35,9 @@ namespace Ae.Galeriya.Core.Tables
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public float? Duration { get; set; }
-        public string? SnapshotBlob { get; set; }
+        public bool HasThumbnail { get; set; }
         public DateTimeOffset? TakenOn { get; set; }
+        public DateTimeOffset FileCreatedOn { get; set; }
 
         [Required]
         public uint CreatedById { get; set; }
