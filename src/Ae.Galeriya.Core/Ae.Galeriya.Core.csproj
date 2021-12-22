@@ -8,10 +8,10 @@
 
 	<ItemGroup>
 		<PackageReference Include="Ae.Geocode" Version="3.0.0" />
-		<PackageReference Include="Ae.MediaMetadata" Version="4.0.2" />
-		<PackageReference Include="AWSSDK.S3" Version="3.7.7.3" />
+		<PackageReference Include="Ae.MediaMetadata" Version="4.1.0" />
+		<PackageReference Include="AWSSDK.S3" Version="3.7.7.5" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.12" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.13" />
 	</ItemGroup>
 
 </Project>
