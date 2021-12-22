@@ -49,7 +49,7 @@ namespace Ae.Galeriya.Core
             string? snapshotId = hash;
             if (snapshotFile.Exists)
             {
-                snapshotId = Guid.NewGuid().ToString() + "_thumb";
+                snapshotId = hash + "_thumb";
                 try
                 {
                     await _photoCreator.PutBlob(snapshotFile.OpenRead(), snapshotId, token);
