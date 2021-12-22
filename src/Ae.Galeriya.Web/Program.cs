@@ -93,9 +93,9 @@ namespace Ae.Galeriya.Console
         {
             return builder
                 .AddFilter("Microsoft.EntityFrameworkCore.Infrastructure", LogLevel.Warning)
-                .AddFilter("Microsoft.EntityFrameworkCore.Query", LogLevel.None)
-                .AddFilter("Microsoft.EntityFrameworkCore.Update", LogLevel.None)
-                .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None)
+                .AddFilter("Microsoft.EntityFrameworkCore.Query", LogLevel.Warning)
+                .AddFilter("Microsoft.EntityFrameworkCore.Update", LogLevel.Warning)
+                .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning)
                 .AddConsole(x => x.IncludeScopes = true);
         }
     }
