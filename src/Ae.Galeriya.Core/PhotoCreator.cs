@@ -108,8 +108,8 @@ namespace Ae.Galeriya.Core
 
         public async Task<Photo> CreatePhoto(IFileBlobRepository fileBlobRepository, Category category, string fileName, string name, User user, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
         {
-            var blobId = await CalculateFileHash(uploadedFile, token);
-            var blobIdTask = _photoCreator.PutBlob(uploadedFile.OpenRead(), blobId, token);
+            var hash = await CalculateFileHash(uploadedFile, token);
+            var blobIdTask = _photoCreator.PutBlob(uploadedFile.OpenRead(), hash, token);
             var mediaInfo = await _infoExtractor.ExtractInformation(uploadedFile, token);
             var snapshotIdTask = mediaInfo.Duration.HasValue ? ExtractSnapshot(fileBlobRepository, uploadedFile, token) : Task.FromResult<string?>(null);
             var locationTask = LookupLocation(mediaInfo, token);
@@ -131,12 +131,12 @@ namespace Ae.Galeriya.Core
 
             if (!mediaInfo.CreationTime.HasValue)
             {
-                _logger.LogWarning("Unable to find creation time for {UploadedFile}, using {CreationDate}", uploadedFile, creationDate);
+                _logger.LogWarning("Unable to find creation time for {Hash}, using {CreationDate}", hash, creationDate);
             }
 
             var photo = new Photo
             {
-                BlobId = blobId,
+                BlobId = hash,
                 SnapshotBlob = snapshotId,
                 FileSize = (ulong)uploadedFile.Length,
                 Extension = fileExtension,
@@ -166,13 +166,13 @@ namespace Ae.Galeriya.Core
             try
             {
                 await _dbContext.SaveChangesAsync(token);
-                _logger.LogInformation("Added photo with hash {Hash}", blobId);
+                _logger.LogInformation("Added photo with hash {Hash}", hash);
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException e)
             {
-                _logger.LogWarning("Found duplicate photo with hash {Hash}, adding to category instead", blobId);
+                _logger.LogWarning(e, "Found duplicate photo with hash {Hash}, adding to category instead", hash);
                 _dbContext.Photos.Remove(photo);
-                photo = await _dbContext.Photos.SingleAsync(x => x.BlobId == blobId, token);
+                photo = await _dbContext.Photos.SingleAsync(x => x.BlobId == hash, token);
                 await AddPhotoToCategory(photo, category, token);
             }
             finally
