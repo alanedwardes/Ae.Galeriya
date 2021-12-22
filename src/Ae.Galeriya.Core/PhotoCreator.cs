@@ -200,6 +200,12 @@ namespace Ae.Galeriya.Core
 
         private async Task<Tag> CreateTag(uint userId, string tagName, CancellationToken token)
         {
+            var existingTag = await _dbContext.Tags.SingleOrDefaultAsync(x => x.Name == tagName, token);
+            if (existingTag != null)
+            {
+                return existingTag;
+            }
+
             Tag tag = new()
             {
                 Name = tagName,
