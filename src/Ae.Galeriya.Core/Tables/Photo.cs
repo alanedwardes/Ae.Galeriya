@@ -29,8 +29,9 @@ namespace Ae.Galeriya.Core.Tables
         public string Extension { get; set; } = null!;
         [Required]
         public MediaOrientation Orientation { get; set; }
-        public string? Metadata { get; set; }
 
+        [Column(TypeName = "json")]
+        public string? Metadata { get; set; }
         public string? Comment { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
