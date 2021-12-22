@@ -38,20 +38,14 @@ namespace Ae.Galeriya.Core.Tables
         public double? Longitude { get; set; }
         public float? Duration { get; set; }
         public Guid? SnapshotBlob { get; set; }
+        public DateTimeOffset? TakenOn { get; set; }
 
         [Required]
         public uint CreatedById { get; set; }
         [ForeignKey(nameof(CreatedById))]
         public User CreatedBy { get; set; } = null!;
         [Required]
-        public string CreatedOn { get; set; } = null!;
-
-        [NotMapped]
-        public DateTimeOffset CreatedOnMarshaled
-        {
-            get => DateTimeOffset.ParseExact(CreatedOn, "yyyy-MM-dd HH:mm:ss+00:00", null);
-            set => CreatedOn = value.ToString("yyyy-MM-dd HH:mm:ss+00:00");
-        }
+        public DateTimeOffset CreatedOn { get; set; }
 
         public uint? UpdatedById { get; set; }
         [ForeignKey(nameof(UpdatedById))]

@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -84,22 +83,10 @@ namespace Ae.Galeriya.Console
                     .AddDefaultTokenProviders()
                     .AddEntityFrameworkStores<GaleriyaDbContext>();
 
-            services.PostConfigure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme, option =>
-            {
-                option.Cookie.Name = "pwg_id";
-                option.ExpireTimeSpan = TimeSpan.FromDays(356 * 10);
-                option.CookieManager = new PiwigoCookieManager();
-            });
-
             services.AddDataProtection()
                     .PersistKeysToFileSystem(new DirectoryInfo(configuration.DataProtectionDirectory));
 
-            var sqliteConnectionString = new SqliteConnectionStringBuilder
-            {
-                DataSource = configuration.SqliteDatabaseFile
-            };
-
-            return services.AddGaleriyaStore(x => x.UseSqlite(sqliteConnectionString.ConnectionString));
+            return services.AddGaleriyaStore(x => x.UseMySql(configuration.ConnectionString, ServerVersion.AutoDetect(configuration.ConnectionString)));
         }
 
         public static ILoggingBuilder AddCommonLogging(this ILoggingBuilder builder)

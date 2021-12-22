@@ -50,7 +50,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             return new FileStreamResult(stream, "application/octet-stream")
             {
                 EnableRangeProcessing = true,
-                LastModified = photo.CreatedOnMarshaled
+                LastModified = photo.UpdatedOn ?? photo.CreatedOn
             };
         }
     }

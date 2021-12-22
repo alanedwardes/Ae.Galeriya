@@ -82,7 +82,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             return new FileStreamResult(thumbnailStream, "image/jpeg")
             {
-                LastModified = photo.CreatedOnMarshaled
+                LastModified = photo.UpdatedOn ?? photo.CreatedOn
             };
         }
     }
