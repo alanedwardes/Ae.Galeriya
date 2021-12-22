@@ -23,7 +23,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _signInManager = signInManager;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
             var result = await _signInManager.PasswordSignInAsync(parameters.GetRequired<string>("username"), parameters.GetRequired<string>("password"), true, false);
             if (!result.Succeeded)

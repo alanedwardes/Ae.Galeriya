@@ -42,19 +42,19 @@ namespace Ae.Galeriya.Piwigo.Methods
             _piwigoConfiguration = piwigoConfiguration;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
             var loginResult = await _webServiceRepository
                 .GetMethod("pwg.session.login")
-                .Execute(parameters, null, token);
+                .Execute(parameters, userId, token);
 
             if (!loginResult.Equals(true))
             {
                 return loginResult;
             }
 
-            user = await _userManager.FindByNameAsync(parameters.GetRequired<string>("username"));
-            var category = await _categoryPermissions.EnsureCanAccessCategory(user, parameters.GetRequired<uint>("category"), token);
+            var user = await _userManager.FindByNameAsync(parameters.GetRequired<string>("username"));
+            var category = await _categoryPermissions.EnsureCanAccessCategory(user.Id, parameters.GetRequired<uint>("category"), token);
 
             var chunk = parameters.GetRequired<int>("chunk");
             var chunks = parameters.GetRequired<int>("chunks");
@@ -76,14 +76,14 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         private async Task<object> CompleteFile(Category category, string fileName, string name, User user, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
         {
-            var photo = await _photoCreator.CreatePhoto(_piwigoConfiguration.FileBlobRepository, category, fileName, name, user, creationDate, uploadedFile, token);
+            var photo = await _photoCreator.CreatePhoto(_piwigoConfiguration.FileBlobRepository, category, fileName, name, user.Id, creationDate, uploadedFile, token);
 
             return await _webServiceRepository
                 .GetMethod("pwg.images.getInfo")
                 .Execute(new Dictionary<string, IConvertible>
                 {
-                        { "image_id", photo.PhotoId }
-                }, user, token);
+                    { "image_id", photo.PhotoId }
+                }, user.Id, token);
         }
     }
 }

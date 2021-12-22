@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Ae.Galeriya.Core.Tables;
+using Microsoft.EntityFrameworkCore;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
@@ -22,22 +23,24 @@ namespace Ae.Galeriya.Piwigo.Methods
             _categoryPermissions = categoryPermissions;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
             var parentId = parameters.GetRequired<uint>("parent");
 
             Category parentCategory = null;
             if (parentId > 0)
             {
-                parentCategory = await _categoryPermissions.EnsureCanAccessCategory(user, parentId, token);
+                parentCategory = await _categoryPermissions.EnsureCanAccessCategory(userId.Value, parentId, token);
             }
+
+            var user = await _context.Users.SingleAsync(x => x.Id == userId.Value);
 
             var category = new Category
             {
                 Name = parameters.GetRequired<string>("name"),
                 ParentCategory = parentCategory,
                 Comment = parameters.GetOptional("comment"),
-                CreatedBy = user,
+                CreatedById = userId.Value,
                 Users = parentCategory == null ? new[] { user } : Array.Empty<User>()
             };
 

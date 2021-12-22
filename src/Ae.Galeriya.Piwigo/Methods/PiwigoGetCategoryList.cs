@@ -23,17 +23,17 @@ namespace Ae.Galeriya.Piwigo.Methods
             _categoryRepository = categoryRepository;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
             var categoryId = parameters.GetRequired<uint>("cat_id");
             var recursive = parameters.GetOptional<bool>("recursive") ?? false;
             var thumbnailSize = parameters.GetRequired<string>("thumbnail_size");
 
-            var nullableParentCategory = categoryId == 0 ? null : await _categoryRepository.EnsureCanAccessCategory(user, categoryId, token);
+            var nullableParentCategory = categoryId == 0 ? null : await _categoryRepository.EnsureCanAccessCategory(userId.Value, categoryId, token);
 
             var response = new PiwigoCategories { Categories = new List<PiwigoCategory>() };
 
-            var categories = await _categoryRepository.GetAccessibleCategories(user, token);
+            var categories = await _categoryRepository.GetAccessibleCategories(userId.Value, token);
 
             foreach (var category in categories.Where(x => recursive || x.ParentCategory == nullableParentCategory))
             {

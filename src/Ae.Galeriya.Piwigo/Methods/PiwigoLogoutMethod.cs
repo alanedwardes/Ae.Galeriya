@@ -16,7 +16,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public PiwigoLogoutMethod(SignInManager<User> signInManager) => _signInManager = signInManager;
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
             await _signInManager.SignOutAsync();
             return true;

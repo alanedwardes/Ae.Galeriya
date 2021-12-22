@@ -31,9 +31,9 @@ namespace Ae.Galeriya.Piwigo.Methods
             _piwigoConfiguration = piwigoConfiguration;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
-            var category = await _categoryPermissions.EnsureCanAccessCategory(user, parameters.GetRequired<uint>("category"), token);
+            var category = await _categoryPermissions.EnsureCanAccessCategory(userId.Value, parameters.GetRequired<uint>("category"), token);
 
             var name = parameters.GetRequired<string>("name");
 
@@ -46,7 +46,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                 await file.CopyToAsync(write, token);
             }
 
-            var photo = await _photoCreator.CreatePhoto(_piwigoConfiguration.FileBlobRepository, category, file.FileName, name, user, DateTimeOffset.UtcNow, uploadedFile, token);
+            var photo = await _photoCreator.CreatePhoto(_piwigoConfiguration.FileBlobRepository, category, file.FileName, name, userId.Value, DateTimeOffset.UtcNow, uploadedFile, token);
 
             return new PiwigoUploadedResponse
             {

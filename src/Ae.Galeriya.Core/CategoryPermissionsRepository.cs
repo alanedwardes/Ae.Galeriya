@@ -28,31 +28,31 @@ namespace Ae.Galeriya.Core
                 .ToArrayAsync(token);
         }
 
-        public async Task<IReadOnlyCollection<Category>> GetAccessibleCategories(User user, CancellationToken token)
+        public async Task<IReadOnlyCollection<Category>> GetAccessibleCategories(uint userId, CancellationToken token)
         {
-            return (await GetAllCategories(token)).Where(x => CanAccessCategory(user, x)).ToArray();
+            return (await GetAllCategories(token)).Where(x => CanAccessCategory(userId, x)).ToArray();
         }
 
-        public bool CanAccessCategory(User user, Category category)
+        public bool CanAccessCategory(uint userId, Category category)
         {
             var relevantCategory = category.IsTopLevel() ? category : category.FindTopLevel();
-            return relevantCategory.Users.Contains(user);
+            return relevantCategory.Users.Contains(new User { Id = userId });
         }
 
-        public async Task<Category> EnsureCanAccessCategory(User user, uint categoryId, CancellationToken token)
+        public async Task<Category> EnsureCanAccessCategory(uint userId, uint categoryId, CancellationToken token)
         {
             var category = (await GetAllCategories(token)).SingleOrDefault(x => x.CategoryId == categoryId);
             if (category == null)
             {
-                throw new InvalidOperationException($"User {user} cannot access category {categoryId}")
+                throw new InvalidOperationException($"User {userId} cannot access category {categoryId}")
                 {
                     HResult = 403
                 };
             }
 
-            if (!CanAccessCategory(user, category))
+            if (!CanAccessCategory(userId, category))
             {
-                throw new InvalidOperationException($"User {user} cannot access category {categoryId}")
+                throw new InvalidOperationException($"User {userId} cannot access category {categoryId}")
                 {
                     HResult = 403
                 };
@@ -60,12 +60,12 @@ namespace Ae.Galeriya.Core
             return category;
         }
 
-        public async Task<Photo> EnsureCanAccessPhoto(User user, uint photoId, CancellationToken token)
+        public async Task<Photo> EnsureCanAccessPhoto(uint userId, uint photoId, CancellationToken token)
         {
-            var photo = await (await GetAccessiblePhotos(user, token)).SingleOrDefaultAsync(x => x.PhotoId == photoId, token);
+            var photo = await (await GetAccessiblePhotos(userId, token)).SingleOrDefaultAsync(x => x.PhotoId == photoId, token);
             if (photo == null)
             {
-                throw new InvalidOperationException($"User {user} cannot access photo {photoId}")
+                throw new InvalidOperationException($"User {userId} cannot access photo {photoId}")
                 {
                     HResult = 403
                 };
@@ -73,9 +73,9 @@ namespace Ae.Galeriya.Core
             return photo;
         }
 
-        public async Task<IQueryable<Photo>> GetAccessiblePhotos(User user, CancellationToken token)
+        public async Task<IQueryable<Photo>> GetAccessiblePhotos(uint userId, CancellationToken token)
         {
-            var acessibleCategories = await GetAccessibleCategories(user, token);
+            var acessibleCategories = await GetAccessibleCategories(userId, token);
             return _dbContext.Photos.Where(photo => photo.Categories.Any(category => acessibleCategories.Contains(category)))
                 .Include(x => x.Categories)
                 .Include(x => x.Tags);

@@ -8,9 +8,9 @@ namespace Ae.Galeriya.Core
 {
     public interface ICategoryPermissionsRepository
     {
-        Task<Photo> EnsureCanAccessPhoto(User user, uint photoId, CancellationToken token);
-        Task<Category> EnsureCanAccessCategory(User user, uint categoryId, CancellationToken token);
-        Task<IReadOnlyCollection<Category>> GetAccessibleCategories(User user, CancellationToken token);
-        Task<IQueryable<Photo>> GetAccessiblePhotos(User user, CancellationToken token);
+        Task<Photo> EnsureCanAccessPhoto(uint userId, uint photoId, CancellationToken token);
+        Task<Category> EnsureCanAccessCategory(uint userId, uint categoryId, CancellationToken token);
+        Task<IReadOnlyCollection<Category>> GetAccessibleCategories(uint userId, CancellationToken token);
+        Task<IQueryable<Photo>> GetAccessiblePhotos(uint userId, CancellationToken token);
     }
 }

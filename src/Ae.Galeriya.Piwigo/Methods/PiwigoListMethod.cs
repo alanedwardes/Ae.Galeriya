@@ -16,7 +16,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         public string MethodName => "reflection.getMethodList";
         public bool AllowAnonymous => true;
 
-        public Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
+        public Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
             return Task.FromResult<object>(new PiwigoMethods { Methods =  _methodRepository.GetMethods() });
         }

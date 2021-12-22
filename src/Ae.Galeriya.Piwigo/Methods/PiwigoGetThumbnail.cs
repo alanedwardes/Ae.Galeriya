@@ -67,14 +67,14 @@ namespace Ae.Galeriya.Piwigo.Methods
             return await _piwigoConfiguration.FileBlobRepository.GetBlob(cacheBlobId, token);
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
             var width = parameters.GetRequired<int>("width");
             var height = parameters.GetRequired<int>("height");
             var type = parameters.GetRequired<string>("type");
             var imageId = parameters.GetRequired<uint>("image_id");
 
-            var photo = await _categoryPermissions.EnsureCanAccessPhoto(user, imageId, token);
+            var photo = await _categoryPermissions.EnsureCanAccessPhoto(userId.Value, imageId, token);
 
             var thumbnailStream = await GetThubmnail(photo, width, height, type, token);
 

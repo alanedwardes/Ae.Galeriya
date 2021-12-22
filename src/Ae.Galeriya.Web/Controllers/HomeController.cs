@@ -25,7 +25,7 @@ namespace Ae.Galeriya.Web.Controllers
         {
             var user = await _userManager.FindByNameAsync(Request.HttpContext.User.Identity.Name);
 
-            var categories = await _categoryPermissions.GetAccessibleCategories(user, CancellationToken.None);
+            var categories = await _categoryPermissions.GetAccessibleCategories(user.Id, CancellationToken.None);
 
             return View(new HomeModel
             {

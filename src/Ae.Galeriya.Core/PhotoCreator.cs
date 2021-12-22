@@ -106,7 +106,7 @@ namespace Ae.Galeriya.Core
                 .ToArray();
         }
 
-        public async Task<Photo> CreatePhoto(IFileBlobRepository fileBlobRepository, Category category, string fileName, string name, User user, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
+        public async Task<Photo> CreatePhoto(IFileBlobRepository fileBlobRepository, Category category, string fileName, string name, uint userId, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
         {
             var hash = await CalculateFileHash(uploadedFile, token);
             var blobIdTask = _photoCreator.PutBlob(uploadedFile.OpenRead(), hash, token);
@@ -141,7 +141,7 @@ namespace Ae.Galeriya.Core
                 FileSize = (ulong)uploadedFile.Length,
                 Extension = fileExtension,
                 FileName = fileName,
-                CreatedBy = user,
+                CreatedById = userId,
                 Name = name,
                 TakenOn = mediaInfo.CreationTime,
                 CreatedOn = DateTimeOffset.UtcNow,
@@ -158,7 +158,7 @@ namespace Ae.Galeriya.Core
             if (geocodeResponse != null)
             {
                 var tagName = string.Join(", ", GetMostDescriptiveAddressComponents(geocodeResponse).Select(x => x.LongName));
-                photo.Tags.Add(await CreateTag(user, tagName, token));
+                photo.Tags.Add(await CreateTag(userId, tagName, token));
             }
 
             _dbContext.Photos.Add(photo);
@@ -197,13 +197,13 @@ namespace Ae.Galeriya.Core
             }
         }
 
-        private async Task<Tag> CreateTag(User user, string tagName, CancellationToken token)
+        private async Task<Tag> CreateTag(uint userId, string tagName, CancellationToken token)
         {
             Tag tag = new()
             {
                 Name = tagName,
                 CreatedOn = DateTimeOffset.UtcNow,
-                CreatedBy = user
+                CreatedById = userId
             };
             _dbContext.Tags.Add(tag);
 

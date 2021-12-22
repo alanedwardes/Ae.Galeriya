@@ -23,7 +23,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _categoryPermissions = categoryPermissions;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
             var page = parameters.GetOptional<int>("page") ?? 0;
             var perPage = parameters.GetOptional<int>("per_page") ?? 64;
@@ -33,7 +33,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             var queryValue = $"%{query}%";
 
-            var photosQuery = (await _categoryPermissions.GetAccessiblePhotos(user, token))
+            var photosQuery = (await _categoryPermissions.GetAccessiblePhotos(userId.Value, token))
                 .Where(photo => EF.Functions.Like(photo.Name, queryValue) ||
                                 EF.Functions.Like(photo.FileName, queryValue) ||
                                 photo.Tags.Any(tag => EF.Functions.Like(tag.Name, queryValue)) ||

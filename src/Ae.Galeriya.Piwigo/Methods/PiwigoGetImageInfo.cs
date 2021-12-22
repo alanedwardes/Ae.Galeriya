@@ -25,9 +25,9 @@ namespace Ae.Galeriya.Piwigo.Methods
             _baseAddressLocator = baseAddressLocator;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
-            var photo = await _categoryPermissions.EnsureCanAccessPhoto(user, parameters.GetRequired<uint>("image_id"), token);
+            var photo = await _categoryPermissions.EnsureCanAccessPhoto(userId.Value, parameters.GetRequired<uint>("image_id"), token);
 
             return new PiwigoImage
             {

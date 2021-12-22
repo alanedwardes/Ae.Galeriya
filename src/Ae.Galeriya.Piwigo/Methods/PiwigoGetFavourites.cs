@@ -1,5 +1,4 @@
 ﻿using Ae.Galeriya.Core;
-using Ae.Galeriya.Core.Tables;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -25,11 +24,11 @@ namespace Ae.Galeriya.Piwigo.Methods
             _pageGenerator = pageGenerator;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
-            user = await _dbContext.Users.Include(x => x.FavouritePhotos).SingleAsync(x => x == user, token);
+            var user = await _dbContext.Users.Include(x => x.FavouritePhotos).SingleAsync(x => x.Id == userId, token);
 
-            var photos = (await _permissionsRepository.GetAccessiblePhotos(user, token))
+            var photos = (await _permissionsRepository.GetAccessiblePhotos(userId.Value, token))
                 .Where(x => user.FavouritePhotos.Contains(x));
 
             return await _pageGenerator.CreatePage(0, 0, photos, token);

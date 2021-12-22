@@ -23,18 +23,18 @@ namespace Ae.Galeriya.Piwigo.Methods
             _permissionsRepository = permissionsRepository;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, User user, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
             var page = parameters.GetOptional<int>("page") ?? 0;
             var perPage = parameters.GetOptional<int>("per_page") ?? 64;
             var categoryId = parameters.GetOptional<uint>("cat_id");
             var order = parameters.GetOptional("order") ?? "date_creation asc";
 
-            var photosQuery = await _permissionsRepository.GetAccessiblePhotos(user, token);
+            var photosQuery = await _permissionsRepository.GetAccessiblePhotos(userId.Value, token);
 
             if (categoryId.HasValue)
             {
-                var category = await _permissionsRepository.EnsureCanAccessCategory(user, categoryId.Value, token);
+                var category = await _permissionsRepository.EnsureCanAccessCategory(userId.Value, categoryId.Value, token);
                 photosQuery = photosQuery.Where(x => x.Categories.Contains(category));
             }
 

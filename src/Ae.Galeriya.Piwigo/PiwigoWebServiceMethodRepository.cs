@@ -9,7 +9,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Security.Claims;
+using System.Security.Principal;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -30,6 +33,34 @@ namespace Ae.Galeriya.Piwigo
             return new Uri($"/ws.php?method={methodName}&{string.Join("&", parameters.Select(x => $"{x.Key}={x.Value}"))}", UriKind.Relative);
         }
 
+        public static string FindFirstValue(ClaimsIdentity identity, string claimType)
+        {
+            if (identity == null)
+            {
+                throw new ArgumentNullException("identity");
+            }
+            var claim = identity.FindFirst(claimType);
+            return claim != null ? claim.Value : null;
+        }
+
+        public static T GetUserId<T>(IIdentity identity) where T : IConvertible
+        {
+            if (identity == null)
+            {
+                throw new ArgumentNullException("identity");
+            }
+            var ci = identity as ClaimsIdentity;
+            if (ci != null)
+            {
+                var id = FindFirstValue(ci, ClaimTypes.NameIdentifier);
+                if (id != null)
+                {
+                    return (T)Convert.ChangeType(id, typeof(T), CultureInfo.InvariantCulture);
+                }
+            }
+            return default(T);
+        }
+
         public async Task ExecuteMethod(IPiwigoWebServiceMethod method, IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
         {
             var userManager = _serviceProvider.GetRequiredService<UserManager<User>>();
@@ -42,7 +73,7 @@ namespace Ae.Galeriya.Piwigo
                 await WriteJsonResult(new PiwigoResponse { Stat = "fail", Error = 401, Message = "Authentication required" });
             }
 
-            User user = null;
+            uint? userId = null;
             if (!method.AllowAnonymous)
             {
                 if (!context.User.Identity.IsAuthenticated)
@@ -51,12 +82,7 @@ namespace Ae.Galeriya.Piwigo
                     return;
                 }
 
-                user = await userManager.FindByNameAsync(context.User.Identity.Name);
-                if (user == null)
-                {
-                    await Deny();
-                    return;
-                }
+                userId = GetUserId<uint>(context.User.Identity);
             }
 
             RouteData routeData = context.GetRouteData();
@@ -66,7 +92,7 @@ namespace Ae.Galeriya.Piwigo
             object response;
             try
             {
-                response = await method.Execute(parameters, user, token);
+                response = await method.Execute(parameters, userId, token);
             }
             catch (Exception e)
             {
