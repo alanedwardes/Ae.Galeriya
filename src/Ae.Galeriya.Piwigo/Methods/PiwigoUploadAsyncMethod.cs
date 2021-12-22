@@ -18,9 +18,9 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IUploadRepository _sessionRepository;
         private readonly IPiwigoWebServiceMethodRepository _webServiceRepository;
         private readonly ICategoryPermissionsRepository _categoryPermissions;
-        private readonly UserManager<User> _userManager;
         private readonly IPhotoCreator _photoCreator;
         private readonly IPiwigoConfiguration _piwigoConfiguration;
+        private readonly SignInManager<User> _signInManager;
 
         public string MethodName => "pwg.images.uploadAsync";
         public bool AllowAnonymous => true;
@@ -29,32 +29,29 @@ namespace Ae.Galeriya.Piwigo.Methods
             IUploadRepository sessionRepository,
             IPiwigoWebServiceMethodRepository webServiceRepository,
             ICategoryPermissionsRepository categoryPermissions,
-            UserManager<User> userManager,
             IPhotoCreator photoCreator,
-            IPiwigoConfiguration piwigoConfiguration)
+            IPiwigoConfiguration piwigoConfiguration,
+            SignInManager<User> signInManager)
         {
             _contextAccessor = contextAccessor;
             _sessionRepository = sessionRepository;
             _webServiceRepository = webServiceRepository;
             _categoryPermissions = categoryPermissions;
-            _userManager = userManager;
             _photoCreator = photoCreator;
             _piwigoConfiguration = piwigoConfiguration;
+            _signInManager = signInManager;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
-            var loginResult = await _webServiceRepository
-                .GetMethod("pwg.session.login")
-                .Execute(parameters, userId, token);
-
-            if (!loginResult.Equals(true))
+            var result = await _signInManager.PasswordSignInAsync(parameters.GetRequired<string>("username"), parameters.GetRequired<string>("password"), false, false);
+            if (!result.Succeeded)
             {
-                return loginResult;
+                return false;
             }
 
-            var user = await _userManager.FindByNameAsync(parameters.GetRequired<string>("username"));
-            var category = await _categoryPermissions.EnsureCanAccessCategory(user.Id, parameters.GetRequired<uint>("category"), token);
+            userId = (await _signInManager.UserManager.FindByNameAsync(parameters.GetRequired<string>("username"))).Id;
+            var category = await _categoryPermissions.EnsureCanAccessCategory(userId.Value, parameters.GetRequired<uint>("category"), token);
 
             var chunk = parameters.GetRequired<int>("chunk");
             var chunks = parameters.GetRequired<int>("chunks");
@@ -68,22 +65,22 @@ namespace Ae.Galeriya.Piwigo.Methods
             var uploadedFile = await _sessionRepository.AcceptChunk(originalChecksum, chunk, chunks, file, token);
             if (uploadedFile != null)
             {
-                return await CompleteFile(category, fileName, name, user, creationDate, uploadedFile, CancellationToken.None);
+                return await CompleteFile(category, fileName, name, userId.Value, creationDate, uploadedFile, CancellationToken.None);
             }
 
             return new PiwigoUploadedChunkResponse { Message = $"chunks uploaded" };
         }
 
-        private async Task<object> CompleteFile(Category category, string fileName, string name, User user, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
+        private async Task<object> CompleteFile(Category category, string fileName, string name, uint userId, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
         {
-            var photo = await _photoCreator.CreatePhoto(_piwigoConfiguration.FileBlobRepository, category, fileName, name, user.Id, creationDate, uploadedFile, token);
+            var photo = await _photoCreator.CreatePhoto(_piwigoConfiguration.FileBlobRepository, category, fileName, name, userId, creationDate, uploadedFile, token);
 
             return await _webServiceRepository
                 .GetMethod("pwg.images.getInfo")
                 .Execute(new Dictionary<string, IConvertible>
                 {
                     { "image_id", photo.PhotoId }
-                }, user.Id, token);
+                }, userId, token);
         }
     }
 }
