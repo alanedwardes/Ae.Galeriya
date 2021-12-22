@@ -21,7 +21,7 @@ namespace Ae.Galeriya.Core
             return new FileInfo(Path.Combine(_directory.FullName, fileName));
         }
 
-        public Task<Stream> GetBlob(Guid blobId, CancellationToken token)
+        public Task<Stream> GetBlob(string blobId, CancellationToken token)
         {
             try
             {
@@ -33,7 +33,7 @@ namespace Ae.Galeriya.Core
             }
         }
 
-        public async Task PutBlob(Stream blobStream, Guid blobId, CancellationToken token)
+        public async Task PutBlob(Stream blobStream, string blobId, CancellationToken token)
         {
             using (var toStream = GetFileInfoForBlob(blobId.ToString()).OpenWrite())
             using (blobStream)
@@ -42,7 +42,7 @@ namespace Ae.Galeriya.Core
             }
         }
 
-        public Task DeleteBlob(Guid blobId, CancellationToken token)
+        public Task DeleteBlob(string blobId, CancellationToken token)
         {
             GetFileInfoForBlob(blobId.ToString()).Delete();
             return Task.CompletedTask;

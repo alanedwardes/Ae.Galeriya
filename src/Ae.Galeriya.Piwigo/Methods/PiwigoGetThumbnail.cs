@@ -35,13 +35,11 @@ namespace Ae.Galeriya.Piwigo.Methods
             _thumbnailGenerator = thumbnailGenerator;
         }
 
-        private Guid CacheHash(params object[] items)
+        private string CacheHash(params object[] items)
         {
-            using (var md5 = MD5.Create())
-            {
-                var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(string.Join('|', items.Select(x => x.ToString()))));
-                return new Guid(hash);
-            }
+            using var md5 = SHA256.Create();
+            var input = Encoding.UTF8.GetBytes(string.Join('|', items.Select(x => x.ToString())));
+            return string.Concat(md5.ComputeHash(input).Select(x => x.ToString("x2")));
         }
 
         private async Task<Stream> GetThubmnail(Photo photo, int width, int height, string type, CancellationToken token)
@@ -57,7 +55,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                 _logger.LogWarning("No cached thumbnail for {PhotoId}, generating from source", photo.PhotoId);
             }
 
-            using var stream = await _blobRepository.GetBlob(photo.SnapshotBlob ?? photo.Blob, token);
+            using var stream = await _blobRepository.GetBlob(photo.SnapshotBlob ?? photo.BlobId, token);
 
             var resizeMode = type == "classic" ? ResizeMode.Max : ResizeMode.Crop;
 

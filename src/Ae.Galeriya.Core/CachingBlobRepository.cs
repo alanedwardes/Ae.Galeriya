@@ -17,13 +17,13 @@ namespace Ae.Galeriya.Core
             _liveBlobRepository = liveBlobRepository;
         }
 
-        public async Task DeleteBlob(Guid blobId, CancellationToken token)
+        public async Task DeleteBlob(string blobId, CancellationToken token)
         {
             await Task.WhenAll(_cacheBlobRepository.DeleteBlob(blobId, token),
                                _liveBlobRepository.DeleteBlob(blobId, token));
         }
 
-        public async Task<Stream> GetBlob(Guid blobId, CancellationToken token)
+        public async Task<Stream> GetBlob(string blobId, CancellationToken token)
         {
             try
             {
@@ -40,7 +40,7 @@ namespace Ae.Galeriya.Core
             }
         }
 
-        public async Task PutBlob(Stream blobStream, Guid blobId, CancellationToken token)
+        public async Task PutBlob(Stream blobStream, string blobId, CancellationToken token)
         {
             using (blobStream)
             {

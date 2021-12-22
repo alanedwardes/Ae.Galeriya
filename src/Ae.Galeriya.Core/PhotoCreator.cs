@@ -38,7 +38,7 @@ namespace Ae.Galeriya.Core
             _dbContext = dbContext;
         }
 
-        private async Task<Guid?> ExtractSnapshot(IFileBlobRepository fileBlobRepository, FileInfo uploadedFile, CancellationToken token)
+        private async Task<string?> ExtractSnapshot(IFileBlobRepository fileBlobRepository, FileInfo uploadedFile, CancellationToken token)
         {
             var sw = Stopwatch.StartNew();
 
@@ -46,13 +46,13 @@ namespace Ae.Galeriya.Core
 
             await _infoExtractor.ExtractSnapshot(uploadedFile, snapshotFile, token);
 
-            Guid? snapshotId = null;
+            string? snapshotId = null;
             if (snapshotFile.Exists)
             {
-                snapshotId = Guid.NewGuid();
+                snapshotId = Guid.NewGuid().ToString();
                 try
                 {
-                    await _photoCreator.PutBlob(snapshotFile.OpenRead(), snapshotId.Value, token);
+                    await _photoCreator.PutBlob(snapshotFile.OpenRead(), snapshotId, token);
                 }
                 finally
                 {
@@ -60,7 +60,7 @@ namespace Ae.Galeriya.Core
                 }
             }
 
-            _logger.LogInformation("Processed snapshot {Snapshot} for {File} in {TotalSeconds}s", snapshotFile, uploadedFile, sw.Elapsed.TotalSeconds, snapshotId.HasValue);
+            _logger.LogInformation("Processed snapshot {Snapshot} for {File} in {TotalSeconds}s", snapshotFile, uploadedFile, sw.Elapsed.TotalSeconds, snapshotId);
             return snapshotId;
         }
 
@@ -72,7 +72,7 @@ namespace Ae.Galeriya.Core
             {
                 var hash = await sha256.ComputeHashAsync(fs, token);
                 _logger.LogInformation("Calculated hash for file {File} in {TotalSeconds}s", uploadedFile, sw.Elapsed.TotalSeconds); ;
-                return string.Concat(hash.Select(x => x.ToString("X2")));
+                return string.Concat(hash.Select(x => x.ToString("x2")));
             }
         }
 
@@ -108,11 +108,10 @@ namespace Ae.Galeriya.Core
 
         public async Task<Photo> CreatePhoto(IFileBlobRepository fileBlobRepository, Category category, string fileName, string name, User user, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
         {
-            var blobId = Guid.NewGuid();
+            var blobId = await CalculateFileHash(uploadedFile, token);
             var blobIdTask = _photoCreator.PutBlob(uploadedFile.OpenRead(), blobId, token);
             var mediaInfo = await _infoExtractor.ExtractInformation(uploadedFile, token);
-            var snapshotIdTask = mediaInfo.Duration.HasValue ? ExtractSnapshot(fileBlobRepository, uploadedFile, token) : Task.FromResult<Guid?>(null);
-            var hashTask = CalculateFileHash(uploadedFile, token);
+            var snapshotIdTask = mediaInfo.Duration.HasValue ? ExtractSnapshot(fileBlobRepository, uploadedFile, token) : Task.FromResult<string?>(null);
             var locationTask = LookupLocation(mediaInfo, token);
 
             if (mediaInfo.Size.Width == 0 || mediaInfo.Size.Height == 0)
@@ -122,7 +121,6 @@ namespace Ae.Galeriya.Core
 
             await blobIdTask;
             var snapshotId = await snapshotIdTask;
-            var hash = await hashTask;
             var geocodeResponse = await locationTask;
 
             var fileExtension = Path.GetExtension(fileName)?.ToLower().TrimStart('.');
@@ -138,13 +136,12 @@ namespace Ae.Galeriya.Core
 
             var photo = new Photo
             {
-                Blob = blobId,
+                BlobId = blobId,
                 SnapshotBlob = snapshotId,
                 FileSize = (ulong)uploadedFile.Length,
                 Extension = fileExtension,
                 FileName = fileName,
                 CreatedBy = user,
-                Hash = hash,
                 Name = name,
                 TakenOn = mediaInfo.CreationTime,
                 CreatedOn = DateTimeOffset.UtcNow,
@@ -169,13 +166,13 @@ namespace Ae.Galeriya.Core
             try
             {
                 await _dbContext.SaveChangesAsync(token);
-                _logger.LogInformation("Added photo with hash {Hash}", hash);
+                _logger.LogInformation("Added photo with hash {Hash}", blobId);
             }
             catch (DbUpdateException)
             {
-                _logger.LogWarning("Found duplicate photo with hash {Hash}, adding to category instead", hash);
+                _logger.LogWarning("Found duplicate photo with hash {Hash}, adding to category instead", blobId);
                 _dbContext.Photos.Remove(photo);
-                photo = await _dbContext.Photos.SingleAsync(x => x.Hash == hash, token);
+                photo = await _dbContext.Photos.SingleAsync(x => x.BlobId == blobId, token);
                 await AddPhotoToCategory(photo, category, token);
             }
             finally

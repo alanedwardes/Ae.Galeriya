@@ -16,13 +16,13 @@ namespace Ae.Galeriya.Core
             _memoryCache = memoryCache;
         }
 
-        public Task DeleteBlob(Guid blobId, CancellationToken token)
+        public Task DeleteBlob(string blobId, CancellationToken token)
         {
             _memoryCache.Remove(blobId.ToString());
             return Task.CompletedTask;
         }
 
-        public Task<Stream> GetBlob(Guid blobId, CancellationToken token)
+        public Task<Stream> GetBlob(string blobId, CancellationToken token)
         {
             if (_memoryCache.TryGetValue(blobId.ToString(), out object value))
             {
@@ -32,7 +32,7 @@ namespace Ae.Galeriya.Core
             throw new BlobNotFoundException(blobId);
         }
 
-        public async Task PutBlob(Stream blobStream, Guid blobId, CancellationToken token)
+        public async Task PutBlob(Stream blobStream, string blobId, CancellationToken token)
         {
             using var ms = new MemoryStream();
 

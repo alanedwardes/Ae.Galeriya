@@ -16,7 +16,7 @@ namespace Ae.Galeriya.Piwigo
             _configuration = configuration;
         }
 
-        private readonly IDictionary<(string, int), Guid> _uploadedChunks = new ConcurrentDictionary<(string, int), Guid>();
+        private readonly IDictionary<(string, int), string> _uploadedChunks = new ConcurrentDictionary<(string, int), string>();
 
         private readonly IPiwigoConfiguration _configuration;
 
@@ -24,7 +24,7 @@ namespace Ae.Galeriya.Piwigo
 
         public async Task<FileInfo> AcceptChunk(string checksum, int chunk, int totalChunks, IFormFile file, CancellationToken token)
         {
-            var chunkId = Guid.NewGuid();
+            var chunkId = Guid.NewGuid().ToString();
             await _configuration.ChunkBlobRepository.PutBlob(file.OpenReadStream(), chunkId, token);
 
             _uploadedChunks[ChunkKey(checksum, chunk)] = chunkId;

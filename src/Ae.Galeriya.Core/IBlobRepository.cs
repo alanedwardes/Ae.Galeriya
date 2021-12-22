@@ -7,8 +7,8 @@ namespace Ae.Galeriya.Core
 {
     public interface IBlobRepository
     {
-        Task PutBlob(Stream blobStream, Guid blobId, CancellationToken token);
-        Task<Stream> GetBlob(Guid blobId, CancellationToken token);
-        Task DeleteBlob(Guid blobId, CancellationToken token);
+        Task PutBlob(Stream blobStream, string blobId, CancellationToken token);
+        Task<Stream> GetBlob(string blobId, CancellationToken token);
+        Task DeleteBlob(string blobId, CancellationToken token);
     }
 }

@@ -45,7 +45,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         {
             var photo = await _categoryPermissions.EnsureCanAccessPhoto(user, parameters.GetRequired<uint>("image_id"), token);
 
-            var stream = await BufferIfNotSeekable(await _blobRepository.GetBlob(photo.Blob, token), token);
+            var stream = await BufferIfNotSeekable(await _blobRepository.GetBlob(photo.BlobId, token), token);
 
             return new FileStreamResult(stream, "application/octet-stream")
             {

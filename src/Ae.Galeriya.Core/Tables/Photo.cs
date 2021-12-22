@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ae.Galeriya.Core.Tables
 {
-    [Index(nameof(Hash), IsUnique = true)]
+    [Index(nameof(BlobId), IsUnique = true)]
     public sealed class Photo
     {
         [Key]
@@ -16,9 +16,7 @@ namespace Ae.Galeriya.Core.Tables
         [Required]
         public string FileName { get; set; } = null!;
         [Required]
-        public string Hash { get; set; } = null!;
-        [Required]
-        public Guid Blob { get; set; }
+        public string BlobId { get; set; } = null!;
         [Required]
         public ulong FileSize { get; set; }
         [Required]
@@ -37,7 +35,7 @@ namespace Ae.Galeriya.Core.Tables
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public float? Duration { get; set; }
-        public Guid? SnapshotBlob { get; set; }
+        public string? SnapshotBlob { get; set; }
         public DateTimeOffset? TakenOn { get; set; }
 
         [Required]
