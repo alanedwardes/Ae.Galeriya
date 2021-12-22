@@ -63,7 +63,6 @@ namespace Ae.Galeriya.Piwigo
 
         public async Task ExecuteMethod(IPiwigoWebServiceMethod method, IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
         {
-            var userManager = _serviceProvider.GetRequiredService<UserManager<User>>();
             var context = _serviceProvider.GetRequiredService<IHttpContextAccessor>().HttpContext;
             var logger = _serviceProvider.GetRequiredService<ILogger<PiwigoWebServiceMethodRepository>>();
 
@@ -86,8 +85,8 @@ namespace Ae.Galeriya.Piwigo
             }
 
             RouteData routeData = context.GetRouteData();
-            ActionDescriptor actionDescriptor = new ActionDescriptor();
-            ActionContext actionContext = new ActionContext(context, routeData, actionDescriptor);
+            ActionDescriptor actionDescriptor = new();
+            ActionContext actionContext = new(context, routeData, actionDescriptor);
 
             object response;
             try
@@ -97,7 +96,7 @@ namespace Ae.Galeriya.Piwigo
             catch (Exception e)
             {
                 context.Response.StatusCode = 500;
-                if (!(e is OperationCanceledException))
+                if (e is not OperationCanceledException)
                 {
                     logger.LogCritical(e, "Exception thrown from {MethodName}", method.MethodName);
                 }
