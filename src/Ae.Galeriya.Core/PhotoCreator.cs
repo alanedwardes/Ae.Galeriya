@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -153,7 +154,7 @@ namespace Ae.Galeriya.Core
                 Latitude = mediaInfo.Location?.Latitude,
                 Longitude = mediaInfo.Location?.Longitude,
                 Categories = new List<Category> { category },
-                Metadata = mediaInfo == null ? null : JsonSerializer.Serialize(mediaInfo)
+                Metadata = mediaInfo == null ? null : JsonSerializer.Serialize(mediaInfo, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull })
             };
 
             if (geocodeResponse != null)
