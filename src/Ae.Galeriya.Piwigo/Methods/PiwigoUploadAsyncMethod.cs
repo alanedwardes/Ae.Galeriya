@@ -57,7 +57,8 @@ namespace Ae.Galeriya.Piwigo.Methods
             var chunks = parameters.GetRequired<int>("chunks");
             var originalChecksum = parameters.GetRequired<string>("original_sum");
             var fileName = parameters.GetRequired<string>("filename");
-            var name = parameters.GetRequired<string>("name");
+            var name = parameters.GetOptional("name") ?? fileName;
+
             var creationDate = DateTimeOffset.ParseExact(parameters.GetRequired<string>("date_creation"), "yyyy-MM-dd HH:mm:ss", null);
 
             var file = _contextAccessor.HttpContext.Request.Form.Files.Single();

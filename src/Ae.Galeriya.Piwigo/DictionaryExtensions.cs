@@ -20,7 +20,8 @@ namespace Ae.Galeriya.Piwigo
         {
             if (dictionary.TryGetValue(key, out var value))
             {
-                return value.ToString(null);
+                var str = value.ToString(null);
+                return string.IsNullOrWhiteSpace(str) ? null : str;
             }
 
             return null;
