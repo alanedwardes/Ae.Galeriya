@@ -40,13 +40,17 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             switch (order)
             {
-                case "date_creation asc":
                 case "date_available asc":
                     photosQuery = photosQuery.OrderBy(x => x.CreatedOn);
                     break;
-                case "date_creation desc":
                 case "date_available desc":
                     photosQuery = photosQuery.OrderByDescending(x => x.CreatedOn);
+                    break;
+                case "date_creation asc":
+                    photosQuery = photosQuery.OrderBy(x => x.TakenOn ?? x.FileCreatedOn);
+                    break;
+                case "date_creation desc":
+                    photosQuery = photosQuery.OrderByDescending(x => x.TakenOn ?? x.FileCreatedOn);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(order), order, "Order is not supported");
