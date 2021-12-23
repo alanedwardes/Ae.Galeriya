@@ -108,16 +108,7 @@ namespace Ae.Galeriya.Piwigo
 
         public Uri CreateThumbnailUri(uint imageId, int width, int height, string type)
         {
-            var queryParmeters = new Dictionary<string, string>
-            {
-                { "method", "pwg.images.getThumbnail" },
-                { "image_id", imageId.ToString() },
-                { "width", width.ToString() },
-                { "height", height.ToString() },
-                { "type", type }
-            };
-
-            return new Uri(_baseAddressLocator.GetBaseAddress(), QueryHelpers.AddQueryString("/ws.php", queryParmeters));
+            return new Uri(_baseAddressLocator.GetBaseAddress(), $"/thumbs/{imageId}-{width}-{height}-{type}.jpg");
         }
     }
 }

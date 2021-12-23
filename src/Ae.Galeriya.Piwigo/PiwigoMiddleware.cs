@@ -25,11 +25,25 @@ namespace Ae.Galeriya.Piwigo
 
             if (context.Request.Path.StartsWithSegments("/blobs"))
             {
-                var photoId = Path.GetFileNameWithoutExtension(context.Request.Path.ToString());
+                var photoId = Path.GetFileNameWithoutExtension(context.Request.Path);
 
                 await repository.ExecuteMethod("pwg.images.getFile", new Dictionary<string, IConvertible>
                 {
                     { "image_id", photoId }
+                }, context.RequestAborted);
+                return;
+            }
+
+            if (context.Request.Path.StartsWithSegments("/thumbs"))
+            {
+                var parts = Path.GetFileNameWithoutExtension(context.Request.Path).Split('-');
+
+                await repository.ExecuteMethod("pwg.images.getThumbnail", new Dictionary<string, IConvertible>
+                {
+                    { "image_id", parts[0] },
+                    { "width", parts[1] },
+                    { "height", parts[2] },
+                    { "type", parts[3] }
                 }, context.RequestAborted);
                 return;
             }
