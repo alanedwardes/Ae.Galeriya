@@ -82,7 +82,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             return new FileStreamResult(thumbnail.Stream, "image/jpeg")
             {
                 LastModified = photo.UpdatedOn ?? photo.CreatedOn,
-                EntityTag = new EntityTagHeaderValue(thumbnail.Hash)
+                EntityTag = new EntityTagHeaderValue('"' + thumbnail.Hash + '"')
             };
         }
     }
