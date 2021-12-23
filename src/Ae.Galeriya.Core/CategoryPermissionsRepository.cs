@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -64,8 +65,9 @@ namespace Ae.Galeriya.Core
 
         public async Task<Photo> EnsureCanAccessPhoto(uint userId, uint photoId, CancellationToken token)
         {
+            var sw = Stopwatch.StartNew();
             var photo = await (await GetAccessiblePhotos(userId, token)).SingleOrDefaultAsync(x => x.PhotoId == photoId, token);
-            _logger.LogInformation("Got accessible photos");
+            _logger.LogInformation("Got accessible photos in {TotalSeconds}", sw.Elapsed.TotalSeconds);
             if (photo == null)
             {
                 throw new InvalidOperationException($"User {userId} cannot access photo {photoId}")
@@ -78,12 +80,12 @@ namespace Ae.Galeriya.Core
 
         public async Task<IQueryable<Photo>> GetAccessiblePhotos(uint userId, CancellationToken token)
         {
+            var sw = Stopwatch.StartNew();
             var acessibleCategoryIds = (await GetAccessibleCategories(userId, token)).Select(x => x.CategoryId).ToArray();
-            _logger.LogInformation("Got accessible categories");
-            return _dbContext.Photos.Where(photo => photo.Categories.Select(x => x.CategoryId)
-                                                                    .Any(category => acessibleCategoryIds.Contains(category)))
-                .Include(x => x.Categories)
-                .Include(x => x.Tags);
+            _logger.LogInformation("Got accessible categories in {TotalSeconds}", sw.Elapsed.TotalSeconds);
+            return _dbContext.Photos.Where(photo => photo.Categories.Select(x => x.CategoryId).Any(acessibleCategoryIds.Contains))
+                                    .Include(x => x.Categories)
+                                    .Include(x => x.Tags);
         }
     }
 }
