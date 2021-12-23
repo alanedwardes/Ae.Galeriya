@@ -66,9 +66,15 @@ namespace Ae.Galeriya.Core
         public async Task<Photo> EnsureCanAccessPhoto(uint userId, uint photoId, CancellationToken token)
         {
             var sw = Stopwatch.StartNew();
-            var photo = await (await GetAccessiblePhotos(userId, token)).SingleOrDefaultAsync(x => x.PhotoId == photoId, token);
-            _logger.LogInformation("Got accessible photos in {TotalSeconds}", sw.Elapsed.TotalSeconds);
-            if (photo == null)
+            var acessibleCategories = await GetAccessibleCategories(userId, token);
+            _logger.LogInformation("Got accessible categories in {TotalSeconds}", sw.Elapsed.TotalSeconds);
+            sw.Restart();
+            var photo = await _dbContext.Photos
+                                        .Include(x => x.Categories)
+                                        .Include(x => x.Tags)
+                                        .SingleOrDefaultAsync(x => x.PhotoId == photoId, token);
+            _logger.LogInformation("Photo in {TotalSeconds}", sw.Elapsed.TotalSeconds);
+            if (photo == null || photo.Categories.Any(acessibleCategories.Contains))
             {
                 throw new InvalidOperationException($"User {userId} cannot access photo {photoId}")
                 {
