@@ -1,5 +1,6 @@
 ﻿using Ae.Galeriya.Core.Tables;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +11,12 @@ namespace Ae.Galeriya.Core
 {
     internal sealed class CategoryPermissionsRepository : ICategoryPermissionsRepository
     {
+        private readonly ILogger<CategoryPermissionsRepository> _logger;
         private readonly GaleriyaDbContext _dbContext;
 
-        public CategoryPermissionsRepository(GaleriyaDbContext dbContext)
+        public CategoryPermissionsRepository(ILogger<CategoryPermissionsRepository> logger, GaleriyaDbContext dbContext)
         {
+            _logger = logger;
             _dbContext = dbContext;
         }
 
@@ -75,6 +78,7 @@ namespace Ae.Galeriya.Core
         public async Task<IQueryable<Photo>> GetAccessiblePhotos(uint userId, CancellationToken token)
         {
             var acessibleCategories = await GetAccessibleCategories(userId, token);
+            _logger.LogInformation("Got accessible categories");
             return _dbContext.Photos.Where(photo => photo.Categories.Any(category => acessibleCategories.Contains(category)))
                 .Include(x => x.Categories)
                 .Include(x => x.Tags);
