@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using Ae.Galeriya.Core.Tables;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {

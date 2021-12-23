@@ -1,5 +1,4 @@
 ﻿using Ae.Galeriya.Core;
-using Ae.Galeriya.Core.Tables;
 using Ae.Galeriya.Piwigo.Entities;
 using Microsoft.AspNetCore.Http;
 using System;

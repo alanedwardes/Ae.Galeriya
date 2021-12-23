@@ -1,5 +1,4 @@
 ﻿using Ae.Galeriya.Core;
-using System;
 
 namespace Ae.Galeriya.Piwigo
 {

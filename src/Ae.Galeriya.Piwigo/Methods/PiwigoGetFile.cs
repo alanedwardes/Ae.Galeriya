@@ -1,5 +1,4 @@
 ﻿using Ae.Galeriya.Core;
-using Ae.Galeriya.Core.Tables;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;

@@ -2,7 +2,6 @@
 using Amazon.Runtime;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
-using System;
 using System.IO;
 using System.Net;
 using System.Threading;

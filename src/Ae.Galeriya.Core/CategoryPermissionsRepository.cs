@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -34,6 +33,7 @@ namespace Ae.Galeriya.Core
         {
             return _dbContext.Photos
                 .Include(x => x.Categories)
+                .ThenInclude(x => x.Users)
                 .Include(x => x.Tags);
         }
 

@@ -1,5 +1,4 @@
 ﻿using Ae.Galeriya.Core.Exceptions;
-using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;

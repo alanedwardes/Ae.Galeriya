@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Ae.Galeriya.Console
+﻿namespace Ae.Galeriya.Console
 {
     public sealed class GaleriyaConfiguration
     {

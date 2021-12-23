@@ -1,5 +1,4 @@
-﻿using Ae.Galeriya.Core.Tables;
-using Ae.Galeriya.Piwigo.Entities;
+﻿using Ae.Galeriya.Piwigo.Entities;
 using System;
 using System.Collections.Generic;
 using System.Threading;

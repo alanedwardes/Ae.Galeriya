@@ -3,7 +3,6 @@ using Ae.Galeriya.Core.Tables;
 using Ae.Galeriya.Piwigo;
 using Ae.Geocode.Google;
 using Amazon.S3.Transfer;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
