@@ -65,6 +65,7 @@ namespace Ae.Galeriya.Core
         public async Task<Photo> EnsureCanAccessPhoto(uint userId, uint photoId, CancellationToken token)
         {
             var photo = await (await GetAccessiblePhotos(userId, token)).SingleOrDefaultAsync(x => x.PhotoId == photoId, token);
+            _logger.LogInformation("Got accessible photos");
             if (photo == null)
             {
                 throw new InvalidOperationException($"User {userId} cannot access photo {photoId}")
@@ -77,9 +78,10 @@ namespace Ae.Galeriya.Core
 
         public async Task<IQueryable<Photo>> GetAccessiblePhotos(uint userId, CancellationToken token)
         {
-            var acessibleCategories = await GetAccessibleCategories(userId, token);
+            var acessibleCategoryIds = (await GetAccessibleCategories(userId, token)).Select(x => x.CategoryId).ToArray();
             _logger.LogInformation("Got accessible categories");
-            return _dbContext.Photos.Where(photo => photo.Categories.Any(category => acessibleCategories.Contains(category)))
+            return _dbContext.Photos.Where(photo => photo.Categories.Select(x => x.CategoryId)
+                                                                    .Any(category => acessibleCategoryIds.Contains(category)))
                 .Include(x => x.Categories)
                 .Include(x => x.Tags);
         }
