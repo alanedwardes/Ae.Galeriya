@@ -3,6 +3,7 @@ using Ae.Galeriya.Core.Exceptions;
 using Ae.Galeriya.Core.Tables;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
@@ -42,13 +43,13 @@ namespace Ae.Galeriya.Piwigo.Methods
             return string.Concat(md5.ComputeHash(input).Select(x => x.ToString("x2")));
         }
 
-        private async Task<Stream> GetThubmnail(Photo photo, int width, int height, string type, CancellationToken token)
+        private async Task<(Stream Stream, string Hash)> GetThubmnail(Photo photo, int width, int height, string type, CancellationToken token)
         {
             var cacheBlobId = CacheHash(width, height, type, photo.PhotoId);
 
             try
             {
-                return await _piwigoConfiguration.FileBlobRepository.GetBlob(cacheBlobId, token);
+                return (await _piwigoConfiguration.FileBlobRepository.GetBlob(cacheBlobId, token), cacheBlobId);
             }
             catch (BlobNotFoundException)
             {
@@ -64,7 +65,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                 await _piwigoConfiguration.FileBlobRepository.PutBlob(thumbnail, cacheBlobId, token);
             }
 
-            return await _piwigoConfiguration.FileBlobRepository.GetBlob(cacheBlobId, token);
+            return (await _piwigoConfiguration.FileBlobRepository.GetBlob(cacheBlobId, token), cacheBlobId);
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
@@ -76,11 +77,12 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             var photo = await _categoryPermissions.EnsureCanAccessPhoto(userId.Value, imageId, token);
 
-            var thumbnailStream = await GetThubmnail(photo, width, height, type, token);
+            var thumbnail = await GetThubmnail(photo, width, height, type, token);
 
-            return new FileStreamResult(thumbnailStream, "image/jpeg")
+            return new FileStreamResult(thumbnail.Stream, "image/jpeg")
             {
-                LastModified = photo.UpdatedOn ?? photo.CreatedOn
+                LastModified = photo.UpdatedOn ?? photo.CreatedOn,
+                EntityTag = new EntityTagHeaderValue(thumbnail.Hash)
             };
         }
     }
