@@ -24,7 +24,6 @@ namespace Ae.Galeriya.Core
                 .Include(x => x.Photos)
                 .Include(x => x.Categories)
                 .Include(x => x.Users)
-                .AsSplitQuery()
                 .ToArrayAsync(token);
         }
 
