@@ -74,7 +74,7 @@ namespace Ae.Galeriya.Core
                                         .Include(x => x.Tags)
                                         .SingleOrDefaultAsync(x => x.PhotoId == photoId, token);
             _logger.LogInformation("Photo in {TotalSeconds}", sw.Elapsed.TotalSeconds);
-            if (photo == null || photo.Categories.Any(acessibleCategories.Contains))
+            if (photo == null || !photo.Categories.Any(acessibleCategories.Contains))
             {
                 throw new InvalidOperationException($"User {userId} cannot access photo {photoId}")
                 {
