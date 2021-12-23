@@ -83,7 +83,7 @@ namespace Ae.Galeriya.Core
             var sw = Stopwatch.StartNew();
             var acessibleCategoryIds = (await GetAccessibleCategories(userId, token)).Select(x => x.CategoryId).ToArray();
             _logger.LogInformation("Got accessible categories in {TotalSeconds}", sw.Elapsed.TotalSeconds);
-            return _dbContext.Photos.Where(photo => photo.Categories.Select(x => x.CategoryId).Any(acessibleCategoryIds.Contains))
+            return _dbContext.Photos.Where(photo => photo.Categories.Select(x => x.CategoryId).Any(y => acessibleCategoryIds.Contains(y)))
                                     .Include(x => x.Categories)
                                     .Include(x => x.Tags);
         }
