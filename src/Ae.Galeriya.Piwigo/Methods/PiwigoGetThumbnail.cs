@@ -1,6 +1,7 @@
 ﻿using Ae.Galeriya.Core;
 using Ae.Galeriya.Core.Exceptions;
 using Ae.Galeriya.Core.Tables;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
@@ -23,17 +24,24 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IBlobRepository _blobRepository;
         private readonly IPiwigoConfiguration _piwigoConfiguration;
         private readonly IThumbnailGenerator _thumbnailGenerator;
+        private readonly IHttpContextAccessor _httpContext;
 
         public string MethodName => "pwg.images.getThumbnail";
         public bool AllowAnonymous => false;
 
-        public PiwigoGetThumbnail(ILogger<PiwigoGetThumbnail> logger, ICategoryPermissionsRepository categoryPermissions, IBlobRepository blobRepository, IPiwigoConfiguration piwigoConfiguration, IThumbnailGenerator thumbnailGenerator)
+        public PiwigoGetThumbnail(ILogger<PiwigoGetThumbnail> logger,
+            ICategoryPermissionsRepository categoryPermissions,
+            IBlobRepository blobRepository,
+            IPiwigoConfiguration piwigoConfiguration,
+            IThumbnailGenerator thumbnailGenerator,
+            IHttpContextAccessor httpContext)
         {
             _logger = logger;
             _categoryPermissions = categoryPermissions;
             _blobRepository = blobRepository;
             _piwigoConfiguration = piwigoConfiguration;
             _thumbnailGenerator = thumbnailGenerator;
+            _httpContext = httpContext;
         }
 
         private string CacheHash(params object[] items)
@@ -78,6 +86,10 @@ namespace Ae.Galeriya.Piwigo.Methods
             var photo = await _categoryPermissions.EnsureCanAccessPhoto(userId.Value, imageId, token);
 
             var thumbnail = await GetThubmnail(photo, width, height, type, token);
+
+            var oneYear = TimeSpan.FromDays(365);
+            _httpContext.HttpContext.Response.Headers.Add("Expires", DateTime.UtcNow.Add(oneYear).ToString("ddd, dd MMM yyyy HH:mm:ss") + " GMT");
+            _httpContext.HttpContext.Response.Headers.Add("Cache-Control", $"private, max-age={oneYear.TotalSeconds};");
 
             return new FileStreamResult(thumbnail.Stream, "image/jpeg")
             {
