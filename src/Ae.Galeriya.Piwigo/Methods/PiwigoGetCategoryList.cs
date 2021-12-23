@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Ae.Galeriya.Core.Tables;
+using Microsoft.EntityFrameworkCore;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
@@ -33,7 +34,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             var response = new PiwigoCategories { Categories = new List<PiwigoCategory>() };
 
-            var categories = await _categoryRepository.GetAccessibleCategories(userId.Value, token);
+            var categories = await _categoryRepository.GetAccessibleCategories(userId.Value).ToArrayAsync(token);
 
             foreach (var category in categories.Where(x => recursive || x.ParentCategory == nullableParentCategory))
             {

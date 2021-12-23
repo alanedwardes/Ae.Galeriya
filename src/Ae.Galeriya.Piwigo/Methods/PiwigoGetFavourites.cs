@@ -28,7 +28,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         {
             var user = await _dbContext.Users.Include(x => x.FavouritePhotos).SingleAsync(x => x.Id == userId, token);
 
-            var photos = (await _permissionsRepository.GetAccessiblePhotos(userId.Value, token))
+            var photos = _permissionsRepository.GetAccessiblePhotos(userId.Value)
                 .Where(x => user.FavouritePhotos.Contains(x));
 
             return await _pageGenerator.CreatePage(0, 0, photos, token);

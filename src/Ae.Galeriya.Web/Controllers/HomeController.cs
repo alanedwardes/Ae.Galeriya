@@ -4,6 +4,7 @@ using Ae.Galeriya.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,7 +26,7 @@ namespace Ae.Galeriya.Web.Controllers
         {
             var user = await _userManager.FindByNameAsync(Request.HttpContext.User.Identity.Name);
 
-            var categories = await _categoryPermissions.GetAccessibleCategories(user.Id, CancellationToken.None);
+            var categories = await _categoryPermissions.GetAccessibleCategories(user.Id).ToArrayAsync();
 
             return View(new HomeModel
             {

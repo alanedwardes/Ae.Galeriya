@@ -30,7 +30,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             var categoryId = parameters.GetOptional<uint>("cat_id");
             var order = parameters.GetOptional("order") ?? "date_creation asc";
 
-            var photosQuery = await _permissionsRepository.GetAccessiblePhotos(userId.Value, token);
+            var photosQuery = _permissionsRepository.GetAccessiblePhotos(userId.Value);
 
             if (categoryId.HasValue)
             {

@@ -1,5 +1,6 @@
 ﻿using Ae.Galeriya.Core;
 using Ae.Galeriya.Core.Tables;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,14 +27,14 @@ namespace Ae.Galeriya.Piwigo.Methods
         {
             var newParentCategoryId = parameters.GetRequired<uint>("parent");
 
-            var allCategories = await _categoryPermissions.GetAccessibleCategories(userId.Value, token);
+            var allCategories = await _categoryPermissions.GetAccessibleCategories(userId.Value).ToArrayAsync(token);
 
             var category = allCategories.Single(x => x.CategoryId == parameters.GetRequired<uint>("category_id"));
             var newParentCategory = newParentCategoryId > 0 ? allCategories.Single(x => x.CategoryId == newParentCategoryId) : null;
 
             if (newParentCategory == null)
             {
-                category.Users = !category.IsTopLevel() ? category.FindTopLevel().Users : new List<User>();
+                category.Users = category.Users;
                 category.ParentCategoryId = null;
             }
             else
