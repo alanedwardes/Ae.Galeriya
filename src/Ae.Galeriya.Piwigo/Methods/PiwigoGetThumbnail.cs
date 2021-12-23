@@ -8,6 +8,7 @@ using Microsoft.Net.Http.Headers;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -83,9 +84,13 @@ namespace Ae.Galeriya.Piwigo.Methods
             var type = parameters.GetRequired<string>("type");
             var imageId = parameters.GetRequired<uint>("image_id");
 
+            var sw = Stopwatch.StartNew();
             var photo = await _categoryPermissions.EnsureCanAccessPhoto(userId.Value, imageId, token);
+            _logger.LogInformation("Got photo in {TotalSeconds} seconds", sw.Elapsed.TotalSeconds);
 
+            sw.Restart();
             var thumbnail = await GetThubmnail(photo, width, height, type, token);
+            _logger.LogInformation("Got thumbnail in {TotalSeconds} seconds", sw.Elapsed.TotalSeconds);
 
             var oneYear = TimeSpan.FromDays(365);
             _httpContext.HttpContext.Response.Headers.Add("Expires", DateTime.UtcNow.Add(oneYear).ToString("ddd, dd MMM yyyy HH:mm:ss") + " GMT");
