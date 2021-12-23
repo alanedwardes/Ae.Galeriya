@@ -110,6 +110,14 @@ namespace Ae.Galeriya.Core
         public async Task<Photo> CreatePhoto(IFileBlobRepository fileBlobRepository, Category category, string fileName, string name, uint userId, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
         {
             var hash = await CalculateFileHash(uploadedFile, token);
+
+            var existingPhoto = await _dbContext.Photos.SingleOrDefaultAsync(x => x.BlobId == hash, token);
+            if (existingPhoto != null)
+            {
+                await AddPhotoToCategory(existingPhoto, category, token);
+                return existingPhoto;
+            }
+
             var blobIdTask = _photoCreator.PutBlob(uploadedFile.OpenRead(), hash, token);
             var mediaInfo = await _infoExtractor.ExtractInformation(uploadedFile, token);
             var snapshotIdTask = mediaInfo.Duration.HasValue ? ExtractSnapshot(fileBlobRepository, uploadedFile, hash, token) : Task.FromResult<string?>(null);

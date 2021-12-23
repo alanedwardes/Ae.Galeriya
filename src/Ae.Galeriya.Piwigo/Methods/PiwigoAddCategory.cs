@@ -42,7 +42,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                 Comment = parameters.GetOptional("comment"),
                 CreatedOn = DateTimeOffset.UtcNow,
                 CreatedById = userId.Value,
-                Users = parentCategory == null ? new[] { user } : Array.Empty<User>()
+                Users = new[] { user }
             };
 
             _context.Categories.Add(category);
