@@ -72,7 +72,7 @@ namespace Ae.Galeriya.Core
             using (var fs = uploadedFile.OpenRead())
             {
                 var hash = await sha256.ComputeHashAsync(fs, token);
-                _logger.LogInformation("Calculated hash for file {File} in {TotalSeconds}s", uploadedFile, sw.Elapsed.TotalSeconds); ;
+                _logger.LogInformation("Calculated hash {Hash} for file {File} in {TotalSeconds}s", hash, uploadedFile, sw.Elapsed.TotalSeconds); ;
                 return string.Concat(hash.Select(x => x.ToString("x2")));
             }
         }
@@ -85,17 +85,7 @@ namespace Ae.Galeriya.Core
             }
 
             var request = new GeocodeRequest((mediaInfo.Location.Latitude, mediaInfo.Location.Longitude));
-
-            try
-            {
-                return await _geocodeClient.ReverseGeoCode(request, token);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Error when geocoding");
-            }
-
-            return null;
+            return await _geocodeClient.ReverseGeoCode(request, token);
         }
 
         private static IReadOnlyList<AddressComponent> GetMostDescriptiveAddressComponents(GeocodeResponse response)
