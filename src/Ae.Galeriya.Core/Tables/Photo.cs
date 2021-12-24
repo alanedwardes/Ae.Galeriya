@@ -32,7 +32,7 @@ namespace Ae.Galeriya.Core.Tables
 
         [Required]
         [Column(TypeName = "json")]
-        public string? Metadata { get; set; }
+        public string Metadata { get; set; } = null!;
         public string? Comment { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }

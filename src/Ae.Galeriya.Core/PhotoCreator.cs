@@ -162,11 +162,11 @@ namespace Ae.Galeriya.Core
                 Latitude = mediaInfo.Location?.Latitude,
                 Longitude = mediaInfo.Location?.Longitude,
                 Categories = new List<Category> { category },
-                Metadata = metadata.Any() ? JsonSerializer.Serialize(metadata, new JsonSerializerOptions
+                Metadata = JsonSerializer.Serialize(metadata, new JsonSerializerOptions
                 {
                     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                     NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals
-                }) : null
+                })
             };
 
             if (geocodeResponse != null)
