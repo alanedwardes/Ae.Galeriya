@@ -71,9 +71,9 @@ namespace Ae.Galeriya.Core
             using (var sha256 = SHA256.Create())
             using (var fs = uploadedFile.OpenRead())
             {
-                var hash = await sha256.ComputeHashAsync(fs, token);
+                var hash = string.Concat((await sha256.ComputeHashAsync(fs, token)).Select(x => x.ToString("x2")));
                 _logger.LogInformation("Calculated hash {Hash} for file {File} in {TotalSeconds}s", hash, uploadedFile, sw.Elapsed.TotalSeconds); ;
-                return string.Concat(hash.Select(x => x.ToString("x2")));
+                return hash;
             }
         }
 
