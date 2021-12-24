@@ -1,5 +1,4 @@
 ﻿using Ae.Galeriya.Core;
-using Ae.Galeriya.Core.Tables;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -34,13 +33,13 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             if (newParentCategory == null)
             {
-                category.Users = category.Users;
                 category.ParentCategoryId = null;
+                // Users stay the same
             }
             else
             {
                 category.ParentCategory = newParentCategory;
-                category.Users = new List<User>();
+                category.Users = newParentCategory.Users;
             }
 
             await _context.SaveChangesAsync(token);
