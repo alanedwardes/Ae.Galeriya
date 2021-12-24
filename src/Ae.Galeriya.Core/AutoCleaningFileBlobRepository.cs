@@ -61,8 +61,9 @@ namespace Ae.Galeriya.Core
 
                     try
                     {
+                        var fileSize = file.Length;
                         file.Delete();
-                        reclaimedBytes += file.Length;
+                        reclaimedBytes += fileSize;
                         reclaimedFiles++;
                     }
                     catch (Exception e)
