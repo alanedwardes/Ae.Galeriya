@@ -133,6 +133,16 @@ namespace Ae.Galeriya.Core
                 _logger.LogWarning("Unable to find creation time for {Hash}, using {CreationDate}", hash, creationDate);
             }
 
+            var metadata = new Dictionary<string, object>
+            {
+                { "media", mediaInfo }
+            };
+
+            if (geocodeResponse != null)
+            {
+                metadata.Add("geocode", geocodeResponse);
+            }
+
             var photo = new Photo
             {
                 BlobId = hash,
@@ -152,11 +162,11 @@ namespace Ae.Galeriya.Core
                 Latitude = mediaInfo.Location?.Latitude,
                 Longitude = mediaInfo.Location?.Longitude,
                 Categories = new List<Category> { category },
-                Metadata = mediaInfo == null ? null : JsonSerializer.Serialize(mediaInfo, new JsonSerializerOptions
+                Metadata = metadata.Any() ? JsonSerializer.Serialize(metadata, new JsonSerializerOptions
                 {
                     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                     NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals
-                })
+                }) : null
             };
 
             if (geocodeResponse != null)

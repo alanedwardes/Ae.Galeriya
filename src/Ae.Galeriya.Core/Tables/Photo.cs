@@ -30,6 +30,7 @@ namespace Ae.Galeriya.Core.Tables
         [Required]
         public MediaOrientation Orientation { get; set; }
 
+        [Required]
         [Column(TypeName = "json")]
         public string? Metadata { get; set; }
         public string? Comment { get; set; }
