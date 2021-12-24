@@ -1,10 +1,11 @@
 ﻿using Ae.Galeriya.Core;
+using System;
 
 namespace Ae.Galeriya.Piwigo
 {
     public interface IPiwigoConfiguration
     {
-        IBlobRepository ChunkBlobRepository { get; }
-        IFileBlobRepository FileBlobRepository { get; }
+        Func<IServiceProvider, IBlobRepository> ChunkBlobRepository { get; }
+        Func<IServiceProvider, IFileBlobRepository> FileBlobRepository { get; }
     }
 }

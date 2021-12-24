@@ -12,6 +12,7 @@ namespace Ae.Galeriya.Piwigo.Methods
     internal sealed class PiwigoUploadMethod : IPiwigoWebServiceMethod
     {
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IServiceProvider _serviceProvider;
         private readonly ICategoryPermissionsRepository _categoryPermissions;
         private readonly IPhotoCreator _photoCreator;
         private readonly IPiwigoConfiguration _piwigoConfiguration;
@@ -20,11 +21,13 @@ namespace Ae.Galeriya.Piwigo.Methods
         public bool AllowAnonymous => false;
 
         public PiwigoUploadMethod(IHttpContextAccessor contextAccessor,
+            IServiceProvider serviceProvider,
             ICategoryPermissionsRepository categoryPermissions,
             IPhotoCreator photoCreator,
             IPiwigoConfiguration piwigoConfiguration)
         {
             _contextAccessor = contextAccessor;
+            _serviceProvider = serviceProvider;
             _categoryPermissions = categoryPermissions;
             _photoCreator = photoCreator;
             _piwigoConfiguration = piwigoConfiguration;
@@ -38,14 +41,14 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             var file = _contextAccessor.HttpContext.Request.Form.Files.Single();
 
-            var uploadedFile = _piwigoConfiguration.FileBlobRepository.GetFileInfoForBlob(Guid.NewGuid().ToString());
+            var uploadedFile = _piwigoConfiguration.FileBlobRepository(_serviceProvider).GetFileInfoForBlob(Guid.NewGuid().ToString());
 
             using (var write = uploadedFile.OpenWrite())
             {
                 await file.CopyToAsync(write, token);
             }
 
-            var photo = await _photoCreator.CreatePhoto(_piwigoConfiguration.FileBlobRepository, category, file.FileName, name, userId.Value, DateTimeOffset.UtcNow, uploadedFile, token);
+            var photo = await _photoCreator.CreatePhoto(_piwigoConfiguration.FileBlobRepository(_serviceProvider), category, file.FileName, name, userId.Value, DateTimeOffset.UtcNow, uploadedFile, token);
 
             return new PiwigoUploadedResponse
             {

@@ -15,6 +15,7 @@ namespace Ae.Galeriya.Piwigo.Methods
     internal sealed class PiwigoUploadAsyncMethod : IPiwigoWebServiceMethod
     {
         private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IServiceProvider _serviceProvider;
         private readonly IUploadRepository _sessionRepository;
         private readonly IPiwigoWebServiceMethodRepository _webServiceRepository;
         private readonly ICategoryPermissionsRepository _categoryPermissions;
@@ -26,6 +27,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         public bool AllowAnonymous => true;
 
         public PiwigoUploadAsyncMethod(IHttpContextAccessor contextAccessor,
+            IServiceProvider serviceProvider,
             IUploadRepository sessionRepository,
             IPiwigoWebServiceMethodRepository webServiceRepository,
             ICategoryPermissionsRepository categoryPermissions,
@@ -34,6 +36,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             SignInManager<User> signInManager)
         {
             _contextAccessor = contextAccessor;
+            _serviceProvider = serviceProvider;
             _sessionRepository = sessionRepository;
             _webServiceRepository = webServiceRepository;
             _categoryPermissions = categoryPermissions;
@@ -74,7 +77,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         private async Task<object> CompleteFile(Category category, string fileName, string name, uint userId, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
         {
-            var photo = await _photoCreator.CreatePhoto(_piwigoConfiguration.FileBlobRepository, category, fileName, name, userId, creationDate, uploadedFile, token);
+            var photo = await _photoCreator.CreatePhoto(_piwigoConfiguration.FileBlobRepository(_serviceProvider), category, fileName, name, userId, creationDate, uploadedFile, token);
 
             return await _webServiceRepository
                 .GetMethod("pwg.images.getInfo")

@@ -37,7 +37,7 @@ namespace Ae.Galeriya.Core
             using (var toStream = GetFileInfoForBlob(blobId.ToString()).OpenWrite())
             using (blobStream)
             {
-                await blobStream.CopyToAsync(toStream);
+                await blobStream.CopyToAsync(toStream, token);
             }
         }
 

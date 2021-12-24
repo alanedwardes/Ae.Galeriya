@@ -24,6 +24,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IBlobRepository _blobRepository;
         private readonly IPiwigoConfiguration _piwigoConfiguration;
         private readonly IThumbnailGenerator _thumbnailGenerator;
+        private readonly IServiceProvider _serviceProvider;
 
         public string MethodName => "pwg.images.getThumbnail";
         public bool AllowAnonymous => false;
@@ -32,13 +33,15 @@ namespace Ae.Galeriya.Piwigo.Methods
             ICategoryPermissionsRepository categoryPermissions,
             IBlobRepository blobRepository,
             IPiwigoConfiguration piwigoConfiguration,
-            IThumbnailGenerator thumbnailGenerator)
+            IThumbnailGenerator thumbnailGenerator,
+            IServiceProvider serviceProvider)
         {
             _logger = logger;
             _categoryPermissions = categoryPermissions;
             _blobRepository = blobRepository;
             _piwigoConfiguration = piwigoConfiguration;
             _thumbnailGenerator = thumbnailGenerator;
+            _serviceProvider = serviceProvider;
         }
 
         private string CacheHash(params object[] items)
@@ -54,7 +57,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             try
             {
-                return (await _piwigoConfiguration.FileBlobRepository.GetBlob(cacheBlobId, token), cacheBlobId);
+                return (await _piwigoConfiguration.FileBlobRepository(_serviceProvider).GetBlob(cacheBlobId, token), cacheBlobId);
             }
             catch (BlobNotFoundException)
             {
@@ -67,10 +70,10 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             using (var thumbnail = await _thumbnailGenerator.GenerateThumbnail(stream, photo.Orientation, width, height, resizeMode, token))
             {
-                await _piwigoConfiguration.FileBlobRepository.PutBlob(thumbnail, cacheBlobId, token);
+                await _piwigoConfiguration.FileBlobRepository(_serviceProvider).PutBlob(thumbnail, cacheBlobId, token);
             }
 
-            return (await _piwigoConfiguration.FileBlobRepository.GetBlob(cacheBlobId, token), cacheBlobId);
+            return (await _piwigoConfiguration.FileBlobRepository(_serviceProvider).GetBlob(cacheBlobId, token), cacheBlobId);
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)

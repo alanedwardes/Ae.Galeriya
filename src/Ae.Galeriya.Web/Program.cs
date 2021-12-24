@@ -38,7 +38,7 @@ namespace Ae.Galeriya.Console
                 dbContext.Database.EnsureCreated();
             }
 
-            var uploadCache = new FileBlobRepository(new DirectoryInfo(configuration.UploadCacheDirectory));
+            const long twoGigabytes = 1024L * 1024L * 1024L * 2L;
 
             var builder = Host.CreateDefaultBuilder()
                 .ConfigureWebHostDefaults(webHostBuilder =>
@@ -48,6 +48,11 @@ namespace Ae.Galeriya.Console
                 })
                 .ConfigureServices(services =>
                 {
+                    services.AddSingleton<IFileBlobRepository>(x =>
+                    {
+                        return new AutoCleaningFileBlobRepository(x.GetRequiredService<ILogger<AutoCleaningFileBlobRepository>>(), new DirectoryInfo(configuration.UploadCacheDirectory), twoGigabytes);
+                    });
+
                     services.AddCommonServices(configuration);
                     services.AddSingleton(configuration);
                     services.AddHttpClient<IGoogleGeocodeClient, GoogleGeocodeClient>(x => x.BaseAddress = new Uri("https://maps.googleapis.com/"))
@@ -56,12 +61,13 @@ namespace Ae.Galeriya.Console
                     services.AddSingleton<IBlobRepository>(x =>
                     {
                         var remoteBlobRepository = new AmazonS3BlobRepository(x.GetRequiredService<ITransferUtility>(), configuration.BucketName);
-                        return new CachingBlobRepository(uploadCache, remoteBlobRepository);
+                        return new CachingBlobRepository(x.GetRequiredService<IFileBlobRepository>(), remoteBlobRepository);
                     });
+
                     services.AddPiwigo(new PiwigoConfiguration
                     {
-                        ChunkBlobRepository = uploadCache,
-                        FileBlobRepository = uploadCache
+                        ChunkBlobRepository = x => x.GetRequiredService<IFileBlobRepository>(),
+                        FileBlobRepository = x => x.GetRequiredService<IFileBlobRepository>()
                     });
                 });
 
