@@ -26,7 +26,7 @@
             const hashBuffer = await crypto.subtle.digest('SHA-256', contents);
             const hash = digestToHex(hashBuffer);
             fileHashes[file] = hash;
-            statusElement.innerText = 'Calculated hash ' + fileHashes.length + ' of ' + fileElement.files.length;
+            statusElement.innerText = 'Calculated hash ' + Object.keys(fileHashes).length + ' of ' + fileElement.files.length;
         }
 
         console.log(fileHashes);
