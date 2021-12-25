@@ -17,15 +17,22 @@
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    async function directorySelected(element) {
-        const fileReader = new FileReader();
-        for (const file of element.files) {
+    async function directorySelected(fileElement, statusElement) {
+        fileElement.disabled = "disabled";
+
+        var fileHashes = {};
+        for (const file of fileElement.files) {
             const contents = await readFile(file);
             const hashBuffer = await crypto.subtle.digest('SHA-256', contents);
             const hash = digestToHex(hashBuffer);
-            console.log(file, hash);
+            fileHashes[file] = hash;
+            statusElement.innerText = 'Calculated hash ' + fileHashes.length + ' of ' + fileElement.files.length);
         }
+
+        console.log(fileHashes);
     }
 </script>
 
-<input type="file" webkitdirectory onchange="directorySelected(this)" />
+<input type="file" webkitdirectory onchange="directorySelected(this, document.getElementById('status'))" />
+
+<p id="status"></p>>
