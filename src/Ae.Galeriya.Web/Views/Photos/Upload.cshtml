@@ -73,6 +73,9 @@
         fetch('/api/v1/photos:upload', {
             method: 'PUT',
             credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            },
             body: formData
         });
     }
