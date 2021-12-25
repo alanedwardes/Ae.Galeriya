@@ -7,10 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Security.Claims;
-using System.Security.Principal;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -29,34 +26,6 @@ namespace Ae.Galeriya.Piwigo
         {
             GetMethod(methodName);
             return new Uri($"/ws.php?method={methodName}&{string.Join("&", parameters.Select(x => $"{x.Key}={x.Value}"))}", UriKind.Relative);
-        }
-
-        public static string FindFirstValue(ClaimsIdentity identity, string claimType)
-        {
-            if (identity == null)
-            {
-                throw new ArgumentNullException("identity");
-            }
-            var claim = identity.FindFirst(claimType);
-            return claim != null ? claim.Value : null;
-        }
-
-        public static T GetUserId<T>(IIdentity identity) where T : IConvertible
-        {
-            if (identity == null)
-            {
-                throw new ArgumentNullException("identity");
-            }
-            var ci = identity as ClaimsIdentity;
-            if (ci != null)
-            {
-                var id = FindFirstValue(ci, ClaimTypes.NameIdentifier);
-                if (id != null)
-                {
-                    return (T)Convert.ChangeType(id, typeof(T), CultureInfo.InvariantCulture);
-                }
-            }
-            return default(T);
         }
 
         public async Task ExecuteMethod(IPiwigoWebServiceMethod method, IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
@@ -79,7 +48,7 @@ namespace Ae.Galeriya.Piwigo
                     return;
                 }
 
-                userId = GetUserId<uint>(context.User.Identity);
+                userId = context.User.Identity.GetUserId();
             }
 
             RouteData routeData = context.GetRouteData();

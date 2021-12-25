@@ -1,7 +1,10 @@
 ﻿using Ae.Galeriya.Core;
+using Ae.Galeriya.Piwigo;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,10 +16,18 @@ namespace Ae.Galeriya.Web.Controllers
     public sealed class ApiController : Controller
     {
         private readonly GaleriyaDbContext _dbContext;
+        private readonly IPiwigoConfiguration _configuration;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly ICategoryPermissionsRepository _categoryPermissions;
+        private readonly IPhotoCreator _photoCreator;
 
-        public ApiController(GaleriyaDbContext dbContext)
+        public ApiController(GaleriyaDbContext dbContext, IPiwigoConfiguration configuration, IServiceProvider serviceProvider, ICategoryPermissionsRepository categoryPermissions, IPhotoCreator photoCreator)
         {
             _dbContext = dbContext;
+            _configuration = configuration;
+            _serviceProvider = serviceProvider;
+            _categoryPermissions = categoryPermissions;
+            _photoCreator = photoCreator;
         }
 
         [HttpPost("hashes:query")]
@@ -25,6 +36,26 @@ namespace Ae.Galeriya.Web.Controllers
             return await _dbContext.Photos.Where(x => hashes.Contains(x.BlobId))
                                           .Select(x => x.BlobId)
                                           .ToArrayAsync(token);
+        }
+
+        [HttpPut("photos:upload")]
+        public async Task UploadPhoto([FromBody] IFormFile file, [FromBody] uint categoryId, [FromBody] string name, [FromBody] DateTimeOffset fileCreatedOn, CancellationToken token)
+        {
+            var userId = HttpContext.User.Identity.GetUserId();
+
+            var category = await _categoryPermissions.EnsureCanAccessCategory(userId, categoryId, token);
+
+            var fileBlobRepository = _configuration.FileBlobRepository(_serviceProvider);
+
+            var fileInfo = fileBlobRepository.GetFileInfoForBlob(Guid.NewGuid().ToString());
+
+            using (var writeStream = fileInfo.OpenWrite())
+            using (var readStream = file.OpenReadStream())
+            {
+                await readStream.CopyToAsync(writeStream);
+            }
+
+            await _photoCreator.CreatePhoto(fileBlobRepository, category, name, name, userId, fileCreatedOn, fileInfo, token);
         }
     }
 }
