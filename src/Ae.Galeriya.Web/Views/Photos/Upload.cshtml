@@ -50,7 +50,7 @@
             delete fileHashMap[existingHash];
         }
 
-        statusElement.innerText = 'Uploading ' + existingHashes.length + ' new unique files'
+        statusElement.innerText = 'Uploading ' + Object.keys(fileHashMap).length + ' new unique files'
 
         console.log(fileHashes);
     }
