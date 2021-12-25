@@ -39,7 +39,7 @@ namespace Ae.Galeriya.Web.Controllers
         }
 
         [HttpPut("photos:upload")]
-        public async Task UploadPhoto([FromBody] IFormFile file, [FromBody] uint categoryId, [FromBody] string name, [FromBody] DateTimeOffset fileCreatedOn, CancellationToken token)
+        public async Task UploadPhoto([FromBody] IFormFile file, [FromBody] uint categoryId, [FromBody] string name, [FromBody] DateTimeOffset createdOn, CancellationToken token)
         {
             var userId = HttpContext.User.Identity.GetUserId();
 
@@ -55,7 +55,7 @@ namespace Ae.Galeriya.Web.Controllers
                 await readStream.CopyToAsync(writeStream);
             }
 
-            await _photoCreator.CreatePhoto(fileBlobRepository, category, name, name, userId, fileCreatedOn, fileInfo, token);
+            await _photoCreator.CreatePhoto(fileBlobRepository, category, name, name, userId, createdOn, fileInfo, token);
         }
     }
 }

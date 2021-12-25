@@ -68,7 +68,7 @@
         formData.append('categoryId', 1);
         formData.append('file', file);
         formData.append('name', file.name);
-        formData.append('fileCreatedOn', new Date(lastModifiedDate).toISOString());
+        formData.append('createdOn', new Date(file.lastModified).toISOString());
 
         fetch('/api/v1/photos:upload', {
             method: 'PUT',
