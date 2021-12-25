@@ -20,14 +20,37 @@
     async function directorySelected(fileElement, statusElement) {
         fileElement.disabled = "disabled";
 
-        var fileHashes = {};
+        var processedFiles = 0;
+        var fileHashMap = {};
         for (const file of fileElement.files) {
             const contents = await readFile(file);
             const hashBuffer = await crypto.subtle.digest('SHA-256', contents);
             const hash = digestToHex(hashBuffer);
-            fileHashes[hash] = file;
-            statusElement.innerText = 'Calculated hash ' + Object.keys(fileHashes).length + ' of ' + fileElement.files.length;
+            processedFiles++;
+            fileHashMap[hash] = file;
+            statusElement.innerText = 'Processed ' + processedFiles + ' of ' + fileElement.files.length + ' files';
         }
+
+        const fileHashes = Object.keys(fileHashMap);
+
+        statusElement.innerText = 'Checking if any of the ' + fileHashes.length + ' unique files have already been uploaded'
+
+        const response = await fetch(url, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(fileHashes)
+        });
+
+        const existingHashes = await response.json();
+
+        for (const existingHash of existingHashes) {
+            delete fileHashMap[existingHash];
+        }
+
+        statusElement.innerText = 'Uploading ' + existingHashes.length + ' new unique files'
 
         console.log(fileHashes);
     }
