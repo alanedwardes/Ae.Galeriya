@@ -38,8 +38,6 @@ namespace Ae.Galeriya.Console
                 dbContext.Database.EnsureCreated();
             }
 
-            const long twoGigabytes = 1024L * 1024L * 1024L * 2L;
-
             var builder = Host.CreateDefaultBuilder()
                 .ConfigureWebHostDefaults(webHostBuilder =>
                 {
@@ -50,7 +48,7 @@ namespace Ae.Galeriya.Console
                 {
                     services.AddSingleton<IFileBlobRepository>(x =>
                     {
-                        return new AutoCleaningFileBlobRepository(x.GetRequiredService<ILogger<AutoCleaningFileBlobRepository>>(), new DirectoryInfo(configuration.UploadCacheDirectory), twoGigabytes);
+                        return new AutoCleaningFileBlobRepository(x.GetRequiredService<ILogger<AutoCleaningFileBlobRepository>>(), new DirectoryInfo(configuration.UploadCacheDirectory), configuration.UploadCacheDirectorySize);
                     });
 
                     services.AddCommonServices(configuration);

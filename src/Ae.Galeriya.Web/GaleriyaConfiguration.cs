@@ -8,6 +8,7 @@
         public string AdminUsername { get; set; }
         public string AdminPassword { get; set; }
         public string UploadCacheDirectory { get; set; }
+        public long UploadCacheDirectorySize { get; set; }
         public string DataProtectionDirectory { get; set; }
         public string FfmpegDirectory { get; set; }
     }
