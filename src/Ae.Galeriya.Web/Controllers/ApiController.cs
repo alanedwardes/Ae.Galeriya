@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ namespace Ae.Galeriya.Web.Controllers
         }
 
         [HttpPost("hashes:query")]
-        public async Task<string[]> QueryHashes([FromBody] string[] hashes, CancellationToken token)
+        public async Task<string[]> QueryHashes([Required][MinLength(1)][FromBody] string[] hashes, CancellationToken token)
         {
             return await _dbContext.Photos.Where(x => hashes.Contains(x.BlobId))
                                           .Select(x => x.BlobId)
