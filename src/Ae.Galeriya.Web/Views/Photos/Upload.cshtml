@@ -70,12 +70,9 @@
         formData.append('name', file.name);
         formData.append('createdOn', new Date(file.lastModified).toISOString());
 
-        fetch('/api/v1/photos:upload', {
+        await fetch('/api/v1/photos:upload', {
             method: 'PUT',
             credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            },
             body: formData
         });
     }
