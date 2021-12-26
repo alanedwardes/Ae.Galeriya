@@ -43,6 +43,7 @@ namespace Ae.Galeriya.Console
                 {
                     webHostBuilder.ConfigureLogging(configureLogging => configureLogging.AddCommonLogging());
                     webHostBuilder.UseStartup<Startup>();
+                    webHostBuilder.ConfigureKestrel(x => x.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(10));
                 })
                 .ConfigureServices(services =>
                 {
