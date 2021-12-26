@@ -40,6 +40,7 @@ namespace Ae.Galeriya.Web.Controllers
 
         [HttpPut("photos:upload")]
         [DisableRequestSizeLimit]
+        [RequestFormLimits(ValueLengthLimit = int.MaxValue, MultipartBodyLengthLimit = int.MaxValue)]
         public async Task UploadPhoto([FromForm(Name = "file")] IFormFile file, [FromForm(Name = "categoryId")] uint categoryId, [FromForm(Name = "name")] string name, [FromForm(Name = "createdOn")] DateTimeOffset createdOn, CancellationToken token)
         {
             var userId = HttpContext.User.Identity.GetUserId();
