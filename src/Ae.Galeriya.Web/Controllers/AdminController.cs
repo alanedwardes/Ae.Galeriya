@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace Ae.Galeriya.Web.Controllers
     [Route("/admin/")]
     public class AdminController : Controller
     {
+        private readonly ILogger<AdminController> _logger;
         private readonly UserManager<User> _userManager;
         private readonly GaleriyaConfiguration _configuration;
         private readonly IPiwigoConfiguration _piwigoConfiguration;
@@ -28,8 +30,9 @@ namespace Ae.Galeriya.Web.Controllers
         public string AuthorizationHeader => "Authorization";
         public string BasicPrefix => "Basic";
 
-        public AdminController(UserManager<User> userManager, GaleriyaConfiguration configuration, IPiwigoConfiguration piwigoConfiguration, IServiceProvider serviceProvider)
+        public AdminController(ILogger<AdminController> logger, UserManager<User> userManager, GaleriyaConfiguration configuration, IPiwigoConfiguration piwigoConfiguration, IServiceProvider serviceProvider)
         {
+            _logger = logger;
             _userManager = userManager;
             _configuration = configuration;
             _piwigoConfiguration = piwigoConfiguration;
@@ -208,6 +211,7 @@ namespace Ae.Galeriya.Web.Controllers
                 {
                     image.Format = MagickFormat.Jpeg;
                     image.Quality = 50;
+                    image.Strip();
                     image.Resize(2000, 2000);
                     image.Write(tempFileInfo);
                 }
@@ -217,8 +221,9 @@ namespace Ae.Galeriya.Web.Controllers
                     await photoRepository.PutBlob(readStream, thumbBlob, Request.HttpContext.RequestAborted);
                 }
 
-                //photo.HasThumbnail = true;
-                //await context.SaveChangesAsync(Request.HttpContext.RequestAborted);
+                _logger.LogInformation("Adding thumbnail to image {ImageId}", photo.BlobId);
+                photo.HasThumbnail = true;
+                await context.SaveChangesAsync(Request.HttpContext.RequestAborted);
             }
         }
     }
