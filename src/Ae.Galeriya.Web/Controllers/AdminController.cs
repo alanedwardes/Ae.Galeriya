@@ -3,19 +3,16 @@ using Ae.Galeriya.Core;
 using Ae.Galeriya.Core.Tables;
 using Ae.Galeriya.Piwigo;
 using Ae.Galeriya.Web.Models;
+using ImageMagick;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Ae.Galeriya.Web.Controllers
@@ -200,36 +197,24 @@ namespace Ae.Galeriya.Web.Controllers
             var tempRepository = _piwigoConfiguration.TemporaryBlobRepository(_serviceProvider);
             var photoRepository = _piwigoConfiguration.PersistentBlobRepository(_serviceProvider);
 
-            var encoder = new JpegEncoder
-            {
-                Quality = 0
-            };
-
-            var photos = await context.Photos.Where(x => x.HasThumbnail == false).OrderBy(X => X.PhotoId).ToArrayAsync();
+            var photos = await context.Photos.Where(x => x.HasThumbnail == false).OrderBy(X => X.PhotoId).ToArrayAsync(Request.HttpContext.RequestAborted);
             foreach (var photo in photos)
             {
                 using var blob = await photoRepository.GetBlob(photo.BlobId, Request.HttpContext.RequestAborted);
-                using var image = await Image.LoadAsync(Configuration.Default, blob, Request.HttpContext.RequestAborted);
-
-                image.Metadata.IccProfile = null;
-                image.Metadata.IptcProfile = null;
-                image.Metadata.ExifProfile = null;
-
-                image.Mutate(processor =>
-                {
-                    processor.Resize(new ResizeOptions
-                    {
-                        Mode = ResizeMode.Max,
-                        Size = new Size(2000, 2000)
-                    });
-                });
-
                 var thumbBlob = photo.BlobId + "_thumb";
-
                 var tempFileInfo = tempRepository.GetFileInfoForBlob(thumbBlob);
-                using (var writeStream = tempFileInfo.OpenWrite())
+
+                using (var collection = new MagickImageCollection(blob))
                 {
-                    await image.SaveAsJpegAsync(writeStream, encoder, Request.HttpContext.RequestAborted);
+                    collection.Coalesce();
+
+                    foreach (var image in collection)
+                    {
+                        var size = new MagickGeometry(2000, 2000);
+                        image.Resize(size);
+                    }
+
+                    collection.Write(tempFileInfo);
                 }
 
                 using (var readStream = tempFileInfo.OpenRead())
