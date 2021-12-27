@@ -34,11 +34,16 @@ namespace Ae.Galeriya.Core
 
         public async Task PutBlob(Stream blobStream, string blobId, CancellationToken token)
         {
-            using (var toStream = GetFileInfoForBlob(blobId.ToString()).OpenWrite())
+            var incompleteFileInfo = GetFileInfoForBlob(blobId.ToString() + "_incomplete");
+            var completeFileInfo = GetFileInfoForBlob(blobId.ToString());
+
+            using (var toStream = incompleteFileInfo.OpenWrite())
             using (blobStream)
             {
                 await blobStream.CopyToAsync(toStream, token);
             }
+
+            incompleteFileInfo.MoveTo(completeFileInfo.FullName, true);
         }
 
         public Task DeleteBlob(string blobId, CancellationToken token)
