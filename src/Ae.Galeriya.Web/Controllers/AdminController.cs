@@ -211,6 +211,8 @@ namespace Ae.Galeriya.Web.Controllers
                 using var blob = await photoRepository.GetBlob(photo.BlobId, Request.HttpContext.RequestAborted);
                 using var image = await Image.LoadAsync(Configuration.Default, blob, Request.HttpContext.RequestAborted);
 
+                image.Metadata.IccProfile = null;
+                image.Metadata.IptcProfile = null;
                 image.Metadata.ExifProfile = null;
 
                 image.Mutate(processor =>
