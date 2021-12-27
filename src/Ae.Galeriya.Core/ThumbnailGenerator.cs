@@ -1,6 +1,5 @@
 ﻿using Ae.MediaMetadata.Entities;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
+using ImageMagick;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,41 +12,34 @@ namespace Ae.Galeriya.Core
     {
         private readonly SemaphoreSlim _semaphore = new(4, 4);
 
-        private readonly IReadOnlyDictionary<MediaOrientation, Action<IImageProcessingContext>?> _orientationActions = new Dictionary<MediaOrientation, Action<IImageProcessingContext>?>
+        private readonly IReadOnlyDictionary<MediaOrientation, Action<MagickImage>?> _orientationActions = new Dictionary<MediaOrientation, Action<MagickImage>?>
         {
             { MediaOrientation.Unknown, null },
             { MediaOrientation.TopLeft, null },
-            { MediaOrientation.TopRight, context => context.Flip(FlipMode.Horizontal) },
-            { MediaOrientation.BottomRight, context => context.Rotate(RotateMode.Rotate180) },
-            { MediaOrientation.BottomLeft, context => context.Flip(FlipMode.Vertical) },
-            { MediaOrientation.LeftTop, context => context.RotateFlip(RotateMode.Rotate90, FlipMode.Horizontal) },
-            { MediaOrientation.RightTop, context => context.Rotate(RotateMode.Rotate90) },
-            { MediaOrientation.RightBottom, context => context.RotateFlip(RotateMode.Rotate270, FlipMode.Vertical) },
-            { MediaOrientation.LeftBottom, context => context.Rotate(RotateMode.Rotate270) },
+            { MediaOrientation.TopRight, context => context.Flop() },
+            { MediaOrientation.BottomRight, context => context.Rotate(180) },
+            { MediaOrientation.BottomLeft, context => context.Flip() },
+            { MediaOrientation.LeftTop, context => { context.Rotate(90); context.Flop(); } },
+            { MediaOrientation.RightTop, context => context.Rotate(90) },
+            { MediaOrientation.RightBottom, context => { context.Rotate(270); context.Flip(); } },
+            { MediaOrientation.LeftBottom, context => context.Rotate(270) },
         };
 
-        public async Task<Stream> GenerateThumbnail(Stream stream, MediaOrientation orientation, int width, int height, ResizeMode mode, CancellationToken token)
+        public async Task GenerateThumbnail(Stream stream, FileInfo fileInfo, MediaOrientation orientation, int width, int height, CancellationToken token)
         {
             await _semaphore.WaitAsync(token);
 
             try
             {
-                using var image = await Image.LoadAsync(Configuration.Default, stream, token);
-
-                image.Mutate(processor =>
+                using (var image = new MagickImage(stream))
                 {
-                    processor.Resize(new ResizeOptions
-                    {
-                        Mode = mode,
-                        Size = new Size(width, height)
-                    });
-                    _orientationActions[orientation]?.Invoke(processor);
-                });
-
-                var ms = new MemoryStream();
-                await image.SaveAsJpegAsync(ms, token);
-                ms.Position = 0;
-                return ms;
+                    image.Format = MagickFormat.Jpeg;
+                    image.Quality = 50;
+                    image.Strip();
+                    image.Resize(width, height);
+                    _orientationActions[orientation]?.Invoke(image);
+                    image.Write(fileInfo);
+                }
             }
             finally
             {

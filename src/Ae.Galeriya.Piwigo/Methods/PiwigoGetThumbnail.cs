@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
-using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -53,9 +52,11 @@ namespace Ae.Galeriya.Piwigo.Methods
         {
             var cacheBlobId = CacheHash(width, height, type, photo.PhotoId);
 
+            var thumbnailBlobRepository = _piwigoConfiguration.ThumbnailBlobRepository(_serviceProvider);
+
             try
             {
-                return (await _piwigoConfiguration.ThumbnailBlobRepository(_serviceProvider).GetBlob(cacheBlobId, token), cacheBlobId);
+                return (await thumbnailBlobRepository.GetBlob(cacheBlobId, token), cacheBlobId);
             }
             catch (BlobNotFoundException)
             {
@@ -64,14 +65,16 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             using var stream = await _piwigoConfiguration.PersistentBlobRepository(_serviceProvider).GetBlob(photo.BlobId + (photo.HasThumbnail ? "_thumb" : string.Empty), token);
 
-            var resizeMode = type == "classic" ? ResizeMode.Max : ResizeMode.Crop;
+            var cacheBlobFileInfo = thumbnailBlobRepository.GetFileInfoForBlob(cacheBlobId);
 
-            using (var thumbnail = await _thumbnailGenerator.GenerateThumbnail(stream, photo.Orientation, width, height, resizeMode, token))
+            await _thumbnailGenerator.GenerateThumbnail(stream, cacheBlobFileInfo, photo.Orientation, width, height, token);
+
+            using (var thumbnail = cacheBlobFileInfo.OpenRead())
             {
-                await _piwigoConfiguration.ThumbnailBlobRepository(_serviceProvider).PutBlob(thumbnail, cacheBlobId, token);
+                await thumbnailBlobRepository.PutBlob(thumbnail, cacheBlobId, token);
             }
 
-            return (await _piwigoConfiguration.ThumbnailBlobRepository(_serviceProvider).GetBlob(cacheBlobId, token), cacheBlobId);
+            return (await thumbnailBlobRepository.GetBlob(cacheBlobId, token), cacheBlobId);
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
