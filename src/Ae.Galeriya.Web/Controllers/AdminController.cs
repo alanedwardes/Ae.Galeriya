@@ -202,7 +202,7 @@ namespace Ae.Galeriya.Web.Controllers
 
             var encoder = new JpegEncoder
             {
-                Quality = 25
+                Quality = 0
             };
 
             var photos = await context.Photos.Where(x => x.HasThumbnail == false).OrderBy(X => X.PhotoId).ToArrayAsync();
