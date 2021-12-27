@@ -1,16 +1,20 @@
 ﻿using Ae.Galeriya.Console;
 using Ae.Galeriya.Core;
 using Ae.Galeriya.Core.Tables;
+using Ae.Galeriya.Piwigo;
 using Ae.Galeriya.Web.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Ae.Galeriya.Web.Controllers
@@ -20,15 +24,17 @@ namespace Ae.Galeriya.Web.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly GaleriyaConfiguration _configuration;
+        private readonly IPiwigoConfiguration _piwigoConfiguration;
         private readonly IServiceProvider _serviceProvider;
 
         public string AuthorizationHeader => "Authorization";
         public string BasicPrefix => "Basic";
 
-        public AdminController(UserManager<User> userManager, GaleriyaConfiguration configuration, IServiceProvider serviceProvider)
+        public AdminController(UserManager<User> userManager, GaleriyaConfiguration configuration, IPiwigoConfiguration piwigoConfiguration, IServiceProvider serviceProvider)
         {
             _userManager = userManager;
             _configuration = configuration;
+            _piwigoConfiguration = piwigoConfiguration;
             _serviceProvider = serviceProvider;
         }
 
@@ -183,6 +189,47 @@ namespace Ae.Galeriya.Web.Controllers
             await context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet("migrate")]
+        public async Task Migrate()
+        {
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+
+            var tempRepository = _piwigoConfiguration.TemporaryBlobRepository(_serviceProvider);
+            var photoRepository = _piwigoConfiguration.PersistentBlobRepository(_serviceProvider);
+
+            var photos = await context.Photos.Where(x => x.HasThumbnail == false).OrderBy(X => X.PhotoId).ToArrayAsync();
+            foreach (var photo in photos)
+            {
+                using var blob = await photoRepository.GetBlob(photo.BlobId, Request.HttpContext.RequestAborted);
+                using var image = await Image.LoadAsync(Configuration.Default, blob, Request.HttpContext.RequestAborted);
+
+                image.Mutate(processor =>
+                {
+                    processor.Resize(new ResizeOptions
+                    {
+                        Mode = ResizeMode.Max,
+                        Size = new Size(2000, 2000)
+                    });
+                });
+
+                var thumbBlob = photo.BlobId + "_thumb";
+
+                var tempFileInfo = tempRepository.GetFileInfoForBlob(thumbBlob);
+                using (var writeStream = tempFileInfo.OpenWrite())
+                {
+                    await image.SaveAsJpegAsync(writeStream, Request.HttpContext.RequestAborted);
+                }
+
+                using (var readStream = tempFileInfo.OpenRead())
+                {
+                    await photoRepository.PutBlob(readStream, thumbBlob, Request.HttpContext.RequestAborted);
+                }
+
+                //photo.HasThumbnail = true;
+                //await context.SaveChangesAsync(Request.HttpContext.RequestAborted);
+            }
         }
     }
 }
