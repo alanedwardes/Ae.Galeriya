@@ -202,7 +202,7 @@ namespace Ae.Galeriya.Web.Controllers
 
             var encoder = new JpegEncoder
             {
-                Quality = 50
+                Quality = 25
             };
 
             var photos = await context.Photos.Where(x => x.HasThumbnail == false).OrderBy(X => X.PhotoId).ToArrayAsync();
@@ -210,6 +210,8 @@ namespace Ae.Galeriya.Web.Controllers
             {
                 using var blob = await photoRepository.GetBlob(photo.BlobId, Request.HttpContext.RequestAborted);
                 using var image = await Image.LoadAsync(Configuration.Default, blob, Request.HttpContext.RequestAborted);
+
+                image.Metadata.ExifProfile = null;
 
                 image.Mutate(processor =>
                 {
