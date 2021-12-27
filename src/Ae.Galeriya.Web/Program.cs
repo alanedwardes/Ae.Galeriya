@@ -49,7 +49,7 @@ namespace Ae.Galeriya.Console
                 {
                     services.AddSingleton<IFileBlobRepository>(x =>
                     {
-                        return new AutoCleaningFileBlobRepository(x.GetRequiredService<ILogger<AutoCleaningFileBlobRepository>>(), new DirectoryInfo(configuration.UploadCacheDirectory), configuration.UploadCacheDirectorySize);
+                        return new FileBlobRepository(new DirectoryInfo(configuration.UploadCacheDirectory));
                     });
 
                     services.AddCommonServices(configuration);
