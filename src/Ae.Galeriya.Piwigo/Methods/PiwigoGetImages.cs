@@ -33,8 +33,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             if (categoryId.HasValue)
             {
-                var category = await _permissionsRepository.EnsureCanAccessCategory(userId.Value, categoryId.Value, token);
-                photosQuery = photosQuery.Where(x => x.Categories.Contains(category));
+                photosQuery = photosQuery.Where(x => x.Categories.Select(x => x.CategoryId).Contains(categoryId.Value));
             }
 
             switch (order)
