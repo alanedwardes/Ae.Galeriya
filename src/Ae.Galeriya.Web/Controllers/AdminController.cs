@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
@@ -199,6 +200,11 @@ namespace Ae.Galeriya.Web.Controllers
             var tempRepository = _piwigoConfiguration.TemporaryBlobRepository(_serviceProvider);
             var photoRepository = _piwigoConfiguration.PersistentBlobRepository(_serviceProvider);
 
+            var encoder = new JpegEncoder
+            {
+                Quality = 50
+            };
+
             var photos = await context.Photos.Where(x => x.HasThumbnail == false).OrderBy(X => X.PhotoId).ToArrayAsync();
             foreach (var photo in photos)
             {
@@ -219,7 +225,7 @@ namespace Ae.Galeriya.Web.Controllers
                 var tempFileInfo = tempRepository.GetFileInfoForBlob(thumbBlob);
                 using (var writeStream = tempFileInfo.OpenWrite())
                 {
-                    await image.SaveAsJpegAsync(writeStream, Request.HttpContext.RequestAborted);
+                    await image.SaveAsJpegAsync(writeStream, encoder, Request.HttpContext.RequestAborted);
                 }
 
                 using (var readStream = tempFileInfo.OpenRead())
