@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,18 +18,18 @@ namespace Ae.Galeriya.Web.Controllers
     [Route("/admin/")]
     public class AdminController : Controller
     {
-        private readonly GaleriyaDbContext _context;
         private readonly UserManager<User> _userManager;
         private readonly GaleriyaConfiguration _configuration;
+        private readonly IServiceProvider _serviceProvider;
 
         public string AuthorizationHeader => "Authorization";
         public string BasicPrefix => "Basic";
 
-        public AdminController(GaleriyaDbContext context, UserManager<User> userManager, GaleriyaConfiguration configuration)
+        public AdminController(UserManager<User> userManager, GaleriyaConfiguration configuration, IServiceProvider serviceProvider)
         {
-            _context = context;
             _userManager = userManager;
             _configuration = configuration;
+            _serviceProvider = serviceProvider;
         }
 
         private (string Username, string Password)? GetBasicAuth()
@@ -70,15 +71,17 @@ namespace Ae.Galeriya.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+
             return View(new IndexModel
             {
                 Users = await _userManager.Users.ToArrayAsync(),
-                Categories = await _context.Categories
+                Categories = await context.Categories
                     .Where(x => x.ParentCategory == null)
                     .Include(x => x.Users)
                     .Include(x => x.Photos)
                     .ToArrayAsync(),
-                Tags = await _context.Tags
+                Tags = await context.Tags
                     .Include(x => x.Photos)
                     .ToArrayAsync()
             });
@@ -151,7 +154,9 @@ namespace Ae.Galeriya.Web.Controllers
         [HttpGet("categories/{CategoryId}/edit")]
         public async Task<IActionResult> EditCategory([FromRoute] uint categoryId)
         {
-            var category = await _context.Categories.Include(x => x.Users).SingleAsync(x => x.CategoryId == categoryId);
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+
+            var category = await context.Categories.Include(x => x.Users).SingleAsync(x => x.CategoryId == categoryId);
             return View(new EditCategoryModel
             {
                 Category = category,
@@ -162,7 +167,9 @@ namespace Ae.Galeriya.Web.Controllers
         [HttpPost("categories/{CategoryId}/edit")]
         public async Task<IActionResult> EditCategory([FromRoute] uint categoryId, [FromForm] string[] userIds)
         {
-            var category = await _context.Categories.Include(x => x.Users).SingleAsync(x => x.CategoryId == categoryId);
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+
+            var category = await context.Categories.Include(x => x.Users).SingleAsync(x => x.CategoryId == categoryId);
 
             var newUsers = new List<User>();
 
@@ -173,7 +180,7 @@ namespace Ae.Galeriya.Web.Controllers
 
             category.Users = newUsers;
 
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }

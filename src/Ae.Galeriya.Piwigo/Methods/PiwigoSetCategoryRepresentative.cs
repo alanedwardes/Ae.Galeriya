@@ -1,4 +1,5 @@
 ﻿using Ae.Galeriya.Core;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -8,22 +9,24 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoSetCategoryRepresentative : IPiwigoWebServiceMethod
     {
-        private readonly GaleriyaDbContext _context;
+        private readonly IServiceProvider _serviceProvider;
         private readonly ICategoryPermissionsRepository _categoryPermissions;
 
         public string MethodName => "pwg.categories.setRepresentative";
         public bool AllowAnonymous => false;
 
-        public PiwigoSetCategoryRepresentative(GaleriyaDbContext context, ICategoryPermissionsRepository categoryPermissions)
+        public PiwigoSetCategoryRepresentative(IServiceProvider serviceProvider, ICategoryPermissionsRepository categoryPermissions)
         {
-            _context = context;
+            _serviceProvider = serviceProvider;
             _categoryPermissions = categoryPermissions;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
-            var category = await _categoryPermissions.EnsureCanAccessCategory(userId.Value, parameters.GetRequired<uint>("category_id"), token);
-            var photo = await _categoryPermissions.EnsureCanAccessPhoto(userId.Value, parameters.GetRequired<uint>("image_id"), token);
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+
+            var category = await _categoryPermissions.EnsureCanAccessCategory(context, userId.Value, parameters.GetRequired<uint>("category_id"), token);
+            var photo = await _categoryPermissions.EnsureCanAccessPhoto(context, userId.Value, parameters.GetRequired<uint>("image_id"), token);
 
             if (!category.Photos.Contains(photo))
             {
@@ -36,7 +39,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             category.UpdatedById = userId;
             category.UpdatedOn = DateTimeOffset.UtcNow;
             category.CoverPhoto = photo;
-            await _context.SaveChangesAsync(token);
+            await context.SaveChangesAsync(token);
             return null;
         }
     }

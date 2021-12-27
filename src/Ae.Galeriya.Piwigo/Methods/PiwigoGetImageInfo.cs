@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Ae.Galeriya.Core.Tables;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
@@ -13,20 +15,26 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly IPiwigoImageDerivativesGenerator _derivativesGenerator;
         private readonly ICategoryPermissionsRepository _categoryPermissions;
         private readonly IPiwigoBaseAddressLocator _baseAddressLocator;
+        private readonly IServiceProvider _serviceProvider;
 
         public string MethodName => "pwg.images.getInfo";
         public bool AllowAnonymous => false;
 
-        public PiwigoGetImageInfo(IPiwigoImageDerivativesGenerator derivativesGenerator, ICategoryPermissionsRepository categoryPermissions, IPiwigoBaseAddressLocator baseAddressLocator)
+        public PiwigoGetImageInfo(IPiwigoImageDerivativesGenerator derivativesGenerator, ICategoryPermissionsRepository categoryPermissions, IPiwigoBaseAddressLocator baseAddressLocator, IServiceProvider serviceProvider)
         {
             _derivativesGenerator = derivativesGenerator;
             _categoryPermissions = categoryPermissions;
             _baseAddressLocator = baseAddressLocator;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
-            var photo = await _categoryPermissions.EnsureCanAccessPhoto(userId.Value, parameters.GetRequired<uint>("image_id"), token);
+            Photo photo;
+            using (var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>())
+            {
+                photo = await _categoryPermissions.EnsureCanAccessPhoto(context, userId.Value, parameters.GetRequired<uint>("image_id"), token);
+            }
 
             return new PiwigoImage
             {

@@ -1,5 +1,6 @@
 ﻿using Ae.Galeriya.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,24 +12,26 @@ namespace Ae.Galeriya.Piwigo.Methods
     internal sealed class PiwigoGetFavourites : IPiwigoWebServiceMethod
     {
         private readonly ICategoryPermissionsRepository _permissionsRepository;
-        private readonly GaleriyaDbContext _dbContext;
         private readonly IPiwigoPhotosPageGenerator _pageGenerator;
+        private readonly IServiceProvider _serviceProvider;
 
         public string MethodName => "pwg.users.favorites.getList";
         public bool AllowAnonymous => false;
 
-        public PiwigoGetFavourites(ICategoryPermissionsRepository permissionsRepository, GaleriyaDbContext dbContext, IPiwigoPhotosPageGenerator pageGenerator)
+        public PiwigoGetFavourites(ICategoryPermissionsRepository permissionsRepository, IPiwigoPhotosPageGenerator pageGenerator, IServiceProvider serviceProvider)
         {
             _permissionsRepository = permissionsRepository;
-            _dbContext = dbContext;
             _pageGenerator = pageGenerator;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
-            var user = await _dbContext.Users.Include(x => x.FavouritePhotos).SingleAsync(x => x.Id == userId, token);
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
 
-            var photos = _permissionsRepository.GetAccessiblePhotos(userId.Value)
+            var user = await context.Users.Include(x => x.FavouritePhotos).SingleAsync(x => x.Id == userId, token);
+
+            var photos = _permissionsRepository.GetAccessiblePhotos(context, userId.Value)
                 .Where(x => user.FavouritePhotos.Contains(x));
 
             return await _pageGenerator.CreatePage(0, 0, photos, token);

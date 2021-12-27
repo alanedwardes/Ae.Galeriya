@@ -9,7 +9,7 @@ namespace Ae.Galeriya.Core
     {
         public static IServiceCollection AddGaleriyaStore(this IServiceCollection services, Action<DbContextOptionsBuilder> optionsAction)
         {
-            return services.AddDbContext<GaleriyaDbContext>(optionsAction)
+            return services.AddDbContext<GaleriyaDbContext>(optionsAction, ServiceLifetime.Transient)
                 .AddTransient<IPhotoCreator, PhotoCreator>()
                 .AddTransient<ICategoryPermissionsRepository, CategoryPermissionsRepository>()
                 .AddTransient<IMediaInfoExtractor, MediaInfoExtractor>()

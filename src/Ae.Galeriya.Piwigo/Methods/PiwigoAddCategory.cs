@@ -6,34 +6,37 @@ using System.Threading;
 using System.Threading.Tasks;
 using Ae.Galeriya.Core.Tables;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoAddCategory : IPiwigoWebServiceMethod
     {
-        private readonly GaleriyaDbContext _context;
         private readonly ICategoryPermissionsRepository _categoryPermissions;
+        private readonly IServiceProvider _serviceProvider;
 
         public string MethodName => "pwg.categories.add";
         public bool AllowAnonymous => false;
 
-        public PiwigoAddCategory(GaleriyaDbContext context, ICategoryPermissionsRepository categoryPermissions)
+        public PiwigoAddCategory(ICategoryPermissionsRepository categoryPermissions, IServiceProvider serviceProvider)
         {
-            _context = context;
             _categoryPermissions = categoryPermissions;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
             var parentId = parameters.GetRequired<uint>("parent");
 
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+
             Category parentCategory = null;
             if (parentId > 0)
             {
-                parentCategory = await _categoryPermissions.EnsureCanAccessCategory(userId.Value, parentId, token);
+                parentCategory = await _categoryPermissions.EnsureCanAccessCategory(context, userId.Value, parentId, token);
             }
 
-            var user = await _context.Users.SingleAsync(x => x.Id == userId.Value);
+            var user = await context.Users.SingleAsync(x => x.Id == userId.Value);
 
             var category = new Category
             {
@@ -45,8 +48,8 @@ namespace Ae.Galeriya.Piwigo.Methods
                 Users = new[] { user }
             };
 
-            _context.Categories.Add(category);
-            await _context.SaveChangesAsync(token);
+            context.Categories.Add(category);
+            await context.SaveChangesAsync(token);
             return new PiwigoAddedCategoryResponse
             {
                 Info = "Album added",

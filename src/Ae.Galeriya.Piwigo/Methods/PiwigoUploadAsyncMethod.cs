@@ -3,6 +3,7 @@ using Ae.Galeriya.Core.Tables;
 using Ae.Galeriya.Piwigo.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -53,8 +54,10 @@ namespace Ae.Galeriya.Piwigo.Methods
                 return false;
             }
 
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+
             userId = (await _signInManager.UserManager.FindByNameAsync(parameters.GetRequired<string>("username"))).Id;
-            var category = await _categoryPermissions.EnsureCanAccessCategory(userId.Value, parameters.GetRequired<uint>("category"), token);
+            var category = await _categoryPermissions.EnsureCanAccessCategory(context, userId.Value, parameters.GetRequired<uint>("category"), token);
 
             var chunk = parameters.GetRequired<int>("chunk");
             var chunks = parameters.GetRequired<int>("chunks");
@@ -69,15 +72,15 @@ namespace Ae.Galeriya.Piwigo.Methods
             var uploadedFile = await _sessionRepository.AcceptChunk(originalChecksum, chunk, chunks, file, token);
             if (uploadedFile != null)
             {
-                return await CompleteFile(category, fileName, name, userId.Value, creationDate, uploadedFile, CancellationToken.None);
+                return await CompleteFile(context, category, fileName, name, userId.Value, creationDate, uploadedFile, CancellationToken.None);
             }
 
             return new PiwigoUploadedChunkResponse { Message = $"chunks uploaded" };
         }
 
-        private async Task<object> CompleteFile(Category category, string fileName, string name, uint userId, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
+        private async Task<object> CompleteFile(GaleriyaDbContext dbContext, Category category, string fileName, string name, uint userId, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
         {
-            var photo = await _photoCreator.CreatePhoto(_piwigoConfiguration.TemporaryBlobRepository(_serviceProvider), _piwigoConfiguration.PersistentBlobRepository(_serviceProvider), category, fileName, name, userId, creationDate, uploadedFile, token);
+            var photo = await _photoCreator.CreatePhoto(dbContext, _piwigoConfiguration.TemporaryBlobRepository(_serviceProvider), _piwigoConfiguration.PersistentBlobRepository(_serviceProvider), category, fileName, name, userId, creationDate, uploadedFile, token);
 
             return await _webServiceRepository
                 .GetMethod("pwg.images.getInfo")

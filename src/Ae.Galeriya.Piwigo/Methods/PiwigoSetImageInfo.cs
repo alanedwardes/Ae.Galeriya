@@ -6,26 +6,29 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using Ae.Galeriya.Core.Tables;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoSetImageInfo : IPiwigoWebServiceMethod
     {
-        private readonly GaleriyaDbContext _context;
         private readonly ICategoryPermissionsRepository _categoryPermissions;
+        private readonly IServiceProvider _serviceProvider;
 
         public string MethodName => "pwg.images.setInfo";
         public bool AllowAnonymous => false;
 
-        public PiwigoSetImageInfo(GaleriyaDbContext context, ICategoryPermissionsRepository categoryPermissions)
+        public PiwigoSetImageInfo(ICategoryPermissionsRepository categoryPermissions, IServiceProvider serviceProvider)
         {
-            _context = context;
             _categoryPermissions = categoryPermissions;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
-            var photo = await _categoryPermissions.EnsureCanAccessPhoto(userId.Value, parameters.GetRequired<uint>("image_id"), token);
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+
+            var photo = await _categoryPermissions.EnsureCanAccessPhoto(context, userId.Value, parameters.GetRequired<uint>("image_id"), token);
 
             var multipleValueMode = parameters.GetRequired<string>("multiple_value_mode");
 
@@ -43,7 +46,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             {
                 var categoryIds = categoriesString.Split(";").Select(uint.Parse).ToArray();
 
-                var categories = await _context.Categories.Where(x => categoryIds.Contains(x.CategoryId)).ToArrayAsync(token);
+                var categories = await context.Categories.Where(x => categoryIds.Contains(x.CategoryId)).ToArrayAsync(token);
 
                 if (multipleValueMode == "replace")
                 {
@@ -62,7 +65,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                 {
                     var tagIds = tagsString.Split(";").Select(uint.Parse).ToArray();
 
-                    tags = await _context.Tags.Where(x => tagIds.Contains(x.TagId)).ToArrayAsync(token);
+                    tags = await context.Tags.Where(x => tagIds.Contains(x.TagId)).ToArrayAsync(token);
                 }
 
                 if (multipleValueMode == "replace")
@@ -77,7 +80,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             photo.UpdatedOn = DateTimeOffset.UtcNow;
             photo.UpdatedById = userId;
-            await _context.SaveChangesAsync(token);
+            await context.SaveChangesAsync(token);
             return null;
         }
     }

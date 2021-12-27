@@ -1,4 +1,5 @@
 ﻿using Ae.Galeriya.Core;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -8,21 +9,23 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoUpdateCategory : IPiwigoWebServiceMethod
     {
-        private readonly GaleriyaDbContext _context;
         private readonly ICategoryPermissionsRepository _categoryPermissions;
+        private readonly IServiceProvider _serviceProvider;
 
         public string MethodName => "pwg.categories.setInfo";
         public bool AllowAnonymous => false;
 
-        public PiwigoUpdateCategory(GaleriyaDbContext context, ICategoryPermissionsRepository categoryPermissions)
+        public PiwigoUpdateCategory(ICategoryPermissionsRepository categoryPermissions, IServiceProvider serviceProvider)
         {
-            _context = context;
             _categoryPermissions = categoryPermissions;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
-            var category = await _categoryPermissions.EnsureCanAccessCategory(userId.Value, parameters.GetRequired<uint>("category_id"), token);
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+
+            var category = await _categoryPermissions.EnsureCanAccessCategory(context, userId.Value, parameters.GetRequired<uint>("category_id"), token);
 
             if (parameters.TryGetOptional<string>("name", out var name))
             {
@@ -36,7 +39,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             category.UpdatedById = userId;
             category.UpdatedOn = DateTimeOffset.UtcNow;
-            await _context.SaveChangesAsync(token);
+            await context.SaveChangesAsync(token);
             return null;
         }
     }

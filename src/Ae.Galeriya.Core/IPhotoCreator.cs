@@ -8,6 +8,6 @@ namespace Ae.Galeriya.Core
 {
     public interface IPhotoCreator
     {
-        Task<Photo> CreatePhoto(IFileBlobRepository fileBlobRepository, IBlobRepository remoteBlobRepository, Category category, string fileName, string name, uint userId, DateTimeOffset fileCreatedOn, FileInfo uploadedFile, CancellationToken token);
+        Task<Photo> CreatePhoto(GaleriyaDbContext dbContext, IFileBlobRepository fileBlobRepository, IBlobRepository remoteBlobRepository, Category category, string fileName, string name, uint userId, DateTimeOffset fileCreatedOn, FileInfo uploadedFile, CancellationToken token);
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
 using System.Threading;
@@ -15,15 +16,13 @@ namespace Ae.Galeriya.Web.Controllers
     [Route("/api/v1")]
     public sealed class ApiController : Controller
     {
-        private readonly GaleriyaDbContext _dbContext;
         private readonly IPiwigoConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
         private readonly ICategoryPermissionsRepository _categoryPermissions;
         private readonly IPhotoCreator _photoCreator;
 
-        public ApiController(GaleriyaDbContext dbContext, IPiwigoConfiguration configuration, IServiceProvider serviceProvider, ICategoryPermissionsRepository categoryPermissions, IPhotoCreator photoCreator)
+        public ApiController(IPiwigoConfiguration configuration, IServiceProvider serviceProvider, ICategoryPermissionsRepository categoryPermissions, IPhotoCreator photoCreator)
         {
-            _dbContext = dbContext;
             _configuration = configuration;
             _serviceProvider = serviceProvider;
             _categoryPermissions = categoryPermissions;
@@ -33,9 +32,12 @@ namespace Ae.Galeriya.Web.Controllers
         [HttpPost("hashes:query")]
         public async Task<string[]> QueryHashes([FromBody] string[] hashes, CancellationToken token)
         {
-            return await _dbContext.Photos.Where(x => hashes.Contains(x.BlobId))
-                                          .Select(x => x.BlobId)
-                                          .ToArrayAsync(token);
+            using (var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>())
+            {
+                return await context.Photos.Where(x => hashes.Contains(x.BlobId))
+                                           .Select(x => x.BlobId)
+                                           .ToArrayAsync(token);
+            }
         }
 
         [HttpPut("photos:upload")]
@@ -45,7 +47,9 @@ namespace Ae.Galeriya.Web.Controllers
         {
             var userId = HttpContext.User.Identity.GetUserId();
 
-            var category = await _categoryPermissions.EnsureCanAccessCategory(userId, categoryId, token);
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+
+            var category = await _categoryPermissions.EnsureCanAccessCategory(context, userId, categoryId, token);
 
             var fileBlobRepository = _configuration.TemporaryBlobRepository(_serviceProvider);
 
@@ -57,7 +61,7 @@ namespace Ae.Galeriya.Web.Controllers
                 await readStream.CopyToAsync(writeStream);
             }
 
-            await _photoCreator.CreatePhoto(fileBlobRepository, _configuration.PersistentBlobRepository(_serviceProvider), category, name, name, userId, createdOn, fileInfo, token);
+            await _photoCreator.CreatePhoto(context, fileBlobRepository, _configuration.PersistentBlobRepository(_serviceProvider), category, name, name, userId, createdOn, fileInfo, token);
         }
     }
 }

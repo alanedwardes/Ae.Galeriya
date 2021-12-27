@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
@@ -11,15 +12,18 @@ namespace Ae.Galeriya.Piwigo.Methods
     {
         private readonly IPiwigoPhotosPageGenerator _pageGenerator;
         private readonly ICategoryPermissionsRepository _permissionsRepository;
+        private readonly IServiceProvider _serviceProvider;
 
         public string MethodName => "pwg.categories.getImages";
         public bool AllowAnonymous => false;
 
         public PiwigoGetImages(IPiwigoPhotosPageGenerator pageGenerator,
-            ICategoryPermissionsRepository permissionsRepository)
+            ICategoryPermissionsRepository permissionsRepository,
+            IServiceProvider serviceProvider)
         {
             _pageGenerator = pageGenerator;
             _permissionsRepository = permissionsRepository;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
@@ -29,7 +33,9 @@ namespace Ae.Galeriya.Piwigo.Methods
             var categoryId = parameters.GetOptional<uint>("cat_id");
             var order = parameters.GetOptional("order") ?? "date_creation asc";
 
-            var photosQuery = _permissionsRepository.GetAccessiblePhotos(userId.Value);
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+
+            var photosQuery = _permissionsRepository.GetAccessiblePhotos(context, userId.Value);
 
             if (categoryId.HasValue)
             {

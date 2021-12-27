@@ -1,5 +1,7 @@
 ﻿using Ae.Galeriya.Core;
+using Ae.Galeriya.Core.Tables;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -44,7 +46,11 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
-            var photo = await _categoryPermissions.EnsureCanAccessPhoto(userId.Value, parameters.GetRequired<uint>("image_id"), token);
+            Photo photo;
+            using (var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>())
+            {
+                photo = await _categoryPermissions.EnsureCanAccessPhoto(context, userId.Value, parameters.GetRequired<uint>("image_id"), token);
+            }
 
             var stream = await BufferIfNotSeekable(await _piwigoConfiguration.PersistentBlobRepository(_serviceProvider).GetBlob(photo.BlobId, token), token);
 

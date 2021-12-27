@@ -23,17 +23,14 @@ namespace Ae.Galeriya.Core
         private readonly ILogger<PhotoCreator> _logger;
         private readonly IMediaInfoExtractor _infoExtractor;
         private readonly IGoogleGeocodeClient _geocodeClient;
-        private readonly GaleriyaDbContext _dbContext;
 
         public PhotoCreator(ILogger<PhotoCreator> logger,
             IMediaInfoExtractor infoExtractor,
-            IGoogleGeocodeClient geocodeClient,
-            GaleriyaDbContext dbContext)
+            IGoogleGeocodeClient geocodeClient)
         {
             _logger = logger;
             _infoExtractor = infoExtractor;
             _geocodeClient = geocodeClient;
-            _dbContext = dbContext;
         }
 
         private async Task<string?> ExtractSnapshot(IFileBlobRepository fileBlobRepository, IBlobRepository persistentBlobRepository, FileInfo uploadedFile, string hash, CancellationToken token)
@@ -94,14 +91,14 @@ namespace Ae.Galeriya.Core
                 .ToArray();
         }
 
-        public async Task<Photo> CreatePhoto(IFileBlobRepository fileBlobRepository, IBlobRepository persistentBlobRepository, Category category, string fileName, string name, uint userId, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
+        public async Task<Photo> CreatePhoto(GaleriyaDbContext dbContext, IFileBlobRepository fileBlobRepository, IBlobRepository persistentBlobRepository, Category category, string fileName, string name, uint userId, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
         {
             var hash = await CalculateFileHash(uploadedFile, token);
 
-            var existingPhoto = await _dbContext.Photos.SingleOrDefaultAsync(x => x.BlobId == hash, token);
+            var existingPhoto = await dbContext.Photos.SingleOrDefaultAsync(x => x.BlobId == hash, token);
             if (existingPhoto != null)
             {
-                await AddPhotoToCategory(existingPhoto, category, token);
+                await AddPhotoToCategory(dbContext, existingPhoto, category, token);
                 return existingPhoto;
             }
 
@@ -169,22 +166,22 @@ namespace Ae.Galeriya.Core
             if (geocodeResponse != null)
             {
                 var tagName = string.Join(", ", GetMostDescriptiveAddressComponents(geocodeResponse).Select(x => x.LongName));
-                photo.Tags.Add(await CreateTag(userId, tagName, token));
+                photo.Tags.Add(await CreateTag(dbContext, userId, tagName, token));
             }
 
-            _dbContext.Photos.Add(photo);
+            dbContext.Photos.Add(photo);
 
             try
             {
-                await _dbContext.SaveChangesAsync(token);
+                await dbContext.SaveChangesAsync(token);
                 _logger.LogInformation("Added photo with hash {Hash}", hash);
             }
             catch (DbUpdateException e)
             {
                 _logger.LogWarning(e, "Found duplicate photo with hash {Hash}, adding to category instead", hash);
-                _dbContext.Photos.Remove(photo);
-                photo = await _dbContext.Photos.SingleAsync(x => x.BlobId == hash, token);
-                await AddPhotoToCategory(photo, category, token);
+                dbContext.Photos.Remove(photo);
+                photo = await dbContext.Photos.SingleAsync(x => x.BlobId == hash, token);
+                await AddPhotoToCategory(dbContext, photo, category, token);
             }
             finally
             {
@@ -194,13 +191,13 @@ namespace Ae.Galeriya.Core
             return photo;
         }
 
-        private async Task AddPhotoToCategory(Photo photo, Category category, CancellationToken token)
+        private async Task AddPhotoToCategory(GaleriyaDbContext dbContext, Photo photo, Category category, CancellationToken token)
         {
             photo.Categories.Add(category);
 
             try
             {
-                await _dbContext.SaveChangesAsync(token);
+                await dbContext.SaveChangesAsync(token);
             }
             catch (DbUpdateException)
             {
@@ -208,9 +205,9 @@ namespace Ae.Galeriya.Core
             }
         }
 
-        private async Task<Tag> CreateTag(uint userId, string tagName, CancellationToken token)
+        private async Task<Tag> CreateTag(GaleriyaDbContext dbContext, uint userId, string tagName, CancellationToken token)
         {
-            var existingTag = await _dbContext.Tags.SingleOrDefaultAsync(x => x.Name == tagName, token);
+            var existingTag = await dbContext.Tags.SingleOrDefaultAsync(x => x.Name == tagName, token);
             if (existingTag != null)
             {
                 return existingTag;
@@ -222,16 +219,16 @@ namespace Ae.Galeriya.Core
                 CreatedOn = DateTimeOffset.UtcNow,
                 CreatedById = userId
             };
-            _dbContext.Tags.Add(tag);
+            dbContext.Tags.Add(tag);
 
             try
             {
-                await _dbContext.SaveChangesAsync(token);
+                await dbContext.SaveChangesAsync(token);
             }
             catch (DbUpdateException)
             {
-                _dbContext.Tags.Remove(tag);
-                tag = await _dbContext.Tags.SingleAsync(x => x.Name == tagName, token);
+                dbContext.Tags.Remove(tag);
+                tag = await dbContext.Tags.SingleAsync(x => x.Name == tagName, token);
             }
 
             return tag;

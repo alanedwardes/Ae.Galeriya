@@ -6,24 +6,27 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoGetTagsAdmin : IPiwigoWebServiceMethod
     {
-        private readonly GaleriyaDbContext _context;
+        private readonly IServiceProvider _serviceProvider;
 
         public string MethodName => "pwg.tags.getAdminList";
         public bool AllowAnonymous => false;
 
-        public PiwigoGetTagsAdmin(GaleriyaDbContext context)
+        public PiwigoGetTagsAdmin(IServiceProvider serviceProvider)
         {
-            _context = context;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
-            var tags = await _context.Tags.Include(x => x.Photos).ToArrayAsync();
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+
+            var tags = await context.Tags.Include(x => x.Photos).ToArrayAsync();
 
             return new PiwigoTags
             {

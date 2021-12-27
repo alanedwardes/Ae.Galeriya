@@ -6,19 +6,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using Ae.Galeriya.Core.Tables;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoAddTag : IPiwigoWebServiceMethod
     {
-        private readonly GaleriyaDbContext _context;
+        private readonly IServiceProvider _serviceProvider;
 
         public string MethodName => "pwg.tags.add";
         public bool AllowAnonymous => false;
 
-        public PiwigoAddTag(GaleriyaDbContext context)
+        public PiwigoAddTag(IServiceProvider serviceProvider)
         {
-            _context = context;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
@@ -32,15 +33,17 @@ namespace Ae.Galeriya.Piwigo.Methods
                 CreatedOn = DateTimeOffset.UtcNow
             };
 
-            _context.Tags.Add(tag);
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+
+            context.Tags.Add(tag);
 
             try
             {
-                await _context.SaveChangesAsync(token);
+                await context.SaveChangesAsync(token);
             }
             catch (DbUpdateException)
             {
-                tag = await _context.Tags.SingleAsync(x => x.Name == name);
+                tag = await context.Tags.SingleAsync(x => x.Name == name);
             }
 
             return new PiwigoAddedTagResponse

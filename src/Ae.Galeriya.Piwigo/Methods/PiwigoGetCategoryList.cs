@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Ae.Galeriya.Core.Tables;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
@@ -14,14 +15,16 @@ namespace Ae.Galeriya.Piwigo.Methods
     {
         private readonly IPiwigoImageDerivativesGenerator _derivativesGenerator;
         private readonly ICategoryPermissionsRepository _categoryRepository;
+        private readonly IServiceProvider _serviceProvider;
 
         public string MethodName => "pwg.categories.getList";
         public bool AllowAnonymous => false;
 
-        public PiwigoGetCategoryList(IPiwigoImageDerivativesGenerator derivativesGenerator, ICategoryPermissionsRepository categoryRepository)
+        public PiwigoGetCategoryList(IPiwigoImageDerivativesGenerator derivativesGenerator, ICategoryPermissionsRepository categoryRepository, IServiceProvider serviceProvider)
         {
             _derivativesGenerator = derivativesGenerator;
             _categoryRepository = categoryRepository;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
@@ -30,11 +33,13 @@ namespace Ae.Galeriya.Piwigo.Methods
             var recursive = parameters.GetOptional<bool>("recursive") ?? false;
             var thumbnailSize = parameters.GetRequired<string>("thumbnail_size");
 
-            var nullableParentCategory = categoryId == 0 ? null : await _categoryRepository.EnsureCanAccessCategory(userId.Value, categoryId, token);
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+
+            var nullableParentCategory = categoryId == 0 ? null : await _categoryRepository.EnsureCanAccessCategory(context, userId.Value, categoryId, token);
 
             var response = new PiwigoCategories { Categories = new List<PiwigoCategory>() };
 
-            var categories = await _categoryRepository.GetAccessibleCategories(userId.Value).ToArrayAsync(token);
+            var categories = await _categoryRepository.GetAccessibleCategories(context, userId.Value).ToArrayAsync(token);
 
             foreach (var category in categories.Where(x => recursive || x.ParentCategory == nullableParentCategory))
             {

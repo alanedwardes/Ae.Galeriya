@@ -1,6 +1,7 @@
 ﻿using Ae.Galeriya.Core;
 using Ae.Galeriya.Piwigo.Entities;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,7 +36,9 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
-            var category = await _categoryPermissions.EnsureCanAccessCategory(userId.Value, parameters.GetRequired<uint>("category"), token);
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+
+            var category = await _categoryPermissions.EnsureCanAccessCategory(context, userId.Value, parameters.GetRequired<uint>("category"), token);
 
             var name = parameters.GetRequired<string>("name");
 
@@ -48,7 +51,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                 await file.CopyToAsync(write, token);
             }
 
-            var photo = await _photoCreator.CreatePhoto(_piwigoConfiguration.TemporaryBlobRepository(_serviceProvider), _piwigoConfiguration.PersistentBlobRepository(_serviceProvider), category, file.FileName, name, userId.Value, DateTimeOffset.UtcNow, uploadedFile, token);
+            var photo = await _photoCreator.CreatePhoto(context, _piwigoConfiguration.TemporaryBlobRepository(_serviceProvider), _piwigoConfiguration.PersistentBlobRepository(_serviceProvider), category, file.FileName, name, userId.Value, DateTimeOffset.UtcNow, uploadedFile, token);
 
             return new PiwigoUploadedResponse
             {

@@ -1,5 +1,6 @@
 ﻿using Ae.Galeriya.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -10,28 +11,30 @@ namespace Ae.Galeriya.Piwigo.Methods
     internal sealed class PiwigoRemoveFavourite : IPiwigoWebServiceMethod
     {
         private readonly ICategoryPermissionsRepository _categoryPermissions;
-        private readonly GaleriyaDbContext _dbContext;
+        private readonly IServiceProvider _serviceProvider;
 
         public bool AllowAnonymous => false;
 
         public string MethodName => "pwg.users.favorites.remove";
 
-        public PiwigoRemoveFavourite(ICategoryPermissionsRepository categoryPermissions, GaleriyaDbContext dbContext)
+        public PiwigoRemoveFavourite(ICategoryPermissionsRepository categoryPermissions, IServiceProvider serviceProvider)
         {
             _categoryPermissions = categoryPermissions;
-            _dbContext = dbContext;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
-            var photo = await _categoryPermissions.EnsureCanAccessPhoto(userId.Value, parameters.GetRequired<uint>("image_id"), token);
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
 
-            var user = await _dbContext.Users.Include(x => x.FavouritePhotos).SingleAsync(x => x.Id == userId, token);
+            var photo = await _categoryPermissions.EnsureCanAccessPhoto(context, userId.Value, parameters.GetRequired<uint>("image_id"), token);
+
+            var user = await context.Users.Include(x => x.FavouritePhotos).SingleAsync(x => x.Id == userId, token);
 
             if (user.FavouritePhotos.Contains(photo))
             {
                 user.FavouritePhotos.Remove(photo);
-                await _dbContext.SaveChangesAsync();
+                await context.SaveChangesAsync();
             }
 
             return true;

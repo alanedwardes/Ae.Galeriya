@@ -2,6 +2,7 @@
 using Ae.Galeriya.Core.Exceptions;
 using Ae.Galeriya.Core.Tables;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using SixLabors.ImageSharp.Processing;
@@ -81,7 +82,11 @@ namespace Ae.Galeriya.Piwigo.Methods
             var imageId = parameters.GetRequired<uint>("image_id");
 
             var sw = Stopwatch.StartNew();
-            var photo = await _categoryPermissions.EnsureCanAccessPhoto(userId.Value, imageId, token);
+            Photo photo;
+            using (var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>())
+            {
+                photo = await _categoryPermissions.EnsureCanAccessPhoto(context, userId.Value, imageId, token);
+            }
             _logger.LogInformation("Got photo in {TotalSeconds} seconds", sw.Elapsed.TotalSeconds);
 
             sw.Restart();
