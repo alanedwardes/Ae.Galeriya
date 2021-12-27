@@ -204,17 +204,12 @@ namespace Ae.Galeriya.Web.Controllers
                 var thumbBlob = photo.BlobId + "_thumb";
                 var tempFileInfo = tempRepository.GetFileInfoForBlob(thumbBlob);
 
-                using (var collection = new MagickImageCollection(blob))
+                using (var image = new MagickImage(blob))
                 {
-                    collection.Coalesce();
-
-                    foreach (var image in collection)
-                    {
-                        var size = new MagickGeometry(2000, 2000);
-                        image.Resize(size);
-                    }
-
-                    collection.Write(tempFileInfo);
+                    image.Format = MagickFormat.Jpeg;
+                    image.Quality = 50;
+                    image.Resize(2000, 2000);
+                    image.Write(tempFileInfo);
                 }
 
                 using (var readStream = tempFileInfo.OpenRead())
