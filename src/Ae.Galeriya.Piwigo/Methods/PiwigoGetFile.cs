@@ -10,16 +10,18 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoGetFile : IPiwigoWebServiceMethod
     {
-        private readonly IBlobRepository _blobRepository;
         private readonly ICategoryPermissionsRepository _categoryPermissions;
+        private readonly IPiwigoConfiguration _piwigoConfiguration;
+        private readonly IServiceProvider _serviceProvider;
 
         public string MethodName => "pwg.images.getFile";
         public bool AllowAnonymous => false;
 
-        public PiwigoGetFile(IBlobRepository blobRepository, ICategoryPermissionsRepository categoryPermissions)
+        public PiwigoGetFile(ICategoryPermissionsRepository categoryPermissions, IPiwigoConfiguration piwigoConfiguration, IServiceProvider serviceProvider)
         {
-            _blobRepository = blobRepository;
             _categoryPermissions = categoryPermissions;
+            _piwigoConfiguration = piwigoConfiguration;
+            _serviceProvider = serviceProvider;
         }
 
         private static async Task<Stream> BufferIfNotSeekable(Stream stream, CancellationToken token)
@@ -44,7 +46,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         {
             var photo = await _categoryPermissions.EnsureCanAccessPhoto(userId.Value, parameters.GetRequired<uint>("image_id"), token);
 
-            var stream = await BufferIfNotSeekable(await _blobRepository.GetBlob(photo.BlobId, token), token);
+            var stream = await BufferIfNotSeekable(await _piwigoConfiguration.PersistentBlobRepository(_serviceProvider).GetBlob(photo.BlobId, token), token);
 
             return new FileStreamResult(stream, "application/octet-stream")
             {

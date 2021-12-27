@@ -21,25 +21,22 @@ namespace Ae.Galeriya.Core
     internal sealed class PhotoCreator : IPhotoCreator
     {
         private readonly ILogger<PhotoCreator> _logger;
-        private readonly IBlobRepository _photoCreator;
         private readonly IMediaInfoExtractor _infoExtractor;
         private readonly IGoogleGeocodeClient _geocodeClient;
         private readonly GaleriyaDbContext _dbContext;
 
         public PhotoCreator(ILogger<PhotoCreator> logger,
-            IBlobRepository photoCreator,
             IMediaInfoExtractor infoExtractor,
             IGoogleGeocodeClient geocodeClient,
             GaleriyaDbContext dbContext)
         {
             _logger = logger;
-            _photoCreator = photoCreator;
             _infoExtractor = infoExtractor;
             _geocodeClient = geocodeClient;
             _dbContext = dbContext;
         }
 
-        private async Task<string?> ExtractSnapshot(IFileBlobRepository fileBlobRepository, FileInfo uploadedFile, string hash, CancellationToken token)
+        private async Task<string?> ExtractSnapshot(IFileBlobRepository fileBlobRepository, IBlobRepository persistentBlobRepository, FileInfo uploadedFile, string hash, CancellationToken token)
         {
             var sw = Stopwatch.StartNew();
 
@@ -53,7 +50,7 @@ namespace Ae.Galeriya.Core
                 snapshotId = hash + "_thumb";
                 try
                 {
-                    await _photoCreator.PutBlob(snapshotFile.OpenRead(), snapshotId, token);
+                    await persistentBlobRepository.PutBlob(snapshotFile.OpenRead(), snapshotId, token);
                 }
                 finally
                 {
@@ -97,7 +94,7 @@ namespace Ae.Galeriya.Core
                 .ToArray();
         }
 
-        public async Task<Photo> CreatePhoto(IFileBlobRepository fileBlobRepository, Category category, string fileName, string name, uint userId, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
+        public async Task<Photo> CreatePhoto(IFileBlobRepository fileBlobRepository, IBlobRepository persistentBlobRepository, Category category, string fileName, string name, uint userId, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
         {
             var hash = await CalculateFileHash(uploadedFile, token);
 
@@ -108,9 +105,9 @@ namespace Ae.Galeriya.Core
                 return existingPhoto;
             }
 
-            var blobIdTask = _photoCreator.PutBlob(uploadedFile.OpenRead(), hash, token);
+            var blobIdTask = persistentBlobRepository.PutBlob(uploadedFile.OpenRead(), hash, token);
             var mediaInfo = await _infoExtractor.ExtractInformation(uploadedFile, token);
-            var snapshotIdTask = mediaInfo.Duration.HasValue ? ExtractSnapshot(fileBlobRepository, uploadedFile, hash, token) : Task.FromResult<string?>(null);
+            var snapshotIdTask = mediaInfo.Duration.HasValue ? ExtractSnapshot(fileBlobRepository, persistentBlobRepository, uploadedFile, hash, token) : Task.FromResult<string?>(null);
             var locationTask = LookupLocation(mediaInfo, token);
 
             if (mediaInfo.Size.Width == 0 || mediaInfo.Size.Height == 0)

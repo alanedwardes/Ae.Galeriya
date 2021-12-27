@@ -21,7 +21,6 @@ namespace Ae.Galeriya.Piwigo.Methods
     {
         private readonly ILogger<PiwigoGetThumbnail> _logger;
         private readonly ICategoryPermissionsRepository _categoryPermissions;
-        private readonly IBlobRepository _blobRepository;
         private readonly IPiwigoConfiguration _piwigoConfiguration;
         private readonly IThumbnailGenerator _thumbnailGenerator;
         private readonly IServiceProvider _serviceProvider;
@@ -31,14 +30,12 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public PiwigoGetThumbnail(ILogger<PiwigoGetThumbnail> logger,
             ICategoryPermissionsRepository categoryPermissions,
-            IBlobRepository blobRepository,
             IPiwigoConfiguration piwigoConfiguration,
             IThumbnailGenerator thumbnailGenerator,
             IServiceProvider serviceProvider)
         {
             _logger = logger;
             _categoryPermissions = categoryPermissions;
-            _blobRepository = blobRepository;
             _piwigoConfiguration = piwigoConfiguration;
             _thumbnailGenerator = thumbnailGenerator;
             _serviceProvider = serviceProvider;
@@ -57,23 +54,23 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             try
             {
-                return (await _piwigoConfiguration.FileBlobRepository(_serviceProvider).GetBlob(cacheBlobId, token), cacheBlobId);
+                return (await _piwigoConfiguration.ThumbnailBlobRepository(_serviceProvider).GetBlob(cacheBlobId, token), cacheBlobId);
             }
             catch (BlobNotFoundException)
             {
                 _logger.LogWarning("No cached thumbnail for {PhotoId}, generating from source", photo.PhotoId);
             }
 
-            using var stream = await _blobRepository.GetBlob(photo.BlobId + (photo.HasThumbnail ? "_thumb" : string.Empty), token);
+            using var stream = await _piwigoConfiguration.PersistentBlobRepository(_serviceProvider).GetBlob(photo.BlobId + (photo.HasThumbnail ? "_thumb" : string.Empty), token);
 
             var resizeMode = type == "classic" ? ResizeMode.Max : ResizeMode.Crop;
 
             using (var thumbnail = await _thumbnailGenerator.GenerateThumbnail(stream, photo.Orientation, width, height, resizeMode, token))
             {
-                await _piwigoConfiguration.FileBlobRepository(_serviceProvider).PutBlob(thumbnail, cacheBlobId, token);
+                await _piwigoConfiguration.ThumbnailBlobRepository(_serviceProvider).PutBlob(thumbnail, cacheBlobId, token);
             }
 
-            return (await _piwigoConfiguration.FileBlobRepository(_serviceProvider).GetBlob(cacheBlobId, token), cacheBlobId);
+            return (await _piwigoConfiguration.ThumbnailBlobRepository(_serviceProvider).GetBlob(cacheBlobId, token), cacheBlobId);
         }
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)

@@ -41,14 +41,14 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             var file = _contextAccessor.HttpContext.Request.Form.Files.Single();
 
-            var uploadedFile = _piwigoConfiguration.FileBlobRepository(_serviceProvider).GetFileInfoForBlob(Guid.NewGuid().ToString());
+            var uploadedFile = _piwigoConfiguration.TemporaryBlobRepository(_serviceProvider).GetFileInfoForBlob(Guid.NewGuid().ToString());
 
             using (var write = uploadedFile.OpenWrite())
             {
                 await file.CopyToAsync(write, token);
             }
 
-            var photo = await _photoCreator.CreatePhoto(_piwigoConfiguration.FileBlobRepository(_serviceProvider), category, file.FileName, name, userId.Value, DateTimeOffset.UtcNow, uploadedFile, token);
+            var photo = await _photoCreator.CreatePhoto(_piwigoConfiguration.TemporaryBlobRepository(_serviceProvider), _piwigoConfiguration.PersistentBlobRepository(_serviceProvider), category, file.FileName, name, userId.Value, DateTimeOffset.UtcNow, uploadedFile, token);
 
             return new PiwigoUploadedResponse
             {

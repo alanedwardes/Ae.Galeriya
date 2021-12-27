@@ -77,7 +77,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         private async Task<object> CompleteFile(Category category, string fileName, string name, uint userId, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
         {
-            var photo = await _photoCreator.CreatePhoto(_piwigoConfiguration.FileBlobRepository(_serviceProvider), category, fileName, name, userId, creationDate, uploadedFile, token);
+            var photo = await _photoCreator.CreatePhoto(_piwigoConfiguration.TemporaryBlobRepository(_serviceProvider), _piwigoConfiguration.PersistentBlobRepository(_serviceProvider), category, fileName, name, userId, creationDate, uploadedFile, token);
 
             return await _webServiceRepository
                 .GetMethod("pwg.images.getInfo")

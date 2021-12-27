@@ -47,26 +47,24 @@ namespace Ae.Galeriya.Console
                 })
                 .ConfigureServices(services =>
                 {
-                    services.AddSingleton<IFileBlobRepository>(x =>
-                    {
-                        return new FileBlobRepository(new DirectoryInfo(configuration.UploadCacheDirectory));
-                    });
-
                     services.AddCommonServices(configuration);
                     services.AddSingleton(configuration);
                     services.AddHttpClient<IGoogleGeocodeClient, GoogleGeocodeClient>(x => x.BaseAddress = new Uri("https://maps.googleapis.com/"))
                             .AddHttpMessageHandler(x => new GoogleGeocodeAuthenticationHandler(configuration.GoogleApiKey));
                     services.AddSingleton<ITransferUtility, TransferUtility>();
-                    services.AddSingleton<IBlobRepository>(x =>
-                    {
-                        var remoteBlobRepository = new AmazonS3BlobRepository(x.GetRequiredService<ITransferUtility>(), configuration.BucketName);
-                        return new CachingBlobRepository(x.GetRequiredService<IFileBlobRepository>(), remoteBlobRepository);
-                    });
+
+                    var fileCache = new FileBlobRepository(new DirectoryInfo(Path.Combine(configuration.UploadCacheDirectory, "files")));
 
                     services.AddPiwigo(new PiwigoConfiguration
                     {
-                        ChunkBlobRepository = x => x.GetRequiredService<IFileBlobRepository>(),
-                        FileBlobRepository = x => x.GetRequiredService<IFileBlobRepository>()
+                        ChunkBlobRepository = x => new FileBlobRepository(new DirectoryInfo(Path.Combine(configuration.UploadCacheDirectory, "chunks"))),
+                        TemporaryBlobRepository = x => fileCache,
+                        ThumbnailBlobRepository = x => new FileBlobRepository(new DirectoryInfo(Path.Combine(configuration.UploadCacheDirectory, "thumbnails"))),
+                        PersistentBlobRepository = x => 
+                        {
+                            var remoteBlobRepository = new AmazonS3BlobRepository(x.GetRequiredService<ITransferUtility>(), configuration.BucketName);
+                            return new CachingBlobRepository(fileCache, remoteBlobRepository);
+                        }
                     });
                 });
 

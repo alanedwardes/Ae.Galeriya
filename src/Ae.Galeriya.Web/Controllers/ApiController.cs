@@ -47,7 +47,7 @@ namespace Ae.Galeriya.Web.Controllers
 
             var category = await _categoryPermissions.EnsureCanAccessCategory(userId, categoryId, token);
 
-            var fileBlobRepository = _configuration.FileBlobRepository(_serviceProvider);
+            var fileBlobRepository = _configuration.TemporaryBlobRepository(_serviceProvider);
 
             var fileInfo = fileBlobRepository.GetFileInfoForBlob(Guid.NewGuid().ToString());
 
@@ -57,7 +57,7 @@ namespace Ae.Galeriya.Web.Controllers
                 await readStream.CopyToAsync(writeStream);
             }
 
-            await _photoCreator.CreatePhoto(fileBlobRepository, category, name, name, userId, createdOn, fileInfo, token);
+            await _photoCreator.CreatePhoto(fileBlobRepository, _configuration.PersistentBlobRepository(_serviceProvider), category, name, name, userId, createdOn, fileInfo, token);
         }
     }
 }

@@ -36,7 +36,7 @@ namespace Ae.Galeriya.Piwigo
 
             if (parts.All(_uploadedChunks.ContainsKey))
             {
-                var uploadFile = _configuration.FileBlobRepository(_serviceProvider).GetFileInfoForBlob(Guid.NewGuid().ToString());
+                var uploadFile = _configuration.TemporaryBlobRepository(_serviceProvider).GetFileInfoForBlob(Guid.NewGuid().ToString());
 
                 using (var fileWriteStream = uploadFile.Open(FileMode.Create))
                 {

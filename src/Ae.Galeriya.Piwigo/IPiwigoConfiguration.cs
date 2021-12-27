@@ -6,6 +6,8 @@ namespace Ae.Galeriya.Piwigo
     public interface IPiwigoConfiguration
     {
         Func<IServiceProvider, IBlobRepository> ChunkBlobRepository { get; }
-        Func<IServiceProvider, IFileBlobRepository> FileBlobRepository { get; }
+        Func<IServiceProvider, IFileBlobRepository> TemporaryBlobRepository { get; }
+        Func<IServiceProvider, IFileBlobRepository> ThumbnailBlobRepository { get; }
+        Func<IServiceProvider, IBlobRepository> PersistentBlobRepository { get; }
     }
 }
