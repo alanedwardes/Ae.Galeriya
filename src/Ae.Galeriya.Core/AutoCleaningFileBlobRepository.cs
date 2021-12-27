@@ -45,8 +45,6 @@ namespace Ae.Galeriya.Core
 
         public void Cleanup()
         {
-            var writeGracePeriod = TimeSpan.FromHours(24);
-
             var files = _directory.GetFiles();
             var totalSize = files.Sum(x => x.Length);
             var exceededBytes = totalSize - _maxSizeInBytes;
@@ -54,7 +52,7 @@ namespace Ae.Galeriya.Core
             {
                 var reclaimedBytes = 0L;
                 var reclaimedFiles = 0;
-                foreach (var file in files.Where(x => x.LastWriteTimeUtc < (DateTime.UtcNow - writeGracePeriod)).OrderBy(x => x.LastAccessTimeUtc))
+                foreach (var file in files.OrderBy(x => x.LastWriteTimeUtc).ThenBy(x => x.LastAccessTimeUtc).ThenByDescending(x => x.Length))
                 {
                     if (reclaimedBytes > exceededBytes)
                     {
