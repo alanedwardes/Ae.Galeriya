@@ -98,8 +98,8 @@ namespace Ae.Galeriya.Web.Controllers
 
             var user = await context.Users.SingleAsync(x => x.Id == HttpContext.User.Identity.GetUserId(), HttpContext.RequestAborted);
 
-            var groups = hashPaths.GroupBy(x => Path.GetDirectoryName(x.Key))
-                .ToDictionary(x => x.Key, x => x.Select(x => x.Value).ToArray());
+            var groups = hashPaths.GroupBy(x => Path.GetDirectoryName(x.Value))
+                .ToDictionary(x => x.Key, x => x.Select(x => x.Key).ToArray());
 
             var allCategories = groups.Keys.SelectMany(x => x.Split('/')).ToHashSet();
             var allHashes = groups.Values.SelectMany(x => x).ToHashSet();
