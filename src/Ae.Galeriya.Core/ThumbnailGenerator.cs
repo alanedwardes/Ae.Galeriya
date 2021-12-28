@@ -1,5 +1,6 @@
 ﻿using Ae.MediaMetadata.Entities;
 using ImageMagick;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +11,12 @@ namespace Ae.Galeriya.Core
 {
     internal sealed class ThumbnailGenerator : IThumbnailGenerator
     {
-        private readonly SemaphoreSlim _semaphore = new(8, 8);
+        private readonly ILogger<ThumbnailGenerator> _logger;
+
+        public ThumbnailGenerator(ILogger<ThumbnailGenerator> logger)
+        {
+            _logger = logger;
+        }
 
         private readonly IReadOnlyDictionary<MediaOrientation, Action<MagickImage>?> _orientationActions = new Dictionary<MediaOrientation, Action<MagickImage>?>
         {
@@ -27,20 +33,6 @@ namespace Ae.Galeriya.Core
 
         public async Task GenerateThumbnail(Stream stream, FileInfo fileInfo, MediaOrientation orientation, int width, int height, CancellationToken token)
         {
-            await _semaphore.WaitAsync(token);
-
-            try
-            {
-                await GenerateThumbnailInternal(stream, fileInfo, orientation, width, height, token);
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-        }
-
-        private async Task GenerateThumbnailInternal(Stream stream, FileInfo fileInfo, MediaOrientation orientation, int width, int height, CancellationToken token)
-        {
             using MagickImage image = CreateImage(stream);
             image.Format = MagickFormat.Jpeg;
             image.Quality = 50;
@@ -50,7 +42,7 @@ namespace Ae.Galeriya.Core
             await image.WriteAsync(fileInfo, token);
         }
 
-        private static MagickImage CreateImage(Stream stream)
+        private MagickImage CreateImage(Stream stream)
         {
             if (stream is FileStream fs)
             {
@@ -63,6 +55,7 @@ namespace Ae.Galeriya.Core
                 return new MagickImage(fi);
             }
 
+            _logger.LogWarning("Not able to load image from disc for thumbnail, this may be slower");
             return new MagickImage(stream);
         }
     }
