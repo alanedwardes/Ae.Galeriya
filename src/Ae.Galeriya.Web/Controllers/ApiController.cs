@@ -90,7 +90,7 @@ namespace Ae.Galeriya.Web.Controllers
             return previousCategory;
         }
 
-        [HttpPost("photos:paths")]
+        [HttpPut("photos:paths")]
         public async Task CategorisePhotos(IReadOnlyDictionary<string, string> hashPaths)
         {
             var userId = HttpContext.User.Identity.GetUserId();
