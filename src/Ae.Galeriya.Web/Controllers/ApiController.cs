@@ -91,7 +91,7 @@ namespace Ae.Galeriya.Web.Controllers
         }
 
         [HttpPut("photos:paths")]
-        public async Task CategorisePhotos(IReadOnlyDictionary<string, string> hashPaths)
+        public async Task CategorisePhotos([FromBody] Dictionary<string, string> hashPaths)
         {
             var userId = HttpContext.User.Identity.GetUserId();
 
