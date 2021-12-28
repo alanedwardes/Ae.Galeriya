@@ -18,6 +18,8 @@ namespace Ae.Galeriya.Core
             _logger = logger;
         }
 
+        private readonly SemaphoreSlim _semaphore = new(10, 10);
+
         private readonly IReadOnlyDictionary<MediaOrientation, Action<MagickImage>?> _orientationActions = new Dictionary<MediaOrientation, Action<MagickImage>?>
         {
             { MediaOrientation.Unknown, null },
@@ -32,6 +34,20 @@ namespace Ae.Galeriya.Core
         };
 
         public async Task GenerateThumbnail(Stream stream, FileInfo fileInfo, MediaOrientation orientation, int width, int height, CancellationToken token)
+        {
+            await _semaphore.WaitAsync(token);
+
+            try
+            {
+                await GenerateThumbnailInternal(stream, fileInfo, orientation, width, height, token);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        private async Task GenerateThumbnailInternal(Stream stream, FileInfo fileInfo, MediaOrientation orientation, int width, int height, CancellationToken token)
         {
             using MagickImage image = CreateImage(stream);
             image.Format = MagickFormat.Jpeg;
