@@ -34,7 +34,15 @@
 
         const fileHashes = Object.keys(fileHashMap);
 
-        statusElement.innerText = 'Checking if any of the ' + fileHashes.length + ' unique files have already been uploaded'
+        statusElement.innerText = 'Checking if any of the ' + fileHashes.length + ' unique files have already been uploaded';
+
+        const hashPaths = {};
+        for (const hash in fileHashMap) {
+            const file = fileHashMap[hash];
+            if (file.webkitRelativePath !== undefined) {
+                hashPaths[hash] = file.webkitRelativePath;
+            }
+        }
 
         const response = await fetch('/api/v1/hashes:query', {
             method: 'POST',
@@ -59,6 +67,15 @@
             filesUploaded++;
             await uploadFile(fileHashMap[hash]);
         }
+
+        await fetch('/api/v1/photos:paths', {
+            method: 'PUT',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(hashPaths)
+        });
 
         statusElement.innerText = 'All files uploaded';
     }
