@@ -66,7 +66,6 @@ namespace Ae.Galeriya.Piwigo
                 await WriteJsonResult(new PiwigoResponse { Stat = "fail", Error = e.HResult, Message = e.Message });
                 if (e is not OperationCanceledException)
                 {
-                    logger.LogCritical(e, "Exception thrown from {MethodName}", method.MethodName);
                     throw;
                 }
 

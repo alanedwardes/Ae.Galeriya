@@ -77,8 +77,8 @@ namespace Ae.Galeriya.Piwigo.Methods
                     ImageCount = category.Photos.Count,
                     TotalImageCount = category.Photos.Count,
                     RepresentativePictureId = firstPhoto,
-                    LastImageDate = lastPhoto?.TakenOn ?? lastPhoto.CreatedOn,
-                    PageLastImageDate = lastPhoto.TakenOn ?? lastPhoto.CreatedOn,
+                    LastImageDate = lastPhoto?.TakenOn ?? lastPhoto?.CreatedOn,
+                    PageLastImageDate = lastPhoto?.TakenOn ?? lastPhoto?.CreatedOn,
                     CategoryCount = categories.Count(x => x.ParentCategory == category),
                     Url = new Uri("https://www.example.com/"),
                     ThumbnailUrl = thumbnailUri
