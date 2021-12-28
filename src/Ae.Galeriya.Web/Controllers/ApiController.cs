@@ -105,7 +105,6 @@ namespace Ae.Galeriya.Web.Controllers
             var allHashes = groups.Values.SelectMany(x => x).ToHashSet();
 
             var categories = await _categoryPermissions.GetAccessibleCategories(context, user.Id)
-                .Where(x => allCategories.Contains(x.Name))
                 .ToArrayAsync(HttpContext.RequestAborted);
 
             var photos = await _categoryPermissions.GetAccessiblePhotos(context, user.Id)
