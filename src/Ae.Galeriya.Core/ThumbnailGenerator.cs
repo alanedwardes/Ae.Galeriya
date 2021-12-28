@@ -31,18 +31,39 @@ namespace Ae.Galeriya.Core
 
             try
             {
-                using var image = new MagickImage(stream);
-                image.Format = MagickFormat.Jpeg;
-                image.Quality = 50;
-                image.Strip();
-                image.Resize(width, height);
-                _orientationActions[orientation]?.Invoke(image);
-                await image.WriteAsync(fileInfo, token);
+                await GenerateThumbnailInternal(stream, fileInfo, orientation, width, height, token);
             }
             finally
             {
                 _semaphore.Release();
             }
+        }
+
+        private async Task GenerateThumbnailInternal(Stream stream, FileInfo fileInfo, MediaOrientation orientation, int width, int height, CancellationToken token)
+        {
+            using MagickImage image = CreateImage(stream);
+            image.Format = MagickFormat.Jpeg;
+            image.Quality = 50;
+            image.Strip();
+            image.Resize(width, height);
+            _orientationActions[orientation]?.Invoke(image);
+            await image.WriteAsync(fileInfo, token);
+        }
+
+        private static MagickImage CreateImage(Stream stream)
+        {
+            if (stream is FileStream fs)
+            {
+                var fi = new FileInfo(fs.Name);
+
+                using (fs)
+                {
+                }
+
+                return new MagickImage(fi);
+            }
+
+            return new MagickImage(stream);
         }
     }
 }
