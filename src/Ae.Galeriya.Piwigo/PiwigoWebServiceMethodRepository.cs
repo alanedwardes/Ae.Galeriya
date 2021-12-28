@@ -63,11 +63,13 @@ namespace Ae.Galeriya.Piwigo
             catch (Exception e)
             {
                 context.Response.StatusCode = 500;
+                await WriteJsonResult(new PiwigoResponse { Stat = "fail", Error = e.HResult, Message = e.Message });
                 if (e is not OperationCanceledException)
                 {
                     logger.LogCritical(e, "Exception thrown from {MethodName}", method.MethodName);
+                    throw;
                 }
-                await WriteJsonResult(new PiwigoResponse { Stat = "fail", Error = e.HResult, Message = e.Message });
+
                 return;
             }
 
