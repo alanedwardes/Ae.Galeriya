@@ -10,7 +10,7 @@ namespace Ae.Galeriya.Core
 {
     internal sealed class ThumbnailGenerator : IThumbnailGenerator
     {
-        private readonly SemaphoreSlim _semaphore = new(4, 4);
+        private readonly SemaphoreSlim _semaphore = new(8, 8);
 
         private readonly IReadOnlyDictionary<MediaOrientation, Action<MagickImage>?> _orientationActions = new Dictionary<MediaOrientation, Action<MagickImage>?>
         {
@@ -31,15 +31,13 @@ namespace Ae.Galeriya.Core
 
             try
             {
-                using (var image = new MagickImage(stream))
-                {
-                    image.Format = MagickFormat.Jpeg;
-                    image.Quality = 50;
-                    image.Strip();
-                    image.Resize(width, height);
-                    _orientationActions[orientation]?.Invoke(image);
-                    image.Write(fileInfo);
-                }
+                using var image = new MagickImage(stream);
+                image.Format = MagickFormat.Jpeg;
+                image.Quality = 50;
+                image.Strip();
+                image.Resize(width, height);
+                _orientationActions[orientation]?.Invoke(image);
+                image.Write(fileInfo);
             }
             finally
             {
