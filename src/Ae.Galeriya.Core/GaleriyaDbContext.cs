@@ -50,8 +50,7 @@ namespace Ae.Galeriya.Core
                 .WithOne();
 
             modelBuilder.Entity<Category>()
-                .HasOne(category => category.ParentCategory)
-                .WithOne();
+                .HasOne(category => category.ParentCategory);
 
             modelBuilder.Entity<Category>()
                 .HasMany(category => category.Photos)
