@@ -67,7 +67,7 @@ namespace Ae.Galeriya.Web.Controllers
             await _photoCreator.CreatePhoto(context, fileBlobRepository, _configuration.PersistentBlobRepository(_serviceProvider), category, name, name, userId, createdOn, fileInfo, token);
         }
 
-        private Category CreateCategoryHeirarchyFromPath(GaleriyaDbContext context, Category[] categories, string path, User user)
+        private Category CreateCategoryHeirarchyFromPath(GaleriyaDbContext context, ISet<Category> categories, string path, User user)
         {
             Category previousCategory = null;
             foreach (var item in path.Split('/'))
@@ -83,6 +83,7 @@ namespace Ae.Galeriya.Web.Controllers
                         CreatedBy = user,
                         Users = previousCategory == null ? new [] { user } : previousCategory.Users
                     };
+                    categories.Add(category);
                     context.Categories.Add(category);
                 }
                 previousCategory = category;
@@ -104,8 +105,7 @@ namespace Ae.Galeriya.Web.Controllers
             var allCategories = groups.Keys.SelectMany(x => x.Split('/')).ToHashSet();
             var allHashes = groups.Values.SelectMany(x => x).ToHashSet();
 
-            var categories = await _categoryPermissions.GetAccessibleCategories(context, user.Id)
-                .ToArrayAsync(HttpContext.RequestAborted);
+            var categories = new HashSet<Category>(await _categoryPermissions.GetAccessibleCategories(context, user.Id).ToArrayAsync(HttpContext.RequestAborted));
 
             var photos = await _categoryPermissions.GetAccessiblePhotos(context, user.Id)
                 .Where(x => allHashes.Contains(x.BlobId))
