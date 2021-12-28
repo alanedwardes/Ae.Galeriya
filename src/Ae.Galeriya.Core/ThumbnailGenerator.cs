@@ -37,7 +37,7 @@ namespace Ae.Galeriya.Core
                 image.Strip();
                 image.Resize(width, height);
                 _orientationActions[orientation]?.Invoke(image);
-                image.Write(fileInfo);
+                await image.WriteAsync(fileInfo, token);
             }
             finally
             {
