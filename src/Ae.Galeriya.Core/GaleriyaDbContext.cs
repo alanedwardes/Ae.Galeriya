@@ -46,8 +46,7 @@ namespace Ae.Galeriya.Core
                 .WithOne(tag => tag.CreatedBy);
 
             modelBuilder.Entity<Category>()
-                .HasOne(category => category.CoverPhoto)
-                .WithOne();
+                .HasOne(category => category.CoverPhoto);
 
             modelBuilder.Entity<Category>()
                 .HasOne(category => category.ParentCategory);
