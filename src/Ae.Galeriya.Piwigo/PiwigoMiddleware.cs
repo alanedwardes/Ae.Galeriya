@@ -19,9 +19,11 @@ namespace Ae.Galeriya.Piwigo
 
         public async Task InvokeAsync(HttpContext context)
         {
-            var repository = context.RequestServices.GetRequiredService<IPiwigoWebServiceMethodRepository>();
-
             var logger = context.RequestServices.GetRequiredService<ILogger<PiwigoMiddleware>>();
+
+            logger.LogInformation($"Middleware serving {context.Request.Method} {context.Request.Path}");
+
+            var repository = context.RequestServices.GetRequiredService<IPiwigoWebServiceMethodRepository>();
 
             if (context.Request.Path.StartsWithSegments("/blobs"))
             {
