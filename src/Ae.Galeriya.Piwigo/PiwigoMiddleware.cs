@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.IO;
+using System.Diagnostics;
 
 namespace Ae.Galeriya.Piwigo
 {
@@ -58,15 +59,17 @@ namespace Ae.Galeriya.Piwigo
                     parameters.Add(query.Key, query.Value.ToString());
                 }
 
-                logger.LogInformation("Processing form parameters");
                 if (context.Request.HasFormContentType)
                 {
+                    logger.LogInformation("Processing form parameters");
+                    var sw = Stopwatch.StartNew();
                     foreach (var form in await context.Request.ReadFormAsync(context.RequestAborted))
                     {
+                        logger.LogInformation("Processing form key {Key}", form.Key);
                         parameters.Add(form.Key, form.Value.ToString());
                     }
+                    logger.LogInformation("Processed form parameters {TotalSeconds}", sw.Elapsed.TotalSeconds);
                 }
-                logger.LogInformation("Processed form parameters");
 
                 var requestedMethod = parameters.GetRequired<string>("method");
                 var method = repository.GetMethod(requestedMethod);
