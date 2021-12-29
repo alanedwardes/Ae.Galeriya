@@ -27,6 +27,22 @@ namespace Ae.Galeriya.Piwigo.Methods
             _serviceProvider = serviceProvider;
         }
 
+        public IEnumerable<Photo> GetPhotosRecursive(Category category)
+        {
+            foreach (var photo in category.Photos)
+            {
+                yield return photo;
+            }
+
+            foreach (var child in category.Categories)
+            {
+                foreach (var photo in GetPhotosRecursive(child))
+                {
+                    yield return photo;
+                }
+            }
+        }
+
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
             var categoryId = parameters.GetRequired<uint>("cat_id");
@@ -43,7 +59,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             foreach (var category in categories.Where(x => recursive || x.ParentCategory == nullableParentCategory))
             {
-                uint firstPhoto = category.CoverPhotoId ?? category.Photos.Select(x => x.PhotoId).FirstOrDefault();
+                uint firstPhoto = category.CoverPhotoId ?? GetPhotosRecursive(category).Select(x => x.PhotoId).FirstOrDefault();
 
                 uint? thumbnailId = null;
                 Uri thumbnailUri = null;
@@ -63,7 +79,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                     parent = parent.ParentCategory;
                 }
 
-                var lastPhoto = category.Photos.LastOrDefault();
+                var lastPhoto = GetPhotosRecursive(category).LastOrDefault();
 
                 response.Categories.Add(new PiwigoCategory
                 {
