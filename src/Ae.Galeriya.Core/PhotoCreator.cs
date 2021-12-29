@@ -23,14 +23,17 @@ namespace Ae.Galeriya.Core
         private readonly ILogger<PhotoCreator> _logger;
         private readonly IMediaInfoExtractor _infoExtractor;
         private readonly IGoogleGeocodeClient _geocodeClient;
+        private readonly IPhotoMigrator _photoMigrator;
 
         public PhotoCreator(ILogger<PhotoCreator> logger,
             IMediaInfoExtractor infoExtractor,
-            IGoogleGeocodeClient geocodeClient)
+            IGoogleGeocodeClient geocodeClient,
+            IPhotoMigrator photoMigrator)
         {
             _logger = logger;
             _infoExtractor = infoExtractor;
             _geocodeClient = geocodeClient;
+            _photoMigrator = photoMigrator;
         }
 
         private async Task<string?> ExtractSnapshot(IFileBlobRepository fileBlobRepository, IBlobRepository persistentBlobRepository, FileInfo uploadedFile, string hash, CancellationToken token)
@@ -91,7 +94,7 @@ namespace Ae.Galeriya.Core
                 .ToArray();
         }
 
-        public async Task<Photo> CreatePhoto(GaleriyaDbContext dbContext, IFileBlobRepository fileBlobRepository, IBlobRepository persistentBlobRepository, Category category, string fileName, string name, uint userId, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
+        public async Task<Photo> CreatePhoto(GaleriyaDbContext dbContext, IFileBlobRepository temporaryBlobRepository, IBlobRepository persistentBlobRepository, Category category, string fileName, string name, uint userId, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
         {
             var hash = await CalculateFileHash(uploadedFile, token);
 
@@ -104,7 +107,7 @@ namespace Ae.Galeriya.Core
 
             var blobIdTask = persistentBlobRepository.PutBlob(uploadedFile.OpenRead(), hash, token);
             var mediaInfo = await _infoExtractor.ExtractInformation(uploadedFile, token);
-            var snapshotIdTask = mediaInfo.Duration.HasValue ? ExtractSnapshot(fileBlobRepository, persistentBlobRepository, uploadedFile, hash, token) : Task.FromResult<string?>(null);
+            var snapshotIdTask = mediaInfo.Duration.HasValue ? ExtractSnapshot(temporaryBlobRepository, persistentBlobRepository, uploadedFile, hash, token) : Task.FromResult<string?>(null);
             var locationTask = LookupLocation(mediaInfo, token);
 
             if (mediaInfo.Size.Width == 0 || mediaInfo.Size.Height == 0)
@@ -175,6 +178,8 @@ namespace Ae.Galeriya.Core
             {
                 await dbContext.SaveChangesAsync(token);
                 _logger.LogInformation("Added photo with hash {Hash}", hash);
+                // Run migration as a background task
+                _photoMigrator.MigratePhotos(persistentBlobRepository, temporaryBlobRepository, CancellationToken.None);
             }
             catch (DbUpdateException e)
             {

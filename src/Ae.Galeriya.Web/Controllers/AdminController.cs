@@ -26,17 +26,24 @@ namespace Ae.Galeriya.Web.Controllers
         private readonly GaleriyaConfiguration _configuration;
         private readonly IPiwigoConfiguration _piwigoConfiguration;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IPhotoMigrator _photoMigrator;
 
         public string AuthorizationHeader => "Authorization";
         public string BasicPrefix => "Basic";
 
-        public AdminController(ILogger<AdminController> logger, UserManager<User> userManager, GaleriyaConfiguration configuration, IPiwigoConfiguration piwigoConfiguration, IServiceProvider serviceProvider)
+        public AdminController(ILogger<AdminController> logger,
+            UserManager<User> userManager,
+            GaleriyaConfiguration configuration,
+            IPiwigoConfiguration piwigoConfiguration,
+            IServiceProvider serviceProvider,
+            IPhotoMigrator photoMigrator)
         {
             _logger = logger;
             _userManager = userManager;
             _configuration = configuration;
             _piwigoConfiguration = piwigoConfiguration;
             _serviceProvider = serviceProvider;
+            _photoMigrator = photoMigrator;
         }
 
         private (string Username, string Password)? GetBasicAuth()
@@ -195,36 +202,10 @@ namespace Ae.Galeriya.Web.Controllers
         [HttpGet("migrate")]
         public async Task Migrate()
         {
-            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
-
             var tempRepository = _piwigoConfiguration.TemporaryBlobRepository(_serviceProvider);
             var photoRepository = _piwigoConfiguration.PersistentBlobRepository(_serviceProvider);
 
-            var photos = await context.Photos.Where(x => x.HasThumbnail == false).OrderBy(X => X.PhotoId).ToArrayAsync(Request.HttpContext.RequestAborted);
-            foreach (var photo in photos)
-            {
-                using var blob = await photoRepository.GetBlob(photo.BlobId, Request.HttpContext.RequestAborted);
-                var thumbBlob = photo.BlobId + "_thumb";
-                var tempFileInfo = tempRepository.GetFileInfoForBlob(thumbBlob);
-
-                using (var image = new MagickImage(blob))
-                {
-                    image.Format = MagickFormat.Jpeg;
-                    image.Quality = 50;
-                    image.Strip();
-                    image.Resize(2000, 2000);
-                    image.Write(tempFileInfo);
-                }
-
-                using (var readStream = tempFileInfo.OpenRead())
-                {
-                    await photoRepository.PutBlob(readStream, thumbBlob, Request.HttpContext.RequestAborted);
-                }
-
-                _logger.LogInformation("Adding thumbnail to image {ImageId}", photo.BlobId);
-                photo.HasThumbnail = true;
-                await context.SaveChangesAsync(Request.HttpContext.RequestAborted);
-            }
+            await _photoMigrator.MigratePhotos(photoRepository, tempRepository, Request.HttpContext.RequestAborted);
         }
     }
 }
