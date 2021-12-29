@@ -52,6 +52,8 @@ namespace Ae.Galeriya.Piwigo
 
             if (context.Request.Path.StartsWithSegments("/ws.php"))
             {
+                logger.LogInformation("Processing query parameters");
+
                 var parameters = new Dictionary<string, IConvertible>();
                 foreach (var query in context.Request.Query)
                 {
@@ -64,6 +66,8 @@ namespace Ae.Galeriya.Piwigo
                         parameters.Add(form.Key, form.Value.ToString());
                     }
                 }
+
+                logger.LogInformation("Processed query parameters");
 
                 var requestedMethod = parameters.GetRequired<string>("method");
                 var method = repository.GetMethod(requestedMethod);
