@@ -61,7 +61,7 @@ namespace Ae.Galeriya.Piwigo
                 logger.LogInformation("Processing form parameters");
                 if (context.Request.HasFormContentType)
                 {
-                    foreach (var form in context.Request.Form)
+                    foreach (var form in await context.Request.ReadFormAsync(context.RequestAborted))
                     {
                         parameters.Add(form.Key, form.Value.ToString());
                     }
