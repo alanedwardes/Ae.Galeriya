@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace Ae.Galeriya.Piwigo
 {
@@ -53,6 +55,23 @@ namespace Ae.Galeriya.Piwigo
 
             if (context.Request.Path.StartsWithSegments("/ws.php"))
             {
+                var boundary = context.Request.GetMultipartBoundary();
+                if (!string.IsNullOrEmpty(boundary))
+                {
+                    var reader = new MultipartReader(boundary, context.Request.Body);
+
+                    while (true)
+                    {
+                        var section = await reader.ReadNextSectionAsync(context.RequestAborted);
+                        if (section == null)
+                        {
+                            break;
+                        }
+
+                        logger.LogInformation("Processing multipart form entry {ContentType} {ContentDisposition}", section.ContentType, section.ContentDisposition);
+                    }
+                }
+
                 var parameters = new Dictionary<string, IConvertible>();
                 foreach (var query in context.Request.Query)
                 {
