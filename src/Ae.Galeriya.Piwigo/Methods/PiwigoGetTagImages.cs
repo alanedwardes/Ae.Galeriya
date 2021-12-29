@@ -29,8 +29,8 @@ namespace Ae.Galeriya.Piwigo.Methods
 
         public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
         {
-            var page = parameters.GetOptional<int>("page") ?? 0;
-            var perPage = parameters.GetOptional<int>("per_page") ?? 64;
+            var page = parameters.GetOptional<int>("page");
+            var perPage = parameters.GetOptional<int>("per_page");
 
             using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
 

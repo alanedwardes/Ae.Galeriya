@@ -21,25 +21,26 @@ namespace Ae.Galeriya.Piwigo
             _derivativesGenerator = derivativesGenerator;
         }
 
-        public async Task<PiwigoImages> CreatePage(int page, int perPage, IQueryable<Photo> query, CancellationToken token)
+        public async Task<PiwigoImages> CreatePage(int? page, int? perPage, IQueryable<Photo> query, CancellationToken token)
         {
-            var photosPage = await query.Skip(page * perPage)
-                .Take(perPage)
-                .ToArrayAsync(token);
+            var photoPage = page ?? 0;
+            var photosPerPage = Math.Clamp(perPage ?? 0, 1_000, 10_000);
+
+            var photos = await query.Skip(photoPage * photosPerPage).Take(photosPerPage).ToArrayAsync(token);
 
             var response = new PiwigoImages
             {
                 Pagination = new PiwigoPagination
                 {
-                    Page = page,
-                    PerPage = perPage,
-                    Count = photosPage.Length,
+                    Page = photoPage,
+                    PerPage = photosPerPage,
+                    Count = photos.Length,
                     TotalCount = await query.CountAsync(token)
                 },
                 Images = new List<PiwigoImageSummary>()
             };
 
-            foreach (var photo in photosPage)
+            foreach (var photo in photos)
             {
                 var image = new PiwigoImageSummary
                 {
