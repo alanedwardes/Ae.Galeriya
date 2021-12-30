@@ -2,6 +2,7 @@
 using Ae.Galeriya.Core.Tables;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -17,6 +18,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         private readonly ICategoryPermissionsRepository _categoryPermissions;
         private readonly IPiwigoConfiguration _piwigoConfiguration;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IContentTypeProvider _fileExtensionContentTypeProvider = new FileExtensionContentTypeProvider();
 
         public string MethodName => "pwg.images.getFile";
         public bool AllowAnonymous => false;
@@ -56,7 +58,12 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             var stream = await BufferIfNotSeekable(await _piwigoConfiguration.PersistentBlobRepository(_serviceProvider).GetBlob(photo.BlobId, token), token);
 
-            return new FileStreamResult(stream, "application/octet-stream")
+            if (!_fileExtensionContentTypeProvider.TryGetContentType("file." + photo.Extension, out var contentType))
+            {
+                contentType = "application/octet-stream";
+            }
+
+            return new FileStreamResult(stream, contentType)
             {
                 EnableRangeProcessing = true,
                 LastModified = photo.UpdatedOn ?? photo.CreatedOn
