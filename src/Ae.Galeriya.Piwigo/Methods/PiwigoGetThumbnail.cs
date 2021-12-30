@@ -2,6 +2,7 @@
 using Ae.Galeriya.Core.Exceptions;
 using Ae.Galeriya.Core.Tables;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
@@ -77,7 +78,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             return (await thumbnailBlobRepository.GetBlob(cacheBlobId, token), cacheBlobId);
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, FileMultipartSection> fileParameters, uint? userId, CancellationToken token)
         {
             var width = parameters.GetRequired<int>("width");
             var height = parameters.GetRequired<int>("height");

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
@@ -28,10 +29,9 @@ namespace Ae.Galeriya.Piwigo
             return new Uri($"/ws.php?method={methodName}&{string.Join("&", parameters.Select(x => $"{x.Key}={x.Value}"))}", UriKind.Relative);
         }
 
-        public async Task ExecuteMethod(IPiwigoWebServiceMethod method, IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token)
+        public async Task ExecuteMethod(IPiwigoWebServiceMethod method, IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, FileMultipartSection> fileParameters, CancellationToken token)
         {
             var context = _serviceProvider.GetRequiredService<IHttpContextAccessor>().HttpContext;
-            var logger = _serviceProvider.GetRequiredService<ILogger<PiwigoWebServiceMethodRepository>>();
 
             async Task Deny()
             {
@@ -58,7 +58,7 @@ namespace Ae.Galeriya.Piwigo
             object response;
             try
             {
-                response = await method.Execute(parameters, userId, token);
+                response = await method.Execute(parameters, fileParameters, userId, token);
             }
             catch (Exception e)
             {
@@ -96,6 +96,6 @@ namespace Ae.Galeriya.Piwigo
             await context.Response.CompleteAsync();
         }
 
-        public Task ExecuteMethod(string methodName, IReadOnlyDictionary<string, IConvertible> parameters, CancellationToken token) => ExecuteMethod(GetMethod(methodName), parameters, token);
+        public Task ExecuteMethod(string methodName, IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, FileMultipartSection> fileParameters, CancellationToken token) => ExecuteMethod(GetMethod(methodName), parameters, fileParameters, token);
     }
 }

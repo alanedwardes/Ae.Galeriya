@@ -8,6 +8,7 @@ using System.IO;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Net.Http.Headers;
 
 namespace Ae.Galeriya.Piwigo
 {
@@ -24,8 +25,6 @@ namespace Ae.Galeriya.Piwigo
         {
             var logger = context.RequestServices.GetRequiredService<ILogger<PiwigoMiddleware>>();
 
-            logger.LogInformation($"Middleware serving {context.Request.Method} {context.Request.Path}");
-
             var repository = context.RequestServices.GetRequiredService<IPiwigoWebServiceMethodRepository>();
 
             if (context.Request.Path.StartsWithSegments("/blobs"))
@@ -35,7 +34,7 @@ namespace Ae.Galeriya.Piwigo
                 await repository.ExecuteMethod("pwg.images.getFile", new Dictionary<string, IConvertible>
                 {
                     { "image_id", photoId }
-                }, context.RequestAborted);
+                }, new Dictionary<string, FileMultipartSection>(), context.RequestAborted);
                 return;
             }
 
@@ -49,15 +48,26 @@ namespace Ae.Galeriya.Piwigo
                     { "width", parts[1] },
                     { "height", parts[2] },
                     { "type", parts[3] }
-                }, context.RequestAborted);
+                }, new Dictionary<string, FileMultipartSection>(), context.RequestAborted);
                 return;
             }
 
             if (context.Request.Path.StartsWithSegments("/ws.php"))
             {
+                var parameters = new Dictionary<string, IConvertible>();
+                var files = new Dictionary<string, FileMultipartSection>();
+
+                foreach (var query in context.Request.Query)
+                {
+                    parameters.Add(query.Key, query.Value.ToString());
+                }
+
                 var boundary = context.Request.GetMultipartBoundary();
                 if (!string.IsNullOrEmpty(boundary))
                 {
+                    logger.LogInformation("Reading multi-part sections");
+
+                    var sw = Stopwatch.StartNew();
                     var reader = new MultipartReader(boundary, context.Request.Body);
 
                     while (true)
@@ -68,26 +78,21 @@ namespace Ae.Galeriya.Piwigo
                             break;
                         }
 
-                        logger.LogInformation("Processing multipart form entry {ContentType} {ContentDisposition}", section.ContentType, section.ContentDisposition);
-                    }
-                }
+                        var disposition = section.GetContentDispositionHeader();
+                        if (disposition.IsFormDisposition())
+                        {
+                            var form = section.AsFormDataSection();
+                            parameters.Add(form.Name, await form.GetValueAsync());
+                        }
 
-                var parameters = new Dictionary<string, IConvertible>();
-                foreach (var query in context.Request.Query)
-                {
-                    parameters.Add(query.Key, query.Value.ToString());
-                }
-
-                if (context.Request.HasFormContentType)
-                {
-                    logger.LogInformation("Processing form parameters");
-                    var sw = Stopwatch.StartNew();
-                    foreach (var form in await context.Request.ReadFormAsync(context.RequestAborted))
-                    {
-                        logger.LogInformation("Processing form key {Key}", form.Key);
-                        parameters.Add(form.Key, form.Value.ToString());
+                        if (disposition.IsFileDisposition())
+                        {
+                            var file = section.AsFileSection();
+                            files.Add(file.Name, file);
+                        }
                     }
-                    logger.LogInformation("Processed form parameters {TotalSeconds}", sw.Elapsed.TotalSeconds);
+
+                    logger.LogInformation("Finished reading multi-part sections in {TotalSeconds}", sw.Elapsed.TotalSeconds);
                 }
 
                 var requestedMethod = parameters.GetRequired<string>("method");
@@ -95,7 +100,7 @@ namespace Ae.Galeriya.Piwigo
                 if (method != null)
                 {
                     logger.LogInformation("Serving method {Method}", requestedMethod);
-                    await repository.ExecuteMethod(method, parameters, context.RequestAborted);
+                    await repository.ExecuteMethod(method, parameters, files, context.RequestAborted);
                     return;
                 }
 

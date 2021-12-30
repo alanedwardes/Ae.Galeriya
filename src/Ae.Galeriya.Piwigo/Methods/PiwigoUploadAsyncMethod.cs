@@ -3,6 +3,7 @@ using Ae.Galeriya.Core.Tables;
 using Ae.Galeriya.Piwigo.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,6 @@ namespace Ae.Galeriya.Piwigo.Methods
 {
     internal sealed class PiwigoUploadAsyncMethod : IPiwigoWebServiceMethod
     {
-        private readonly IHttpContextAccessor _contextAccessor;
         private readonly IServiceProvider _serviceProvider;
         private readonly IUploadRepository _sessionRepository;
         private readonly IPiwigoWebServiceMethodRepository _webServiceRepository;
@@ -27,8 +27,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         public string MethodName => "pwg.images.uploadAsync";
         public bool AllowAnonymous => true;
 
-        public PiwigoUploadAsyncMethod(IHttpContextAccessor contextAccessor,
-            IServiceProvider serviceProvider,
+        public PiwigoUploadAsyncMethod(IServiceProvider serviceProvider,
             IUploadRepository sessionRepository,
             IPiwigoWebServiceMethodRepository webServiceRepository,
             ICategoryPermissionsRepository categoryPermissions,
@@ -36,7 +35,6 @@ namespace Ae.Galeriya.Piwigo.Methods
             IPiwigoConfiguration piwigoConfiguration,
             SignInManager<User> signInManager)
         {
-            _contextAccessor = contextAccessor;
             _serviceProvider = serviceProvider;
             _sessionRepository = sessionRepository;
             _webServiceRepository = webServiceRepository;
@@ -46,7 +44,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _signInManager = signInManager;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, uint? userId, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, FileMultipartSection> fileParameters, uint? userId, CancellationToken token)
         {
             var result = await _signInManager.PasswordSignInAsync(parameters.GetRequired<string>("username"), parameters.GetRequired<string>("password"), false, false);
             if (!result.Succeeded)
@@ -67,7 +65,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             var creationDate = DateTimeOffset.ParseExact(parameters.GetRequired<string>("date_creation"), "yyyy-MM-dd HH:mm:ss", null);
 
-            var file = _contextAccessor.HttpContext.Request.Form.Files.Single();
+            var file = fileParameters.Values.Single();
 
             var uploadedFile = await _sessionRepository.AcceptChunk(originalChecksum, chunk, chunks, file, token);
             if (uploadedFile != null)
@@ -87,7 +85,7 @@ namespace Ae.Galeriya.Piwigo.Methods
                 .Execute(new Dictionary<string, IConvertible>
                 {
                     { "image_id", photo.PhotoId }
-                }, userId, token);
+                }, new Dictionary<string, FileMultipartSection>(), userId, token);
         }
     }
 }
