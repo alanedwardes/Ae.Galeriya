@@ -26,28 +26,14 @@ namespace Ae.Galeriya.Core
 
         public async Task MigratePhotos(IBlobRepository photoRepository, IFileBlobRepository tempRepository, CancellationToken token)
         {
-            if (_semaphore.CurrentCount > 0)
-            {
-                return;
-            }
-
             while (true)
             {
                 await _semaphore.WaitAsync(token);
 
                 try
                 {
-                    if (await MigrateThumbnail(photoRepository, tempRepository, token))
-                    {
-                        continue;
-                    }
-
-                    if (await MigrateContentHash(photoRepository, token))
-                    {
-                        continue;
-                    }
-
-                    break;
+                    await MigrateThumbnail(photoRepository, tempRepository, token);
+                    await MigrateContentHash(photoRepository, token);
                 }
                 finally
                 {
@@ -56,7 +42,7 @@ namespace Ae.Galeriya.Core
             }
         }
 
-        private async Task<bool> MigrateThumbnail(IBlobRepository photoRepository, IFileBlobRepository tempRepository, CancellationToken token)
+        private async Task MigrateThumbnail(IBlobRepository photoRepository, IFileBlobRepository tempRepository, CancellationToken token)
         {
             using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
 
@@ -65,7 +51,7 @@ namespace Ae.Galeriya.Core
                                             .FirstOrDefaultAsync(token);
             if (photo == null)
             {
-                return false;
+                return;
             }
 
             using var blob = await photoRepository.GetBlob(photo.BlobId, token);
@@ -89,10 +75,9 @@ namespace Ae.Galeriya.Core
             _logger.LogInformation("Adding thumbnail to image {ImageId}", photo.BlobId);
             photo.HasThumbnail = true;
             await context.SaveChangesAsync(token);
-            return true;
         }
 
-        private async Task<bool> MigrateContentHash(IBlobRepository photoRepository, CancellationToken token)
+        private async Task MigrateContentHash(IBlobRepository photoRepository, CancellationToken token)
         {
             using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
 
@@ -103,7 +88,7 @@ namespace Ae.Galeriya.Core
                                             .FirstOrDefaultAsync(token);
             if (photo == null)
             {
-                return false;
+                return;
             }
 
             using var blob = await photoRepository.GetBlob(photo.BlobId, token);
@@ -116,7 +101,6 @@ namespace Ae.Galeriya.Core
 
             _logger.LogInformation("Adding content hashes to image {ImageId}", photo.BlobId);
             await context.SaveChangesAsync(token);
-            return true;
         }
     }
 }
