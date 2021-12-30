@@ -111,16 +111,20 @@ namespace Ae.Galeriya.Piwigo
                 }
 
                 var disposition = section.GetContentDispositionHeader();
+
+                logger.LogInformation("Reading section {SectionName}", disposition.Name);
                 if (disposition.IsFormDisposition())
                 {
                     var form = section.AsFormDataSection();
                     parameters.Add(form.Name, await form.GetValueAsync());
+                    logger.LogInformation("Read section {SectionName} as form data", disposition.Name);
                 }
 
                 if (disposition.IsFileDisposition())
                 {
                     var file = section.AsFileSection();
                     files.Add(file.Name, file);
+                    logger.LogInformation("Read section {SectionName} as file data", disposition.Name);
                 }
             }
 
