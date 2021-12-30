@@ -58,7 +58,7 @@ namespace Ae.Galeriya.Piwigo
                 var parameters = new Dictionary<string, IConvertible>();
                 var files = new Dictionary<string, IFormFile>();
 
-                await ReadParameters(context, logger, parameters, files);
+                ReadParameters(context, parameters, files);
 
                 var requestedMethod = parameters.GetRequired<string>("method");
                 var method = repository.GetMethod(requestedMethod);
@@ -75,7 +75,7 @@ namespace Ae.Galeriya.Piwigo
             await _next(context);
         }
 
-        private static async Task ReadParameters(HttpContext context, ILogger<PiwigoMiddleware> logger, Dictionary<string, IConvertible> parameters, Dictionary<string, IFormFile> files)
+        private static void ReadParameters(HttpContext context, Dictionary<string, IConvertible> parameters, Dictionary<string, IFormFile> files)
         {
             foreach (var query in context.Request.Query)
             {
