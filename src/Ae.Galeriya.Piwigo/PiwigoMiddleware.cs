@@ -57,43 +57,7 @@ namespace Ae.Galeriya.Piwigo
                 var parameters = new Dictionary<string, IConvertible>();
                 var files = new Dictionary<string, FileMultipartSection>();
 
-                foreach (var query in context.Request.Query)
-                {
-                    parameters.Add(query.Key, query.Value.ToString());
-                }
-
-                var boundary = context.Request.GetMultipartBoundary();
-                if (!string.IsNullOrEmpty(boundary))
-                {
-                    logger.LogInformation("Reading multi-part sections");
-
-                    var sw = Stopwatch.StartNew();
-                    var reader = new MultipartReader(boundary, context.Request.Body);
-
-                    while (true)
-                    {
-                        var section = await reader.ReadNextSectionAsync(context.RequestAborted);
-                        if (section == null)
-                        {
-                            break;
-                        }
-
-                        var disposition = section.GetContentDispositionHeader();
-                        if (disposition.IsFormDisposition())
-                        {
-                            var form = section.AsFormDataSection();
-                            parameters.Add(form.Name, await form.GetValueAsync());
-                        }
-
-                        if (disposition.IsFileDisposition())
-                        {
-                            var file = section.AsFileSection();
-                            files.Add(file.Name, file);
-                        }
-                    }
-
-                    logger.LogInformation("Finished reading multi-part sections in {TotalSeconds}", sw.Elapsed.TotalSeconds);
-                }
+                await ReadParameters(context, logger, parameters, files);
 
                 var requestedMethod = parameters.GetRequired<string>("method");
                 var method = repository.GetMethod(requestedMethod);
@@ -108,6 +72,59 @@ namespace Ae.Galeriya.Piwigo
             }
 
             await _next(context);
+        }
+
+        private static async Task ReadParameters(HttpContext context, ILogger<PiwigoMiddleware> logger, Dictionary<string, IConvertible> parameters, Dictionary<string, FileMultipartSection> files)
+        {
+            foreach (var query in context.Request.Query)
+            {
+                parameters.Add(query.Key, query.Value.ToString());
+            }
+
+            var boundary = context.Request.GetMultipartBoundary();
+            if (!string.IsNullOrEmpty(boundary))
+            {
+                await ReadMultipartForm(context, logger, parameters, files, boundary);
+            }
+            else
+            {
+                foreach (var form in await context.Request.ReadFormAsync(context.RequestAborted))
+                {
+                    parameters.Add(form.Key, form.Value.ToString());
+                }
+            }
+        }
+
+        private static async Task ReadMultipartForm(HttpContext context, ILogger<PiwigoMiddleware> logger, Dictionary<string, IConvertible> parameters, Dictionary<string, FileMultipartSection> files, string boundary)
+        {
+            logger.LogInformation("Reading multi-part sections");
+
+            var sw = Stopwatch.StartNew();
+            var reader = new MultipartReader(boundary, context.Request.Body);
+
+            while (true)
+            {
+                var section = await reader.ReadNextSectionAsync(context.RequestAborted);
+                if (section == null)
+                {
+                    break;
+                }
+
+                var disposition = section.GetContentDispositionHeader();
+                if (disposition.IsFormDisposition())
+                {
+                    var form = section.AsFormDataSection();
+                    parameters.Add(form.Name, await form.GetValueAsync());
+                }
+
+                if (disposition.IsFileDisposition())
+                {
+                    var file = section.AsFileSection();
+                    files.Add(file.Name, file);
+                }
+            }
+
+            logger.LogInformation("Finished reading multi-part sections in {TotalSeconds}", sw.Elapsed.TotalSeconds);
         }
     }
 }
