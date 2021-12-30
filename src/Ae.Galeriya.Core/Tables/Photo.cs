@@ -17,6 +17,9 @@ namespace Ae.Galeriya.Core.Tables
         public string FileName { get; set; } = null!;
         [Required]
         public string BlobId { get; set; } = null!;
+        public string? ContentAverageHash { get; set; }
+        public string? ContentDifferenceHash { get; set; }
+        public string? ContentPerceptualHash { get; set; }
         [Required]
         public ulong FileSize { get; set; }
         [Required]

@@ -1,7 +1,10 @@
-﻿using ImageMagick;
+﻿using CoenM.ImageHash.HashAlgorithms;
+using ImageMagick;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Linq;
 using System.Threading;
@@ -23,50 +26,97 @@ namespace Ae.Galeriya.Core
 
         public async Task MigratePhotos(IBlobRepository photoRepository, IFileBlobRepository tempRepository, CancellationToken token)
         {
+            if (_semaphore.CurrentCount > 0)
+            {
+                return;
+            }
+
             while (true)
             {
                 await _semaphore.WaitAsync(token);
 
                 try
                 {
-                    using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
-
-                    var photo = await context.Photos.Where(x => x.HasThumbnail == false)
-                                                    .OrderBy(X => X.PhotoId)
-                                                    .FirstOrDefaultAsync(token);
-
-                    if (photo == null)
+                    if (await MigrateThumbnail(photoRepository, tempRepository, token))
                     {
-                        break;
+                        continue;
                     }
 
-                    using var blob = await photoRepository.GetBlob(photo.BlobId, token);
-                    var thumbBlob = photo.BlobId + "_thumb";
-                    var tempFileInfo = tempRepository.GetFileInfoForBlob(thumbBlob);
-
-                    using (var image = new MagickImage(blob))
+                    if (await MigrateContentHash(photoRepository, token))
                     {
-                        image.Format = MagickFormat.Jpeg;
-                        image.Quality = 50;
-                        image.Strip();
-                        image.Resize(2000, 2000);
-                        image.Write(tempFileInfo);
+                        continue;
                     }
 
-                    using (var readStream = tempFileInfo.OpenRead())
-                    {
-                        await photoRepository.PutBlob(readStream, thumbBlob, token);
-                    }
-
-                    _logger.LogInformation("Adding thumbnail to image {ImageId}", photo.BlobId);
-                    photo.HasThumbnail = true;
-                    await context.SaveChangesAsync(token);
+                    break;
                 }
                 finally
                 {
                     _semaphore.Release();
                 }
             }
+        }
+
+        private async Task<bool> MigrateThumbnail(IBlobRepository photoRepository, IFileBlobRepository tempRepository, CancellationToken token)
+        {
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+
+            var photo = await context.Photos.Where(x => x.HasThumbnail == false)
+                                            .OrderBy(X => X.PhotoId)
+                                            .FirstOrDefaultAsync(token);
+            if (photo == null)
+            {
+                return false;
+            }
+
+            using var blob = await photoRepository.GetBlob(photo.BlobId, token);
+            var thumbBlob = photo.BlobId + "_thumb";
+            var tempFileInfo = tempRepository.GetFileInfoForBlob(thumbBlob);
+
+            using (var image = new MagickImage(blob))
+            {
+                image.Format = MagickFormat.Jpeg;
+                image.Quality = 50;
+                image.Strip();
+                image.Resize(2000, 2000);
+                image.Write(tempFileInfo);
+            }
+
+            using (var readStream = tempFileInfo.OpenRead())
+            {
+                await photoRepository.PutBlob(readStream, thumbBlob, token);
+            }
+
+            _logger.LogInformation("Adding thumbnail to image {ImageId}", photo.BlobId);
+            photo.HasThumbnail = true;
+            await context.SaveChangesAsync(token);
+            return true;
+        }
+
+        private async Task<bool> MigrateContentHash(IBlobRepository photoRepository, CancellationToken token)
+        {
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+
+            var photo = await context.Photos.Where(x => x.ContentAverageHash == null ||
+                                                        x.ContentDifferenceHash == null ||
+                                                        x.ContentPerceptualHash == null)
+                                            .OrderBy(X => X.PhotoId)
+                                            .FirstOrDefaultAsync(token);
+            if (photo == null)
+            {
+                return false;
+            }
+
+            using var blob = await photoRepository.GetBlob(photo.BlobId, token);
+
+            var image = await Image.LoadAsync<Rgba32>(blob);
+
+            photo.ContentAverageHash = new AverageHash().Hash(image).ToString("x2");
+            photo.ContentDifferenceHash = new DifferenceHash().Hash(image).ToString("x2");
+            photo.ContentPerceptualHash = new CoenM.ImageHash.HashAlgorithms.PerceptualHash().Hash(image).ToString("x2");
+
+            _logger.LogInformation("Adding content hashes to image {ImageId}", photo.BlobId);
+            await context.SaveChangesAsync(token);
+            return true;
         }
     }
 }
