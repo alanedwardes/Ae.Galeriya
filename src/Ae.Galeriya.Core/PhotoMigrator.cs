@@ -81,9 +81,9 @@ namespace Ae.Galeriya.Core
         {
             using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
 
-            var photo = await context.Photos.Where(x => x.ContentAverageHash == null ||
+            var photo = await context.Photos.Where(x => (x.ContentAverageHash == null ||
                                                         x.ContentDifferenceHash == null ||
-                                                        x.ContentPerceptualHash == null)
+                                                        x.ContentPerceptualHash == null) && x.Duration == null)
                                             .OrderBy(X => X.PhotoId)
                                             .FirstOrDefaultAsync(token);
             if (photo == null)
