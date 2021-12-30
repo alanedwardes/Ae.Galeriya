@@ -97,38 +97,33 @@ namespace Ae.Galeriya.Piwigo
 
         private static async Task ReadMultipartForm(HttpContext context, ILogger<PiwigoMiddleware> logger, Dictionary<string, IConvertible> parameters, Dictionary<string, FileMultipartSection> files, string boundary)
         {
-            logger.LogInformation("Reading multi-part sections");
-
-            var sw = Stopwatch.StartNew();
             var reader = new MultipartReader(boundary, context.Request.Body);
 
             while (true)
             {
+                var sw = Stopwatch.StartNew();
                 var section = await reader.ReadNextSectionAsync(context.RequestAborted);
                 if (section == null)
                 {
+                    logger.LogInformation("Read null form section in {TotalSeconds}", sw.Elapsed.TotalSeconds);
                     break;
                 }
 
-                var disposition = section.GetContentDispositionHeader();
+                logger.LogInformation("Read form section in {TotalSeconds}", sw.Elapsed.TotalSeconds);
 
-                logger.LogInformation("Reading section {SectionName}", disposition.Name);
+                var disposition = section.GetContentDispositionHeader();
                 if (disposition.IsFormDisposition())
                 {
                     var form = section.AsFormDataSection();
                     parameters.Add(form.Name, await form.GetValueAsync());
-                    logger.LogInformation("Read section {SectionName} as form data", disposition.Name);
                 }
 
                 if (disposition.IsFileDisposition())
                 {
                     var file = section.AsFileSection();
                     files.Add(file.Name, file);
-                    logger.LogInformation("Read section {SectionName} as file data", disposition.Name);
                 }
             }
-
-            logger.LogInformation("Finished reading multi-part sections in {TotalSeconds}", sw.Elapsed.TotalSeconds);
         }
     }
 }
