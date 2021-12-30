@@ -23,7 +23,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _antiforgery = antiforgery;
         }
 
-        public Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, FileMultipartSection> fileParameters, uint? userId, CancellationToken token)
+        public Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, IFormFile> fileParameters, uint? userId, CancellationToken token)
         {
             return Task.FromResult<object>(new PiwigoSessionStatus
             {

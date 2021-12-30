@@ -1,4 +1,5 @@
 ﻿using Ae.Galeriya.Core;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -22,7 +23,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _categoryPermissions = categoryPermissions;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, FileMultipartSection> fileParameters, uint? userId, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, IFormFile> fileParameters, uint? userId, CancellationToken token)
         {
             using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
 

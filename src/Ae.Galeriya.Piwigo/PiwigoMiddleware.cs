@@ -35,7 +35,7 @@ namespace Ae.Galeriya.Piwigo
                 await repository.ExecuteMethod("pwg.images.getFile", new Dictionary<string, IConvertible>
                 {
                     { "image_id", photoId }
-                }, new Dictionary<string, FileMultipartSection>(), context.RequestAborted);
+                }, new Dictionary<string, IFormFile>(), context.RequestAborted);
                 return;
             }
 
@@ -49,14 +49,14 @@ namespace Ae.Galeriya.Piwigo
                     { "width", parts[1] },
                     { "height", parts[2] },
                     { "type", parts[3] }
-                }, new Dictionary<string, FileMultipartSection>(), context.RequestAborted);
+                }, new Dictionary<string, IFormFile>(), context.RequestAborted);
                 return;
             }
 
             if (context.Request.Path.StartsWithSegments("/ws.php"))
             {
                 var parameters = new Dictionary<string, IConvertible>();
-                var files = new Dictionary<string, FileMultipartSection>();
+                var files = new Dictionary<string, IFormFile>();
 
                 await ReadParameters(context, logger, parameters, files);
 
@@ -75,62 +75,22 @@ namespace Ae.Galeriya.Piwigo
             await _next(context);
         }
 
-        private static async Task ReadParameters(HttpContext context, ILogger<PiwigoMiddleware> logger, Dictionary<string, IConvertible> parameters, Dictionary<string, FileMultipartSection> files)
+        private static async Task ReadParameters(HttpContext context, ILogger<PiwigoMiddleware> logger, Dictionary<string, IConvertible> parameters, Dictionary<string, IFormFile> files)
         {
             foreach (var query in context.Request.Query)
             {
                 parameters.Add(query.Key, query.Value.ToString());
             }
 
-            var boundary = context.Request.GetMultipartBoundary();
-            if (!string.IsNullOrEmpty(boundary))
+            if (context.Request.HasFormContentType)
             {
-                await ReadMultipartForm(context, logger, parameters, files, boundary);
-            }
-            else
-            {
-                foreach (var form in await context.Request.ReadFormAsync(context.RequestAborted))
+                foreach (var form in context.Request.Form)
                 {
                     parameters.Add(form.Key, form.Value.ToString());
                 }
-            }
-        }
 
-        private static async Task ReadMultipartForm(HttpContext context, ILogger<PiwigoMiddleware> logger, Dictionary<string, IConvertible> parameters, Dictionary<string, FileMultipartSection> files, string boundary)
-        {
-            var reader = new MultipartReader(boundary, context.Request.Body);
-
-            while (true)
-            {
-                var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-                var ct = CancellationTokenSource.CreateLinkedTokenSource(timeout.Token, context.RequestAborted);
-
-                MultipartSection section;
-                try
+                foreach (var file in context.Request.Form.Files)
                 {
-                    section = await reader.ReadNextSectionAsync(ct.Token);
-                }
-                catch (OperationCanceledException) when (timeout.IsCancellationRequested)
-                {
-                    logger.LogInformation("Timing out ReadNextSectionAsync since it took longer than 5 seconds");
-                    return;
-                }
-
-                if (section == null)
-                {
-                    return;
-                }
-
-                var disposition = section.GetContentDispositionHeader();
-                if (disposition.IsFormDisposition())
-                {
-                    var form = section.AsFormDataSection();
-                    parameters.Add(form.Name, await form.GetValueAsync());
-                }
-
-                if (disposition.IsFileDisposition())
-                {
-                    var file = section.AsFileSection();
                     files.Add(file.Name, file);
                 }
             }

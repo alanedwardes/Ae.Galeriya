@@ -1,4 +1,5 @@
 ﻿using Ae.Galeriya.Piwigo.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace Ae.Galeriya.Piwigo.Methods
         public string MethodName => "pwg.getInfos";
         public bool AllowAnonymous => false;
 
-        public Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, FileMultipartSection> fileParameters, uint? userId, CancellationToken token)
+        public Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, IFormFile> fileParameters, uint? userId, CancellationToken token)
         {
             return Task.FromResult<object>(new[]
             {

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.WebUtilities;
+﻿using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -10,6 +10,6 @@ namespace Ae.Galeriya.Piwigo
     {
         bool AllowAnonymous { get; }
         string MethodName { get; }
-        Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, FileMultipartSection> fileParameters, uint? userId, CancellationToken token);
+        Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, IFormFile> fileParameters, uint? userId, CancellationToken token);
     }
 }

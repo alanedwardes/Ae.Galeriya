@@ -8,6 +8,6 @@ namespace Ae.Galeriya.Piwigo
 {
     internal interface IUploadRepository
     {
-        Task<FileInfo> AcceptChunk(string checksum, int chunk, int totalChunks, FileMultipartSection file, CancellationToken token);
+        Task<FileInfo> AcceptChunk(string checksum, int chunk, int totalChunks, IFormFile file, CancellationToken token);
     }
 }

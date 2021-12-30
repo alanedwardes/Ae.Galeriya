@@ -25,10 +25,10 @@ namespace Ae.Galeriya.Piwigo
 
         private (string, int) ChunkKey(string checksum, int chunk) => (checksum, chunk);
 
-        public async Task<FileInfo> AcceptChunk(string checksum, int chunk, int totalChunks, FileMultipartSection file, CancellationToken token)
+        public async Task<FileInfo> AcceptChunk(string checksum, int chunk, int totalChunks, IFormFile file, CancellationToken token)
         {
             var chunkId = Guid.NewGuid().ToString();
-            await _configuration.ChunkBlobRepository(_serviceProvider).PutBlob(file.FileStream, chunkId, token);
+            await _configuration.ChunkBlobRepository(_serviceProvider).PutBlob(file.OpenReadStream(), chunkId, token);
 
             _uploadedChunks[ChunkKey(checksum, chunk)] = chunkId;
 

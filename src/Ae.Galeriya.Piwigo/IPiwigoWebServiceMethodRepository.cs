@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.WebUtilities;
+﻿using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -11,7 +11,7 @@ namespace Ae.Galeriya.Piwigo
         IEnumerable<string> GetMethods();
         IPiwigoWebServiceMethod GetMethod(string methodName);
         Uri GetMethodUri(string methodName, IReadOnlyDictionary<string, IConvertible> parameters);
-        Task ExecuteMethod(IPiwigoWebServiceMethod method, IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, FileMultipartSection> fileParameters, CancellationToken token);
-        Task ExecuteMethod(string methodName, IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, FileMultipartSection> fileParameters, CancellationToken token);
+        Task ExecuteMethod(IPiwigoWebServiceMethod method, IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, IFormFile> fileParameters, CancellationToken token);
+        Task ExecuteMethod(string methodName, IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, IFormFile> fileParameters, CancellationToken token);
     }
 }

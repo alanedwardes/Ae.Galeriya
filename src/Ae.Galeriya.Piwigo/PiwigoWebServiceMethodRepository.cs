@@ -29,7 +29,7 @@ namespace Ae.Galeriya.Piwigo
             return new Uri($"/ws.php?method={methodName}&{string.Join("&", parameters.Select(x => $"{x.Key}={x.Value}"))}", UriKind.Relative);
         }
 
-        public async Task ExecuteMethod(IPiwigoWebServiceMethod method, IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, FileMultipartSection> fileParameters, CancellationToken token)
+        public async Task ExecuteMethod(IPiwigoWebServiceMethod method, IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, IFormFile> fileParameters, CancellationToken token)
         {
             var context = _serviceProvider.GetRequiredService<IHttpContextAccessor>().HttpContext;
 
@@ -96,6 +96,6 @@ namespace Ae.Galeriya.Piwigo
             await context.Response.CompleteAsync();
         }
 
-        public Task ExecuteMethod(string methodName, IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, FileMultipartSection> fileParameters, CancellationToken token) => ExecuteMethod(GetMethod(methodName), parameters, fileParameters, token);
+        public Task ExecuteMethod(string methodName, IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, IFormFile> fileParameters, CancellationToken token) => ExecuteMethod(GetMethod(methodName), parameters, fileParameters, token);
     }
 }

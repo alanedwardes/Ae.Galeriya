@@ -32,7 +32,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _piwigoConfiguration = piwigoConfiguration;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, FileMultipartSection> fileParameters, uint? userId, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, IFormFile> fileParameters, uint? userId, CancellationToken token)
         {
             using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
 
@@ -46,7 +46,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             using (var write = uploadedFile.OpenWrite())
             {
-                await file.FileStream.CopyToAsync(write, token);
+                await file.CopyToAsync(write, token);
             }
 
             var photo = await _photoCreator.CreatePhoto(context, _piwigoConfiguration.TemporaryBlobRepository(_serviceProvider), _piwigoConfiguration.PersistentBlobRepository(_serviceProvider), category, file.FileName, name, userId.Value, DateTimeOffset.UtcNow, uploadedFile, token);

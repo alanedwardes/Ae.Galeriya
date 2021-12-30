@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.AspNetCore.Http;
 
 namespace Ae.Galeriya.Piwigo.Methods
 {
@@ -23,7 +24,7 @@ namespace Ae.Galeriya.Piwigo.Methods
             _serviceProvider = serviceProvider;
         }
 
-        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, FileMultipartSection> fileParameters, uint? userId, CancellationToken token)
+        public async Task<object> Execute(IReadOnlyDictionary<string, IConvertible> parameters, IReadOnlyDictionary<string, IFormFile> fileParameters, uint? userId, CancellationToken token)
         {
             using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
 
