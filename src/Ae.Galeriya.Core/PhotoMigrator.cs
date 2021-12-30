@@ -125,6 +125,8 @@ namespace Ae.Galeriya.Core
                 return;
             }
 
+            photo = await context.Photos.SingleAsync(x => x.PhotoId == photo.PhotoId);
+
             _logger.LogInformation("Getting goecode response for image {PhotoId}", photo.PhotoId);
 
             var location = (photo.Latitude.Value, photo.Longitude.Value);
