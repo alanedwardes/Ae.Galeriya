@@ -9,6 +9,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
+using System.Threading;
 
 namespace Ae.Galeriya.Piwigo
 {
@@ -101,15 +102,24 @@ namespace Ae.Galeriya.Piwigo
 
             while (true)
             {
-                var sw = Stopwatch.StartNew();
-                var section = await reader.ReadNextSectionAsync(context.RequestAborted);
-                if (section == null)
+                var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                var ct = CancellationTokenSource.CreateLinkedTokenSource(timeout.Token, context.RequestAborted);
+
+                MultipartSection section;
+                try
                 {
-                    logger.LogInformation("Read null form section in {TotalSeconds}", sw.Elapsed.TotalSeconds);
-                    break;
+                    section = await reader.ReadNextSectionAsync(ct.Token);
+                }
+                catch (OperationCanceledException) when (timeout.IsCancellationRequested)
+                {
+                    logger.LogInformation("Timing out ReadNextSectionAsync since it took longer than 5 seconds");
+                    return;
                 }
 
-                logger.LogInformation("Read form section in {TotalSeconds}", sw.Elapsed.TotalSeconds);
+                if (section == null)
+                {
+                    return;
+                }
 
                 var disposition = section.GetContentDispositionHeader();
                 if (disposition.IsFormDisposition())
