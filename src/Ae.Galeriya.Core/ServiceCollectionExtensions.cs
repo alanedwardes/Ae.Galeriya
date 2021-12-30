@@ -12,6 +12,7 @@ namespace Ae.Galeriya.Core
             return services.AddDbContext<GaleriyaDbContext>(optionsAction, ServiceLifetime.Transient)
                 .AddTransient<IPhotoCreator, PhotoCreator>()
                 .AddSingleton<IPhotoMigrator, PhotoMigrator>()
+                .AddTransient<ITagRepository, TagRepository>()
                 .AddTransient<ICategoryPermissionsRepository, CategoryPermissionsRepository>()
                 .AddTransient<IMediaInfoExtractor, MediaInfoExtractor>()
                 .AddSingleton<IThumbnailGenerator, ThumbnailGenerator>();

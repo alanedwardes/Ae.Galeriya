@@ -5,11 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.IO;
-using System.Diagnostics;
-using Microsoft.AspNetCore.Http.Extensions;
-using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Net.Http.Headers;
-using System.Threading;
 
 namespace Ae.Galeriya.Piwigo
 {

@@ -1,6 +1,4 @@
 ﻿using Ae.Galeriya.Core.Tables;
-using Ae.Geocode.Google;
-using Ae.Geocode.Google.Entities;
 using Ae.MediaMetadata;
 using Ae.MediaMetadata.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -11,8 +9,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,17 +18,14 @@ namespace Ae.Galeriya.Core
     {
         private readonly ILogger<PhotoCreator> _logger;
         private readonly IMediaInfoExtractor _infoExtractor;
-        private readonly IGoogleGeocodeClient _geocodeClient;
         private readonly IPhotoMigrator _photoMigrator;
 
         public PhotoCreator(ILogger<PhotoCreator> logger,
             IMediaInfoExtractor infoExtractor,
-            IGoogleGeocodeClient geocodeClient,
             IPhotoMigrator photoMigrator)
         {
             _logger = logger;
             _infoExtractor = infoExtractor;
-            _geocodeClient = geocodeClient;
             _photoMigrator = photoMigrator;
         }
 
@@ -74,26 +67,6 @@ namespace Ae.Galeriya.Core
             }
         }
 
-        private async Task<GeocodeResponse?> LookupLocation(MediaInfo mediaInfo, CancellationToken token)
-        {
-            if (mediaInfo.Location == null)
-            {
-                return null;
-            }
-
-            var request = new GeocodeRequest((mediaInfo.Location.Latitude, mediaInfo.Location.Longitude));
-            return await _geocodeClient.ReverseGeoCode(request, token);
-        }
-
-        private static IReadOnlyList<AddressComponent> GetMostDescriptiveAddressComponents(GeocodeResponse response)
-        {
-            return response.GuessMajorLocationParts()
-                .Select(x => x.GetMostDescriptiveAddressComponent())
-                .Where(x => x != null && !string.IsNullOrWhiteSpace(x.LongName ?? x.ShortName))
-                .Select(x => x!)
-                .ToArray();
-        }
-
         public async Task<Photo> CreatePhoto(GaleriyaDbContext dbContext, IFileBlobRepository temporaryBlobRepository, IBlobRepository persistentBlobRepository, Category category, string fileName, string name, uint userId, DateTimeOffset creationDate, FileInfo uploadedFile, CancellationToken token)
         {
             var hash = await CalculateFileHash(uploadedFile, token);
@@ -105,19 +78,14 @@ namespace Ae.Galeriya.Core
                 return existingPhoto;
             }
 
-            var blobIdTask = persistentBlobRepository.PutBlob(uploadedFile.OpenRead(), hash, token);
+            var blobTask = persistentBlobRepository.PutBlob(uploadedFile.OpenRead(), hash, token);
             var mediaInfo = await _infoExtractor.ExtractInformation(uploadedFile, token);
-            var snapshotIdTask = mediaInfo.Duration.HasValue ? ExtractSnapshot(temporaryBlobRepository, persistentBlobRepository, uploadedFile, hash, token) : Task.FromResult<string?>(null);
-            var locationTask = LookupLocation(mediaInfo, token);
+            var snapshotId = await (mediaInfo.Duration.HasValue ? ExtractSnapshot(temporaryBlobRepository, persistentBlobRepository, uploadedFile, hash, token) : Task.FromResult<string?>(null));
 
             if (mediaInfo.Size.Width == 0 || mediaInfo.Size.Height == 0)
             {
                 throw new InvalidOperationException("Found zero-sized image");
             }
-
-            await blobIdTask;
-            var snapshotId = await snapshotIdTask;
-            var geocodeResponse = await locationTask;
 
             var fileExtension = Path.GetExtension(fileName)?.ToLower().TrimStart('.');
             if (string.IsNullOrWhiteSpace(fileExtension))
@@ -130,15 +98,8 @@ namespace Ae.Galeriya.Core
                 _logger.LogWarning("Unable to find creation time for {Hash}, using {CreationDate}", hash, creationDate);
             }
 
-            var metadata = new Dictionary<string, object>
-            {
-                { "media", mediaInfo }
-            };
-
-            if (geocodeResponse != null)
-            {
-                metadata.Add("geocode", geocodeResponse);
-            }
+            // Ensure the photo's blob is persisted
+            await blobTask;
 
             var photo = new Photo
             {
@@ -159,18 +120,11 @@ namespace Ae.Galeriya.Core
                 Latitude = mediaInfo.Location?.Latitude,
                 Longitude = mediaInfo.Location?.Longitude,
                 Categories = new List<Category> { category },
-                Metadata = JsonSerializer.Serialize(metadata, new JsonSerializerOptions
+                PhotoMetadataMarshaled = new PhotoMetadata
                 {
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-                    NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals
-                })
+                    MediaInfo = mediaInfo
+                }
             };
-
-            if (geocodeResponse != null)
-            {
-                var tagName = string.Join(", ", GetMostDescriptiveAddressComponents(geocodeResponse).Select(x => x.LongName));
-                photo.Tags.Add(await CreateTag(dbContext, userId, tagName, token));
-            }
 
             dbContext.Photos.Add(photo);
 
@@ -208,35 +162,6 @@ namespace Ae.Galeriya.Core
             {
                 // This is OK
             }
-        }
-
-        private async Task<Tag> CreateTag(GaleriyaDbContext dbContext, uint userId, string tagName, CancellationToken token)
-        {
-            var existingTag = await dbContext.Tags.SingleOrDefaultAsync(x => x.Name == tagName, token);
-            if (existingTag != null)
-            {
-                return existingTag;
-            }
-
-            Tag tag = new()
-            {
-                Name = tagName,
-                CreatedOn = DateTimeOffset.UtcNow,
-                CreatedById = userId
-            };
-            dbContext.Tags.Add(tag);
-
-            try
-            {
-                await dbContext.SaveChangesAsync(token);
-            }
-            catch (DbUpdateException)
-            {
-                dbContext.Tags.Remove(tag);
-                tag = await dbContext.Tags.SingleAsync(x => x.Name == tagName, token);
-            }
-
-            return tag;
         }
     }
 }

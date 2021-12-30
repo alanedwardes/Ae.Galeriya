@@ -4,9 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Ae.Galeriya.Core.Tables
 {
+
     [Index(nameof(BlobId), IsUnique = true)]
     public sealed class Photo
     {
@@ -17,8 +20,6 @@ namespace Ae.Galeriya.Core.Tables
         public string FileName { get; set; } = null!;
         [Required]
         public string BlobId { get; set; } = null!;
-        public string? ContentAverageHash { get; set; }
-        public string? ContentDifferenceHash { get; set; }
         public string? ContentPerceptualHash { get; set; }
         [Required]
         public ulong FileSize { get; set; }
@@ -36,6 +37,20 @@ namespace Ae.Galeriya.Core.Tables
         [Required]
         [Column(TypeName = "json")]
         public string Metadata { get; set; } = null!;
+
+        private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals
+        };
+
+        [NotMapped]
+        public PhotoMetadata PhotoMetadataMarshaled
+        {
+            get => JsonSerializer.Deserialize< PhotoMetadata>(Metadata, _serializerOptions);
+            set => Metadata = JsonSerializer.Serialize(value, _serializerOptions);
+        }
+
         public string? Comment { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }

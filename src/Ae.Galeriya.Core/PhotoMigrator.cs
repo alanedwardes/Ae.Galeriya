@@ -1,4 +1,5 @@
-﻿using CoenM.ImageHash.HashAlgorithms;
+﻿using Ae.Geocode.Google;
+using Ae.Geocode.Google.Entities;
 using ImageMagick;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,6 +36,7 @@ namespace Ae.Galeriya.Core
                 {
                     await MigrateThumbnail(photoRepository, tempRepository, token);
                     await MigrateContentHash(photoRepository, token);
+                    await MigrateGeocode(token);
                 }
                 finally
                 {
@@ -72,7 +75,7 @@ namespace Ae.Galeriya.Core
                 await photoRepository.PutBlob(readStream, thumbBlob, token);
             }
 
-            _logger.LogInformation("Adding thumbnail to image {ImageId}", photo.BlobId);
+            _logger.LogInformation("Adding thumbnail to photo {PhotoId}", photo.PhotoId);
             photo.HasThumbnail = true;
             await context.SaveChangesAsync(token);
         }
@@ -81,9 +84,7 @@ namespace Ae.Galeriya.Core
         {
             using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
 
-            var photo = await context.Photos.Where(x => (x.ContentAverageHash == null ||
-                                                        x.ContentDifferenceHash == null ||
-                                                        x.ContentPerceptualHash == null) && x.Duration == null)
+            var photo = await context.Photos.Where(x => x.ContentPerceptualHash == null && x.Duration == null)
                                             .OrderBy(X => X.PhotoId)
                                             .FirstOrDefaultAsync(token);
             if (photo == null)
@@ -95,12 +96,54 @@ namespace Ae.Galeriya.Core
 
             var image = await Image.LoadAsync<Rgba32>(blob);
 
-            photo.ContentAverageHash = new AverageHash().Hash(image).ToString("x2");
-            photo.ContentDifferenceHash = new DifferenceHash().Hash(image).ToString("x2");
             photo.ContentPerceptualHash = new CoenM.ImageHash.HashAlgorithms.PerceptualHash().Hash(image).ToString("x2");
 
-            _logger.LogInformation("Adding content hashes to image {ImageId}", photo.BlobId);
+            _logger.LogInformation("Adding content hashes to photo {PhotoId}", photo.PhotoId);
             await context.SaveChangesAsync(token);
+        }
+
+        private static IReadOnlyList<AddressComponent> GetMostDescriptiveAddressComponents(GeocodeResponse response)
+        {
+            return response.GuessMajorLocationParts()
+                .Select(x => x.GetMostDescriptiveAddressComponent())
+                .Where(x => x != null && !string.IsNullOrWhiteSpace(x.LongName ?? x.ShortName))
+                .Select(x => x!)
+                .ToArray();
+        }
+
+        private async Task MigrateGeocode(CancellationToken token)
+        {
+            var tagRepository = _serviceProvider.GetRequiredService<ITagRepository>();
+            var geocodeClient = _serviceProvider.GetRequiredService<IGoogleGeocodeClient>();
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+
+            var query = context.Photos.FromSqlRaw("SELECT * FROM `Photos` WHERE NOT JSON_CONTAINS_PATH(Metadata, 'all', '$.geocode') AND Latitude IS NOT NULL LIMIT 1");
+
+            var photo = await query.SingleOrDefaultAsync(token);
+            if (photo == null)
+            {
+                return;
+            }
+
+            _logger.LogInformation("Getting goecode response for image {PhotoId}", photo.PhotoId);
+
+            var location = (photo.Latitude.Value, photo.Longitude.Value);
+
+            var geocodeResponse = await geocodeClient.ReverseGeoCode(new GeocodeRequest(location), token);
+            if (geocodeResponse != null)
+            {
+                var tagName = string.Join(", ", GetMostDescriptiveAddressComponents(geocodeResponse).Select(x => x.LongName));
+                photo.Tags.Add(await tagRepository.CreateTag(context, photo.CreatedById, tagName, token));
+            }
+
+            var metadata = photo.PhotoMetadataMarshaled;
+            metadata.Geocode = geocodeResponse;
+            photo.PhotoMetadataMarshaled = metadata;
+
+            _logger.LogInformation("Adding goecode data to image {PhotoId}", photo.PhotoId);
+            await context.SaveChangesAsync(token);
+
+            await Task.Delay(TimeSpan.FromSeconds(1));
         }
     }
 }
