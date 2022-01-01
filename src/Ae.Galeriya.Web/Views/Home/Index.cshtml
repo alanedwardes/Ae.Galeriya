@@ -34,8 +34,8 @@
     <h2>Photos</h2>
     @foreach (var photo in Model.Photos)
     {
-        var size = CalculateAspectRatioFit(photo, 128, 128);
-        <a href="/photos/@photo.PhotoId/"><img class="photo" width="@size.Width" height="@size.Height" data-src="/thumbs/@(photo.PhotoId)-128-128-square" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX////MzMw46qqDAAAAEElEQVQImWNg+M+AFeEQBgB+vw/xfUUZkgAAAABJRU5ErkJggg==" loading="lazy"/></a>
+        var size = CalculateAspectRatioFit(photo, 256, 256);
+        <a href="/photos/@photo.PhotoId/"><img class="photo" width="@size.Width" height="@size.Height" data-src="/thumbs/@(photo.PhotoId)-512-512-square" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX////MzMw46qqDAAAAEElEQVQImWNg+M+AFeEQBgB+vw/xfUUZkgAAAABJRU5ErkJggg==" loading="lazy"/></a>
     }
     <div style="clear:both"></div>
 }
