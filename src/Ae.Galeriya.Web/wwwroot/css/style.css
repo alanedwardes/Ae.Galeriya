@@ -14,6 +14,12 @@
         color:white;
     }
 
+photos {
+    text-align:center;
+    font-size:0;
+    display:block;
+}
+
 photo {
     display: block;
     float: left;

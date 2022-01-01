@@ -11,7 +11,7 @@
     <nav class="navbar navbar-light bg-light">
         <a class="navbar-brand" href="@Url.Action("Index", "Admin")">Galeriya</a>
     </nav>
-    <div class="container">
+    <div class="@((ViewBag.FullWidth == true) ? "container-fluid" : "container")">
         @RenderBody()
     </div>
 </body>

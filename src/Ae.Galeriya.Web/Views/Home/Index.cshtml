@@ -1,7 +1,10 @@
 ﻿@using Ae.MediaMetadata.Entities
 @model Ae.Galeriya.Web.Models.HomeModel
+@{
+    ViewBag.FullWidth = true;
+}
 
-@if (Model.Categories != null)
+@if (Model.Categories.Any())
 {
     <h2>Categories</h2>
     @foreach (var category in Model.Categories)
@@ -14,7 +17,7 @@
     <div style="clear:both"></div>
 }
 
-@if (Model.Photos != null)
+@if (Model.Photos.Any())
 {
     (uint Width, uint Height) CalculateAspectRatioFit(Ae.Galeriya.Core.Tables.Photo photo, uint maxWidth, uint maxHeight)
     {
@@ -32,11 +35,13 @@
     }
 
     <h2>Photos</h2>
+    <photos>
     @foreach (var photo in Model.Photos)
     {
         var size = CalculateAspectRatioFit(photo, 256, 256);
         <a href="/photos/@photo.PhotoId/"><img class="photo" width="@size.Width" height="@size.Height" data-src="/thumbs/@(photo.PhotoId)-512-512-square" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX////MzMw46qqDAAAAEElEQVQImWNg+M+AFeEQBgB+vw/xfUUZkgAAAABJRU5ErkJggg==" loading="lazy"/></a>
     }
+    </photos>
     <div style="clear:both"></div>
 }
 
