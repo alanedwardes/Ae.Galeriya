@@ -6,5 +6,6 @@ namespace Ae.Galeriya.Web.Models
     public sealed class HomeModel
     {
         public IReadOnlyCollection<Category> Categories { get; set; }
+        public IReadOnlyCollection<Photo> Photos { get; set; }
     }
 }

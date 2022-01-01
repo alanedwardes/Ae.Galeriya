@@ -1,10 +1,58 @@
-﻿@model Ae.Galeriya.Web.Models.HomeModel
+﻿@using Ae.MediaMetadata.Entities
+@model Ae.Galeriya.Web.Models.HomeModel
 
-<h2>Categories</h2>
-
-@foreach (var category in Model.Categories)
+@if (Model.Categories != null)
 {
-    <p>@category.Name - @category.Photos.Count photos</p>
+    <h2>Categories</h2>
+    @foreach (var category in Model.Categories)
+    {
+        var coverPhoto = category.CoverPhoto ?? category.Photos.FirstOrDefault();
+        <category style="background-image:url(/thumbs/@(coverPhoto?.PhotoId)-128-128-square)">
+            <a href="/categories/@category.CategoryId/">@category.Name - @category.Photos.Count photos</a>
+        </category>
+    }
+    <div style="clear:both"></div>
 }
 
-<h2>Tags</h2>
+@if (Model.Photos != null)
+{
+    (uint Width, uint Height) CalculateAspectRatioFit(Ae.Galeriya.Core.Tables.Photo photo, uint maxWidth, uint maxHeight)
+    {
+        uint width = photo.Width;
+        uint height = photo.Height;
+
+        if (new[] { MediaOrientation.LeftTop, MediaOrientation.RightTop, MediaOrientation.RightBottom, MediaOrientation.LeftBottom }.Contains(photo.Orientation))
+        {
+            width = photo.Height;
+            height = photo.Width;
+        }
+
+        var ratio = Math.Min(maxWidth / (double)width, maxHeight / (double)height);
+        return ((uint)Math.Round(width * ratio), (uint)Math.Round(height * ratio));
+    }
+
+    <h2>Photos</h2>
+    @foreach (var photo in Model.Photos)
+    {
+        var size = CalculateAspectRatioFit(photo, 128, 128);
+        <a href="/photos/@photo.PhotoId/"><img class="photo" width="@size.Width" height="@size.Height" data-src="/thumbs/@(photo.PhotoId)-128-128-square" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEX////MzMw46qqDAAAAEElEQVQImWNg+M+AFeEQBgB+vw/xfUUZkgAAAABJRU5ErkJggg==" loading="lazy"/></a>
+    }
+    <div style="clear:both"></div>
+}
+
+<script>
+    let observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                if (entry.target.getAttribute('src').startsWith('data')) {
+                    let thumbnail = entry.target.getAttribute('data-src');
+                    console.log("Loading " + thumbnail);
+                    entry.target.setAttribute('src', thumbnail);
+                }
+            }
+        });
+    });
+    Array.from(document.querySelectorAll('.photo')).forEach(element => {
+        observer.observe(element);
+    });
+</script>

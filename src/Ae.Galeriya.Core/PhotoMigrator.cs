@@ -1,5 +1,6 @@
 ﻿using Ae.Geocode.Google;
 using Ae.Geocode.Google.Entities;
+using Ae.MediaMetadata;
 using ImageMagick;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +9,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,6 +30,9 @@ namespace Ae.Galeriya.Core
 
         public async Task MigratePhotos(IBlobRepository photoRepository, IFileBlobRepository tempRepository, CancellationToken token)
         {
+            await MigrateVideosTemp(photoRepository, token);
+            return;
+
             while (true)
             {
                 await _semaphore.WaitAsync(token);
@@ -43,6 +48,31 @@ namespace Ae.Galeriya.Core
                     _semaphore.Release();
                 }
             }
+        }
+
+        private async Task MigrateVideosTemp(IBlobRepository photoRepository, CancellationToken token)
+        {
+            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
+            var mediaExtractor = _serviceProvider.GetRequiredService<IMediaInfoExtractor>();
+
+            var photos = await context.Photos.Where(x => x.Duration.HasValue)
+                                            .OrderBy(X => X.PhotoId)
+                                            .ToArrayAsync(token);
+            foreach (var photo in photos)
+            {
+                using var blob = await photoRepository.GetBlob(photo.BlobId, token);
+
+                var fs = blob as FileStream;
+
+                var mediaInfo = await mediaExtractor.ExtractInformation(new FileInfo(fs.Name), token);
+                var metadata = photo.PhotoMetadataMarshaled;
+                metadata.MediaInfo = mediaInfo;
+                photo.PhotoMetadataMarshaled = metadata;
+
+                _logger.LogInformation("Recalculated metadata for {PhotoId}", photo.BlobId);
+            }
+
+            await context.SaveChangesAsync(token);
         }
 
         private async Task MigrateThumbnail(IBlobRepository photoRepository, IFileBlobRepository tempRepository, CancellationToken token)
