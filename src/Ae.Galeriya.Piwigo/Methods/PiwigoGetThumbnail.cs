@@ -1,6 +1,7 @@
 ﻿using Ae.Galeriya.Core;
 using Ae.Galeriya.Core.Exceptions;
 using Ae.Galeriya.Core.Tables;
+using Ae.MediaMetadata.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
@@ -69,7 +70,13 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             var cacheBlobFileInfo = thumbnailBlobRepository.GetFileInfoForBlob(cacheBlobId);
 
-            await _thumbnailGenerator.GenerateThumbnail(stream, cacheBlobFileInfo, photo.Orientation, width, height, token);
+            var orientation = MediaOrientation.Unknown;
+            if (photo.Duration == null)
+            {
+                orientation = photo.Orientation;
+            }
+
+            await _thumbnailGenerator.GenerateThumbnail(stream, cacheBlobFileInfo, orientation, width, height, token);
 
             using (var thumbnail = cacheBlobFileInfo.OpenRead())
             {
