@@ -56,6 +56,7 @@ namespace Ae.Galeriya.Web.Controllers
 
             var photos = await _categoryPermissions.GetAccessiblePhotos(context, user.Id)
                 .Where(x => x.Categories.Select(x => x.CategoryId).Contains(categoryId))
+                .OrderByDescending(x => x.TakenOn ?? x.FileCreatedOn)
                 .ToArrayAsync(token);
 
             return View("Index", new HomeModel
