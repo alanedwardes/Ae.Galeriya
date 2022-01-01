@@ -68,11 +68,11 @@ namespace Ae.Galeriya.Core
                 var metadata = photo.PhotoMetadataMarshaled;
                 metadata.MediaInfo = mediaInfo;
                 photo.PhotoMetadataMarshaled = metadata;
+                photo.Orientation = metadata.MediaInfo.Orientation ?? MediaMetadata.Entities.MediaOrientation.Unknown;
 
-                _logger.LogInformation("Recalculated metadata for {PhotoId}", photo.BlobId);
+                _logger.LogInformation("Recalculated metadata for {PhotoId}", photo.PhotoId);
+                await context.SaveChangesAsync(token);
             }
-
-            await context.SaveChangesAsync(token);
         }
 
         private async Task MigrateThumbnail(IBlobRepository photoRepository, IFileBlobRepository tempRepository, CancellationToken token)
