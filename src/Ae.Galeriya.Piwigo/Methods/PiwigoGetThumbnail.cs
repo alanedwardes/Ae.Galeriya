@@ -69,7 +69,7 @@ namespace Ae.Galeriya.Piwigo.Methods
 
             var cacheBlobFileInfo = thumbnailBlobRepository.GetFileInfoForBlob(cacheBlobId);
 
-            await _thumbnailGenerator.GenerateThumbnail(stream, cacheBlobFileInfo, photo.Orientation, width, height, token);
+            await _thumbnailGenerator.GenerateThumbnail(stream, cacheBlobFileInfo, photo.Duration == null ? MediaMetadata.Entities.MediaOrientation.Unknown : photo.Orientation, width, height, token);
 
             using (var thumbnail = cacheBlobFileInfo.OpenRead())
             {

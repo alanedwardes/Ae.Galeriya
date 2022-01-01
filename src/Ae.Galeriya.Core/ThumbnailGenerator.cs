@@ -51,7 +51,7 @@ namespace Ae.Galeriya.Core
         {
             using MagickImage image = CreateImage(stream);
             image.Format = MagickFormat.Jpeg;
-            image.Quality = 50;
+            image.Quality = 75;
             image.Strip();
             image.Resize(width, height);
             _orientationActions[orientation]?.Invoke(image);
