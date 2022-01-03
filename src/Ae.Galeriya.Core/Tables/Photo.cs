@@ -51,6 +51,9 @@ namespace Ae.Galeriya.Core.Tables
             set => Metadata = JsonSerializer.Serialize(value, _serializerOptions);
         }
 
+        public byte? ColourR { get; set; }
+        public byte? ColourG { get; set; }
+        public byte? ColourB { get; set; }
         public string? Comment { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }

@@ -94,10 +94,10 @@ namespace Ae.Galeriya.Console
         public static ILoggingBuilder AddCommonLogging(this ILoggingBuilder builder)
         {
             return builder
-                .AddFilter("Microsoft.EntityFrameworkCore.Infrastructure", LogLevel.Warning)
-                .AddFilter("Microsoft.EntityFrameworkCore.Query", LogLevel.Warning)
-                .AddFilter("Microsoft.EntityFrameworkCore.Update", LogLevel.Warning)
-                .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning)
+                //.AddFilter("Microsoft.EntityFrameworkCore.Infrastructure", LogLevel.Warning)
+                //.AddFilter("Microsoft.EntityFrameworkCore.Query", LogLevel.Warning)
+                //.AddFilter("Microsoft.EntityFrameworkCore.Update", LogLevel.Warning)
+                //.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning)
                 .AddConsole(x => x.IncludeScopes = true);
         }
     }

@@ -30,18 +30,23 @@ namespace Ae.Galeriya.Core
 
         public async Task MigratePhotos(IBlobRepository photoRepository, IFileBlobRepository tempRepository, CancellationToken token)
         {
-            await MigrateVideosTemp(photoRepository, token);
-            return;
-
             while (true)
             {
                 await _semaphore.WaitAsync(token);
 
                 try
                 {
-                    await MigrateThumbnail(photoRepository, tempRepository, token);
-                    await MigrateContentHash(photoRepository, token);
-                    await MigrateGeocode(token);
+                    var results = new bool[]
+                    {
+                        await MigrateThumbnail(photoRepository, tempRepository, token),
+                        await MigrateContentHash(photoRepository, token),
+                        await MigrateGeocode(token)
+                    };
+
+                    if (results.All(x => x == false))
+                    {
+                        break;
+                    }
                 }
                 finally
                 {
@@ -50,32 +55,7 @@ namespace Ae.Galeriya.Core
             }
         }
 
-        private async Task MigrateVideosTemp(IBlobRepository photoRepository, CancellationToken token)
-        {
-            using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
-            var mediaExtractor = _serviceProvider.GetRequiredService<IMediaInfoExtractor>();
-
-            var photos = await context.Photos.Where(x => x.Duration.HasValue)
-                                            .OrderBy(X => X.PhotoId)
-                                            .ToArrayAsync(token);
-            foreach (var photo in photos)
-            {
-                using var blob = await photoRepository.GetBlob(photo.BlobId, token);
-
-                var fs = blob as FileStream;
-
-                var mediaInfo = await mediaExtractor.ExtractInformation(new FileInfo(fs.Name), token);
-                var metadata = photo.PhotoMetadataMarshaled;
-                metadata.MediaInfo = mediaInfo;
-                photo.PhotoMetadataMarshaled = metadata;
-                photo.Orientation = metadata.MediaInfo.Orientation ?? MediaMetadata.Entities.MediaOrientation.Unknown;
-
-                _logger.LogInformation("Recalculated metadata for {PhotoId}", photo.PhotoId);
-                await context.SaveChangesAsync(token);
-            }
-        }
-
-        private async Task MigrateThumbnail(IBlobRepository photoRepository, IFileBlobRepository tempRepository, CancellationToken token)
+        private async Task<bool> MigrateThumbnail(IBlobRepository photoRepository, IFileBlobRepository tempRepository, CancellationToken token)
         {
             using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
 
@@ -84,7 +64,7 @@ namespace Ae.Galeriya.Core
                                             .FirstOrDefaultAsync(token);
             if (photo == null)
             {
-                return;
+                return false;
             }
 
             using var blob = await photoRepository.GetBlob(photo.BlobId, token);
@@ -108,28 +88,42 @@ namespace Ae.Galeriya.Core
             _logger.LogInformation("Adding thumbnail to photo {PhotoId}", photo.PhotoId);
             photo.HasThumbnail = true;
             await context.SaveChangesAsync(token);
+            return true;
         }
 
-        private async Task MigrateContentHash(IBlobRepository photoRepository, CancellationToken token)
+        private async Task<bool> MigrateContentHash(IBlobRepository photoRepository, CancellationToken token)
         {
+            var extractor = _serviceProvider.GetRequiredService<IMediaInfoExtractor>();
             using var context = _serviceProvider.GetRequiredService<GaleriyaDbContext>();
 
-            var photo = await context.Photos.Where(x => x.ContentPerceptualHash == null && x.Duration == null)
-                                            .OrderBy(X => X.PhotoId)
+            var photo = await context.Photos.Where(x => (x.ContentPerceptualHash == null || (x.ColourR == null || x.ColourG == null || x.ColourB == null)) && x.Duration == null)
+                                            .OrderBy(x => x.PhotoId)
                                             .FirstOrDefaultAsync(token);
             if (photo == null)
             {
-                return;
+                return false;
             }
 
             using var blob = await photoRepository.GetBlob(photo.BlobId, token);
 
             var image = await Image.LoadAsync<Rgba32>(blob);
+            var color = extractor.ExtractColor(image);
 
-            photo.ContentPerceptualHash = new CoenM.ImageHash.HashAlgorithms.PerceptualHash().Hash(image).ToString("x2");
+            if (photo.ContentPerceptualHash == null)
+            {
+                photo.ContentPerceptualHash = new CoenM.ImageHash.HashAlgorithms.PerceptualHash().Hash(image).ToString("x2");
+            }
 
-            _logger.LogInformation("Adding content hashes to photo {PhotoId}", photo.PhotoId);
+            if (photo.ColourR == null || photo.ColourG == null || photo.ColourB == null)
+            {
+                photo.ColourR = color.R;
+                photo.ColourG = color.G;
+                photo.ColourB = color.B;
+            }
+
+            _logger.LogInformation("Adding colours and content hashes to photo {PhotoId}", photo.PhotoId);
             await context.SaveChangesAsync(token);
+            return true;
         }
 
         private static IReadOnlyList<AddressComponent> GetMostDescriptiveAddressComponents(GeocodeResponse response)
@@ -141,7 +135,7 @@ namespace Ae.Galeriya.Core
                 .ToArray();
         }
 
-        private async Task MigrateGeocode(CancellationToken token)
+        private async Task<bool> MigrateGeocode(CancellationToken token)
         {
             var tagRepository = _serviceProvider.GetRequiredService<ITagRepository>();
             var geocodeClient = _serviceProvider.GetRequiredService<IGoogleGeocodeClient>();
@@ -152,7 +146,7 @@ namespace Ae.Galeriya.Core
             var photo = await query.SingleOrDefaultAsync(token);
             if (photo == null)
             {
-                return;
+                return false;
             }
 
             photo = await context.Photos.Include(x => x.Tags).SingleAsync(x => x.PhotoId == photo.PhotoId);
@@ -174,8 +168,7 @@ namespace Ae.Galeriya.Core
 
             _logger.LogInformation("Adding goecode data to image {PhotoId}", photo.PhotoId);
             await context.SaveChangesAsync(token);
-
-            await Task.Delay(TimeSpan.FromSeconds(1));
+            return true;
         }
     }
 }
