@@ -21,7 +21,7 @@ namespace Ae.Galeriya.Piwigo
             _derivativesGenerator = derivativesGenerator;
         }
 
-        public async Task<PiwigoImages> CreatePage(int? page, int? perPage, IQueryable<Photo> query, CancellationToken token)
+        public async Task<PiwigoImages> CreatePage(int? page, int? perPage, IQueryable<PhotoSummary> query, CancellationToken token)
         {
             var photoPage = page ?? 0;
             var photosPerPage = Math.Clamp(perPage ?? 0, 1_000, 10_000);

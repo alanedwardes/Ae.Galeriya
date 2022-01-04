@@ -19,7 +19,7 @@
 
 @if (Model.Photos.Any())
 {
-    (uint Width, uint Height) CalculateAspectRatioFit(Ae.Galeriya.Core.Tables.Photo photo, uint maxWidth, uint maxHeight)
+    (uint Width, uint Height) CalculateAspectRatioFit(Ae.Galeriya.Core.Tables.PhotoSummary photo, uint maxWidth, uint maxHeight)
     {
         uint width = photo.Width;
         uint height = photo.Height;

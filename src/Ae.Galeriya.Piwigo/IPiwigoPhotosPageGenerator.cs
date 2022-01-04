@@ -8,6 +8,6 @@ namespace Ae.Galeriya.Piwigo
 {
     internal interface IPiwigoPhotosPageGenerator
     {
-        Task<PiwigoImages> CreatePage(int? page, int? perPage, IQueryable<Photo> query, CancellationToken token);
+        Task<PiwigoImages> CreatePage(int? page, int? perPage, IQueryable<PhotoSummary> query, CancellationToken token);
     }
 }

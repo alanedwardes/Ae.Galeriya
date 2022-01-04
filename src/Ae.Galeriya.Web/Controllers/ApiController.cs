@@ -117,9 +117,9 @@ namespace Ae.Galeriya.Web.Controllers
 
                 foreach (var photo in photos.Where(x => group.Value.Contains(x.BlobId)))
                 {
-                    if (!category.Photos.Contains(photo))
+                    if (!category.Photos.Select(x => x.PhotoId).Contains(photo.PhotoId))
                     {
-                        category.Photos.Add(photo);
+                        //category.Photos.Add(photo);
                     }
                 }
             }

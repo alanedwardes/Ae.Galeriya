@@ -9,6 +9,30 @@ using System.Text.Json.Serialization;
 
 namespace Ae.Galeriya.Core.Tables
 {
+    public class PhotoSummary
+    {
+        public uint PhotoId { get; set; }
+        public string FileName { get; set; } = null!;
+        public string BlobId { get; set; } = null!;
+        public uint Width { get; set; }
+        public uint Height { get; set; }
+        public string Name { get; set; } = null!;
+        public string Extension { get; set; } = null!;
+        public MediaOrientation Orientation { get; set; }
+
+        public byte? ColourR { get; set; }
+        public byte? ColourG { get; set; }
+        public byte? ColourB { get; set; }
+        public string? Comment { get; set; }
+        public float? Duration { get; set; }
+        public bool HasThumbnail { get; set; }
+        public DateTimeOffset? TakenOn { get; set; }
+        public DateTimeOffset FileCreatedOn { get; set; }
+        public DateTimeOffset CreatedOn { get; set; }
+        public ICollection<Category> Categories { get; set; } = new List<Category>();
+        public ICollection<Tag> Tags { get; set; } = new List<Tag>();
+    }
+
 
     [Index(nameof(BlobId), IsUnique = true)]
     public sealed class Photo

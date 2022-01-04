@@ -10,6 +10,6 @@ namespace Ae.Galeriya.Core
         Task<Photo> EnsureCanAccessPhoto(GaleriyaDbContext dbContext, uint userId, uint photoId, CancellationToken token);
         Task<Category> EnsureCanAccessCategory(GaleriyaDbContext dbContext, uint userId, uint categoryId, CancellationToken token);
         IQueryable<Category> GetAccessibleCategories(GaleriyaDbContext dbContext, uint userId);
-        IQueryable<Photo> GetAccessiblePhotos(GaleriyaDbContext dbContext, uint userId);
+        IQueryable<PhotoSummary> GetAccessiblePhotos(GaleriyaDbContext dbContext, uint userId);
     }
 }
